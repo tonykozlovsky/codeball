@@ -39,7 +39,7 @@ struct Simulator {
       return {x / norm, y / norm, z / norm};
     }
     double dot(const Point& other) const {
-      return {x * other.x + y * other.y + z * other.z};
+      return x * other.x + y * other.y + z * other.z;
     }
     Point clamp(const double ub) const {
       if (length_sq() > ub * ub) {
@@ -85,7 +85,7 @@ struct Simulator {
       return {x / norm, y / norm};
     }
     double dot(const Point2d& other) const {
-      return {x * other.x + y * other.y};
+      return x * other.x + y * other.y;
     }
     Point2d clamp(const double ub) const {
       if (length_sq() > ub * ub) {
@@ -115,6 +115,8 @@ struct Simulator {
     double mass;
 
     double radius_change_speed;
+
+    std::vector<Point> trace;
 
     Entity() {}
 
@@ -164,6 +166,7 @@ struct Simulator {
       robots.push_back(Entity(robot));
     }
     ball = Entity(_ball);
+    update_trace();
   }
 
   double length(const Point& p) {
@@ -235,13 +238,18 @@ struct Simulator {
   }
 
   void update(const double delta_time) {
+    Helper::t[0].start();
     for (auto& robot : robots) {
       if (robot.touch) {
+        Helper::t[5].start();
         Point target_velocity = clamp(
             robot.action.target_velocity,
             Helper::ROBOT_MAX_GROUND_SPEED);
-        target_velocity -= robot.touch_normal
-            * dot(robot.touch_normal, target_velocity);
+        Helper::t[5].cur(true, true);
+        Helper::t[9].start();
+        target_velocity -= robot.touch_normal * robot.touch_normal.dot(target_velocity);
+        Helper::t[9].cur(true, true);
+        Helper::t[8].start();
         Point target_velocity_change = target_velocity - robot.velocity;
         if (length(target_velocity_change) > 0) {
           double acceleration = Helper::ROBOT_ACCELERATION * fmax(0., robot.touch_normal.y);
@@ -249,20 +257,31 @@ struct Simulator {
               normalize(target_velocity_change) * acceleration * delta_time,
               length(target_velocity_change));
         }
+        Helper::t[8].cur(true, true);
       }
+      Helper::t[6].start();
       move(robot, delta_time);
+      Helper::t[6].cur(true, true);
+      Helper::t[7].start();
       robot.radius = Helper::ROBOT_MIN_RADIUS
           + (Helper::ROBOT_MAX_RADIUS - Helper::ROBOT_MIN_RADIUS)
               * robot.action.jump_speed / Helper::ROBOT_MAX_JUMP_SPEED;
       robot.radius_change_speed = robot.action.jump_speed;
+      Helper::t[7].cur(true, true);
     }
+    Helper::t[0].cur(true, true);
+    Helper::t[1].start();
     move(ball, delta_time);
+    Helper::t[1].cur(true, true);
+    Helper::t[2].start();
     for (int i = 0; i < robots.size(); i++) {
       for (int j = 0; j < i; j++) {
         collide_entities(robots[i], robots[j]);
       }
     }
+    Helper::t[2].cur(true, true);
     Point collision_normal;
+    Helper::t[3].start();
     for (auto& robot : robots) {
       collide_entities(robot, ball);
       if (!collide_with_arena(robot, collision_normal)) {
@@ -272,10 +291,21 @@ struct Simulator {
         robot.touch_normal = collision_normal;
       }
     }
+    Helper::t[3].cur(true, true);
+    Helper::t[4].start();
     collide_with_arena(ball, collision_normal);
+    Helper::t[4].cur(true, true);
     if (abs(ball.position.z) > Helper::arena.depth / 2 + ball.radius) {
       goal_scored();
     }
+  }
+
+  void update_trace() {
+    return;
+    for (auto& robot : robots) {
+      robot.trace.push_back(robot.position);
+    }
+    ball.trace.push_back(ball.position);
   }
 
   void tick() {
@@ -283,6 +313,7 @@ struct Simulator {
     for (int i = 0; i < Helper::MICROTICKS_PER_TICK; i++) {
       update(delta_time / Helper::MICROTICKS_PER_TICK);
     }
+    update_trace();
   }
 
   void goal_scored() {

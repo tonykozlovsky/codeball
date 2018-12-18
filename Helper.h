@@ -8,6 +8,7 @@
 #include <model/Game.h>
 #include <model/Player.h>
 #include <model/Ball.h>
+#include <MyTimer.h>
 
 #include <map>
 
@@ -37,6 +38,8 @@ struct Helper {
     return actions[current_id];
   }
 
+  static MyTimer t[100];
+
   static constexpr double ROBOT_MIN_RADIUS = 1;
   static constexpr double ROBOT_MAX_RADIUS = 1.05;
   static constexpr double ROBOT_MAX_JUMP_SPEED = 15;
@@ -47,7 +50,7 @@ struct Helper {
   static constexpr double ROBOT_RADIUS = 1;
   static constexpr double ROBOT_MASS = 2;
   static constexpr double TICKS_PER_SECOND = 60;
-  static constexpr double MICROTICKS_PER_TICK = 100;
+  static constexpr double MICROTICKS_PER_TICK = 1;
   static constexpr double RESET_TICKS = 2 * TICKS_PER_SECOND;
   static constexpr double BALL_ARENA_E = 0.7;
   static constexpr double BALL_RADIUS = 2;
