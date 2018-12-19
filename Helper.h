@@ -1,6 +1,8 @@
 #ifndef CODEBALL_HELPER_H
 #define CODEBALL_HELPER_H
 
+#ifdef LOCAL
+
 #include <model/Arena.h>
 #include <model/Action.h>
 #include <model/Robot.h>
@@ -9,6 +11,20 @@
 #include <model/Player.h>
 #include <model/Ball.h>
 #include <MyTimer.h>
+
+#else
+
+#include "model/Arena.h"
+#include "model/Action.h"
+#include "model/Robot.h"
+#include "model/Rules.h"
+#include "model/Game.h"
+#include "model/Player.h"
+#include "model/Ball.h"
+#include "MyTimer.h"
+
+#endif
+
 
 #include <map>
 

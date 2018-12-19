@@ -1,4 +1,13 @@
+#ifdef LOCAL
+
 #include <Helper.h>
+
+#else
+
+#include "Helper.h"
+
+#endif
+
 
 model::Game Helper::game;
 model::Arena Helper::arena;

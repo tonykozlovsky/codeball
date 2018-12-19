@@ -1,14 +1,24 @@
-#include "MyStrategy.h"
+#ifdef LOCAL
 
 #include <RewindClient/RewindClient.h>
 #include <Simulator.h>
 #include <MyTimer.h>
+#include <MyStrategy.h>
+
+#else
+
+#include "Simulator.h"
+#include "MyTimer.h"
+#include "MyStrategy.h"
+
+#endif
 
 #include <iostream>
 #include <iomanip>
 
 MyStrategy::MyStrategy() {}
 
+#ifdef LOCAL
 void drawArena() {
   auto& draw = RewindClient::instance();
   //walls
@@ -142,13 +152,18 @@ void drawArena() {
       Helper::arena.depth / 2 + Helper::arena.goal_depth);
 
 }
+#endif
 
 void doStrategy() {
+
+#ifdef LOCAL
   auto& draw = RewindClient::instance();
   drawArena();
+#endif
 
   Simulator simulator(Helper::game.robots, Helper::game.ball);
 
+#ifdef LOCAL
   for (auto& robot : simulator.robots) {
     draw.circle3d(
         robot.position.x,
@@ -162,13 +177,53 @@ void doStrategy() {
       simulator.ball.position.z,
       simulator.ball.radius);
 
-  Helper::t[0].start();
-  for (int i = 0; i < 100; i++) {
-    simulator.tick();
-  }
-  Helper::t[0].cur(true, true);
+#endif
+  Helper::t[10].start();
+  simulator.tick();
+  Helper::t[10].cur(true, true);
 
-  RewindClient::instance().message("Time: ", Helper::t[0].avg());
+  /*Helper::t[0].cur(false, true);
+  Helper::t[1].cur(false, true);
+  Helper::t[2].cur(false, true);
+  Helper::t[3].cur(false, true);
+  Helper::t[4].cur(false, true);
+  Helper::t[5].cur(false, true);
+  Helper::t[6].cur(false, true);
+  Helper::t[7].cur(false, true);
+  Helper::t[8].cur(false, true);
+  Helper::t[9].cur(false, true);
+  Helper::t[10].cur(false, true);*/
+
+  /*std::cout << std::fixed << std::setprecision(6) << "t0: " << Helper::t[0].avg() * 1000000 <<
+  std::endl;
+  std::cout << std::fixed << std::setprecision(6) << "t1: " << Helper::t[1].avg() * 1000000 << std::endl;
+  std::cout << std::fixed << std::setprecision(6) << "t2: " << Helper::t[2].avg() * 1000000 << std::endl;
+  std::cout << std::fixed << std::setprecision(6) << "t3: " << Helper::t[3].avg() * 1000000 << std::endl;
+  std::cout << std::fixed << std::setprecision(6) << "t4: " << Helper::t[4].avg() * 1000000 << std::endl;
+  std::cout << std::fixed << std::setprecision(6) << "t5: " << Helper::t[5].avg() * 1000000 << std::endl;
+  std::cout << std::fixed << std::setprecision(6) << "t6: " << Helper::t[6].avg() * 1000000 << std::endl;
+  std::cout << std::fixed << std::setprecision(6) << "t7: " << Helper::t[7].avg() * 1000000 << std::endl;
+  std::cout << std::fixed << std::setprecision(6) << "t8: " << Helper::t[8].avg() * 1000000 << std::endl;
+  std::cout << std::fixed << std::setprecision(6) << "t9: " << Helper::t[9].avg() * 1000000 << std::endl;
+  */
+  if (Helper::tick == 17500) {
+  std::cout << std::fixed << std::setprecision(6) << "t10: " << Helper::t[10].avg() * 1000
+            << std::endl;
+  std::cout << std::endl;
+}
+
+#ifdef LOCAL
+  draw.message("Time0: ", Helper::t[0].avg() * 1000);
+  draw.message("Time1: ", Helper::t[1].avg() * 1000);
+  draw.message("Time2: ", Helper::t[2].avg() * 1000);
+  draw.message("Time3: ", Helper::t[3].avg() * 1000);
+  draw.message("Time4: ", Helper::t[4].avg() * 1000);
+  draw.message("Time5: ", Helper::t[5].avg() * 1000);
+  draw.message("Time6: ", Helper::t[6].avg() * 1000);
+  draw.message("Time7: ", Helper::t[7].avg() * 1000);
+  draw.message("Time8: ", Helper::t[8].avg() * 1000);
+  draw.message("Time9: ", Helper::t[9].avg() * 1000);
+  draw.message("Time10: ", Helper::t[10].avg());
 
   for (auto& robot : simulator.robots) {
     for (int i = 1; i < robot.trace.size(); i += 1) {
@@ -192,6 +247,8 @@ void doStrategy() {
   }
 
   draw.end_frame();
+#endif
+
 }
 
 void MyStrategy::act(

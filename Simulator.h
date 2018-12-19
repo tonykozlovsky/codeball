@@ -1,10 +1,18 @@
 #ifndef CODEBALL_SIMULATOR_H
 #define CODEBALL_SIMULATOR_H
 
-#include <math.h>
-#include <algorithm>
+#ifdef LOCAL
 
 #include <Helper.h>
+
+#else
+
+#include "Helper.h"
+
+#endif
+
+#include <math.h>
+#include <algorithm>
 
 struct Simulator {
 
