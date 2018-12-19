@@ -162,9 +162,13 @@ void doStrategy() {
       simulator.ball.position.z,
       simulator.ball.radius);
 
-  for (int i = 0; i < 1000; i++) {
+  Helper::t[0].start();
+  for (int i = 0; i < 100; i++) {
     simulator.tick();
   }
+  Helper::t[0].cur(true, true);
+
+  RewindClient::instance().message("Time: ", Helper::t[0].avg());
 
   for (auto& robot : simulator.robots) {
     for (int i = 1; i < robot.trace.size(); i += 1) {
