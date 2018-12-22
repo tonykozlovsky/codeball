@@ -27,10 +27,10 @@ namespace model {
         rapidjson::Value to_json(rapidjson::Document::AllocatorType& allocator) const {
             rapidjson::Value json;
             json.SetObject();
-            json.AddMember("target_velocity_x", target_velocity_x, allocator);
-            json.AddMember("target_velocity_y", target_velocity_y, allocator);
-            json.AddMember("target_velocity_z", target_velocity_z, allocator);
-            json.AddMember("jump_speed", jump_speed, allocator);
+            json.AddMember("target_velocity_x", (double)target_velocity_x, allocator);
+            json.AddMember("target_velocity_y", (double)target_velocity_y, allocator);
+            json.AddMember("target_velocity_z", (double)target_velocity_z, allocator);
+            json.AddMember("jump_speed", (double)jump_speed, allocator);
             json.AddMember("use_nitro", use_nitro, allocator);
             return json;
         }

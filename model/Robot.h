@@ -5,7 +5,6 @@
 #ifndef _MODEL_ROBOT_H_
 #define _MODEL_ROBOT_H_
 
-#include <optional>
 #include "../rapidjson/document.h"
 
 namespace model {

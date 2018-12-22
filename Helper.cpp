@@ -10,10 +10,11 @@
 
 
 model::Game Helper::game;
-model::Arena Helper::arena;
 
 int Helper::tick = -1;
-std::map<int, model::Action> Helper::actions;
-int Helper::current_id;
+model::Action Helper::actions[3];
+int Helper::global_id;
+int Helper::id;
+Plan Helper::best_plan;
 
 MyTimer Helper::t[100];

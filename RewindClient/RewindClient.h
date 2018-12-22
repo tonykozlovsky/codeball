@@ -94,7 +94,7 @@ class RewindClient {
                 double r,
                 uint32_t color = 0, size_t layer = DEFAULT_LAYER) {
 
-    const int segments = 20;
+    const int segments = 100;
     const double angle_segment = 2 * M_PI / segments;
     for (int i = 0; i < segments; i++) {
       double angle1 = angle_segment * i;
