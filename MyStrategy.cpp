@@ -17,24 +17,32 @@ MyStrategy::MyStrategy() {}
 void doStrategy() {
   Helper::t[0].start();
   int iteration = 0;
-  for (; Helper::t[0].cur() < 0.020; iteration++) {
+  for (; Helper::t[0].cur() < 0.016; iteration++) {
     Plan cur_plan;
     if (iteration == 0) {
       Helper::best_plan.score = -1e18;
-      Helper::best_plan.time_jump--;
-      Helper::best_plan.time_change--;
+      Helper::best_plan.time_jump[0]--;
+      Helper::best_plan.time_change[0]--;
+      Helper::best_plan.time_jump[1]--;
+      Helper::best_plan.time_change[1]--;
+      Helper::best_plan.collide_with_ball[0] = false;
+      Helper::best_plan.collide_with_ball[1] = false;
       cur_plan = Helper::best_plan;
     }
     Simulator simulator(Helper::game.robots, Helper::game.ball);
+    double score = 0;
+    double multiplier = 1.;
     for (int sim_tick = 0; sim_tick < Constants::MAX_SIMULATION_DEPTH; sim_tick++) {
       for (auto& robot : simulator.robots) {
         if (robot.is_teammate) {
-          robot.action = cur_plan.toMyAction(sim_tick);
+          robot.action = cur_plan.toMyAction(sim_tick, robot.global_id % 2); // TODO %3
         } else {
           robot.action = {robot.velocity, 0.};
         };
       }
       simulator.tick();
+      score += simulator.getScore() * multiplier;
+      multiplier *= 0.99;
     }
     if (iteration == 0) {
       for (auto& robot : simulator.robots) {
@@ -47,12 +55,15 @@ void doStrategy() {
       }
     }
 
-    cur_plan.score = simulator.getScore();
+    cur_plan.score = score;
+    for (auto& robot : simulator.robots) {
+      cur_plan.collide_with_ball[robot.global_id % 2] = simulator.collide_with_ball[robot.global_id]; // TODO %3
+    }
     Helper::best_plan = std::max(Helper::best_plan, cur_plan);
   }
-  std::cout << iteration << std::endl;
-  std::cout << Helper::best_plan.score << std::endl;
-  Helper::actions[0] = Helper::actions[1] = Helper::best_plan.toMyAction(0).toAction();
+
+  Helper::actions[0] = Helper::best_plan.toMyAction(0, 0, true).toAction();
+  Helper::actions[1] = Helper::best_plan.toMyAction(0, 1, true).toAction();
   //Painter::drawArena();
   //Painter::drawEntities(simulator.robots, simulator.ball, 1. / Constants::rules.TICKS_PER_SECOND, 0xFF0000);
   //Painter::endFrame();

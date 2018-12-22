@@ -23,6 +23,7 @@ struct Simulator {
   Entity ball;
   bool my_goal = false;
   bool enemy_goal = false;
+  bool collide_with_ball[10];
 
   double getScore() {
     if (my_goal) {
@@ -41,6 +42,7 @@ struct Simulator {
   Simulator(const std::vector<model::Robot>& _robots, const model::Ball& _ball) {
     for (auto& robot : _robots) {
       robots.push_back(Entity(robot));
+      collide_with_ball[robot.id] = false;
     }
     ball = Entity(_ball);
     update_trace();
@@ -84,7 +86,7 @@ struct Simulator {
     return v.clamp(ub);
   }
 
-  void collide_entities(Entity& a, Entity& b) {
+  bool collide_entities(Entity& a, Entity& b) {
     Point delta_position = b.position - a.position;
     double distance = length(delta_position);
     double penetration = a.radius + b.radius - distance;
@@ -100,8 +102,10 @@ struct Simulator {
         Point impulse = normal * (1 + (Constants::rules.MAX_HIT_E - Constants::rules.MIN_HIT_E) / 2) * delta_velocity;
         a.velocity += impulse * k_a;
         b.velocity -= impulse * k_b;
+        return true;
       }
     }
+    return false;
   }
 
   bool collide_with_arena(Entity& e, Point& result) {
@@ -157,7 +161,9 @@ struct Simulator {
       }
     }
     for (auto& robot : robots) {
-      collide_entities(robot, ball);
+      if (collide_entities(robot, ball) && !robot.touch) {
+        collide_with_ball[robot.global_id] = true;
+      }
       if (!collide_with_arena(robot, collision_normal)) {
         robot.touch = false;
       } else {
@@ -191,10 +197,6 @@ struct Simulator {
     //}
     update(delta_time);
     update_trace();
-  }
-
-  void goal_scored() {
-    ;
   }
 
   Dan dan_to_plane(
