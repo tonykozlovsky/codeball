@@ -16,54 +16,90 @@ MyStrategy::MyStrategy() {}
 
 void doStrategy() {
   Helper::t[0].start();
-  int iteration = 0;
-  for (; Helper::t[0].cur() < 0.016; iteration++) {
-    Plan cur_plan;
-    if (iteration == 0) {
-      Helper::best_plan.score = -1e18;
-      Helper::best_plan.time_jump[0]--;
-      Helper::best_plan.time_change[0]--;
-      Helper::best_plan.time_jump[1]--;
-      Helper::best_plan.time_change[1]--;
-      Helper::best_plan.collide_with_ball[0] = false;
-      Helper::best_plan.collide_with_ball[1] = false;
-      cur_plan = Helper::best_plan;
-    }
-    Simulator simulator(Helper::game.robots, Helper::game.ball);
-    double score = 0;
-    double multiplier = 1.;
-    for (int sim_tick = 0; sim_tick < Constants::MAX_SIMULATION_DEPTH; sim_tick++) {
-      for (auto& robot : simulator.robots) {
-        if (robot.is_teammate) {
-          robot.action = cur_plan.toMyAction(sim_tick, robot.global_id % 2); // TODO %3
-        } else {
-          robot.action = {robot.velocity, 0.};
-        };
-      }
-      simulator.tick();
-      score += simulator.getScore() * multiplier;
-      multiplier *= 0.99;
-    }
-    if (iteration == 0) {
-      for (auto& robot : simulator.robots) {
-        for (int i = 1; i < robot.trace.size(); i++) {
-          Painter::drawLine(robot.trace[i - 1], robot.trace[i]);
-        }
-      }
-      for (int i = 1; i < simulator.ball.trace.size(); i++) {
-        Painter::drawLine(simulator.ball.trace[i - 1], simulator.ball.trace[i]);
-      }
-    }
 
-    cur_plan.score = score;
-    for (auto& robot : simulator.robots) {
-      cur_plan.collide_with_ball[robot.global_id % 2] = simulator.collide_with_ball[robot.global_id]; // TODO %3
-    }
-    Helper::best_plan = std::max(Helper::best_plan, cur_plan);
+  for (int id = 0; id < 2; id++) {
+    Helper::best_plan[id].score = -1e18;
+    Helper::best_plan[id].time_jump--;
+    Helper::best_plan[id].time_change--;
+    Helper::best_plan[id].collide_with_ball = false;
   }
 
-  Helper::actions[0] = Helper::best_plan.toMyAction(0, 0, true).toAction();
-  Helper::actions[1] = Helper::best_plan.toMyAction(0, 1, true).toAction();
+  for (int id = 1; id >= 0; id--) {
+    int iteration = 0;
+    for (; Helper::t[0].cur() < 0.017; iteration++) {
+      if (id == 1) {
+        if (Helper::game.ball.z < 0) {
+          if (Helper::t[0].cur() > 0.0085) {
+            break;
+          }
+        } else {
+          if (Helper::t[0].cur() > 0.002) {
+            break;
+          }
+        }
+      }
+      Plan cur_plan;
+      if (iteration == 0) {
+        cur_plan = Helper::best_plan[id];
+      }
+      Simulator simulator(Helper::game.robots, Helper::game.ball);
+      double score = id == 0 ? 0 : -1e18;
+      double multiplier = 1.;
+      for (int sim_tick = 0; sim_tick < Constants::MAX_SIMULATION_DEPTH; sim_tick++) {
+        for (auto& robot : simulator.robots) {
+          if (robot.is_teammate) {
+            if (robot.global_id % 2 == id) {
+              robot.action = cur_plan.toMyAction(sim_tick);
+            } else {
+              robot.action = Helper::best_plan[robot.global_id % 2].toMyAction(sim_tick);
+            }
+          } else {
+            robot.action = {robot.velocity.normalize() * Constants::rules.ROBOT_MAX_GROUND_SPEED, 0.};
+          };
+        }
+        simulator.tick();
+        if (id == 0) {
+          score += simulator.getScoreFighter() * multiplier;
+        } else {
+          double cur_score = simulator.getScoreDefender();
+          if (cur_score < -1e8) {
+            score = -1e9 * multiplier;
+          } else {
+            score = std::max(score, cur_score);
+          }
+        }
+        multiplier *= 0.99;
+      }
+      if (iteration == 0) {
+        for (auto& robot : simulator.robots) {
+          if (robot.global_id % 2 == id) {
+            for (int i = 1; i < robot.trace.size(); i++) {
+              Painter::drawLine(robot.trace[i - 1], robot.trace[i]);
+            }
+          }
+        }
+        if (id == 0) {
+          for (int i = 1; i < simulator.ball.trace.size(); i++) {
+            Painter::drawLine(simulator.ball.trace[i - 1], simulator.ball.trace[i]);
+          }
+        }
+      }
+
+      cur_plan.score = score;
+      for (auto& robot : simulator.robots) {
+        if (robot.global_id % 2 == id) {
+          cur_plan.collide_with_ball = simulator.collide_with_ball[robot.global_id];
+        }
+      }
+      Helper::best_plan[id] = std::max(Helper::best_plan[id], cur_plan);
+    }
+    std::cout << Helper::best_plan[id].score << std::endl;
+    std::cout << iteration << std::endl;
+  }
+  std::cout << std::endl;
+
+  Helper::actions[0] = Helper::best_plan[0].toMyAction(0, true).toAction();
+  Helper::actions[1] = Helper::best_plan[1].toMyAction(0, true).toAction();
   //Painter::drawArena();
   //Painter::drawEntities(simulator.robots, simulator.ball, 1. / Constants::rules.TICKS_PER_SECOND, 0xFF0000);
   //Painter::endFrame();

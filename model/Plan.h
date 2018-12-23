@@ -2,37 +2,33 @@
 #define CODEBALL_PLAN_H
 
 struct Plan {
-  double angle1[2];
-  double angle2[2];
-  int time_change[2];
-  int time_jump[2];
+  double angle1;
+  double angle2;
+  int time_change;
+  int time_jump;
   double score;
-  bool collide_with_ball[2];
+  bool collide_with_ball;
   Plan() {
-    collide_with_ball[0] = collide_with_ball[1] = false;
-    angle1[0] = Constants::rand_double(0, 2 * M_PI);
-    angle1[1] = Constants::rand_double(0, 2 * M_PI);
-    angle2[0] = Constants::rand_double(0, 2 * M_PI);
-    angle2[1] = Constants::rand_double(0, 2 * M_PI);
-    time_change[0] = Constants::rand_int(0, Constants::MAX_SIMULATION_DEPTH);
-    time_change[1] = Constants::rand_int(0, Constants::MAX_SIMULATION_DEPTH);
-    time_jump[0] = Constants::rand_int(0, Constants::MAX_SIMULATION_DEPTH);
-    time_jump[1] = Constants::rand_int(0, Constants::MAX_SIMULATION_DEPTH);
+    collide_with_ball = false;
+    angle1 = Constants::rand_double(0, 2 * M_PI);
+    angle2 = Constants::rand_double(0, 2 * M_PI);
+    time_change = Constants::rand_int(0, Constants::MAX_SIMULATION_DEPTH);
+    time_jump = Constants::rand_int(0, Constants::MAX_SIMULATION_DEPTH);
     score = -1e18;
   }
-  MyAction toMyAction(int simulation_tick, int id, bool check_jump = false) {
-    double jump_speed = ((!check_jump || collide_with_ball[id]) && simulation_tick == time_jump[id]) ? Constants::rules.ROBOT_MAX_JUMP_SPEED : 0;
-    if (simulation_tick < time_change[id]) {
+  MyAction toMyAction(int simulation_tick, bool check_jump = false) {
+    double jump_speed = ((!check_jump || collide_with_ball) && simulation_tick == time_jump) ? Constants::rules.ROBOT_MAX_JUMP_SPEED : 0;
+    if (simulation_tick < time_change) {
       return MyAction{{
-          Constants::rules.MAX_ENTITY_SPEED * cos(angle1[id]),
+          Constants::rules.MAX_ENTITY_SPEED * cos(angle1),
           0,
-          Constants::rules.MAX_ENTITY_SPEED * sin(angle1[id])},
+          Constants::rules.MAX_ENTITY_SPEED * sin(angle1)},
           jump_speed};
     } else {
       return MyAction{{
-                Constants::rules.MAX_ENTITY_SPEED * cos(angle2[id]),
+                Constants::rules.MAX_ENTITY_SPEED * cos(angle2),
                 0,
-                Constants::rules.MAX_ENTITY_SPEED * sin(angle2[id])},
+                Constants::rules.MAX_ENTITY_SPEED * sin(angle2)},
                 jump_speed};
     }
   }

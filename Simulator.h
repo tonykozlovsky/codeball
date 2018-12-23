@@ -25,17 +25,30 @@ struct Simulator {
   bool enemy_goal = false;
   bool collide_with_ball[10];
 
-  double getScore() {
+  double getScoreFighter() {
     if (my_goal) {
       return 1e9;
     }
     if (enemy_goal) {
       return -1e9;
     }
-    return -(ball.position - Point{
-      -Constants::rules.arena.depth / 2
-      -Constants::rules.arena.goal_depth, 0, 0}).length();
+    return -(ball.position - Point{0, 0,
+        Constants::rules.arena.depth / 2
+        + Constants::rules.arena.goal_depth}).length();
   }
+
+  double getScoreDefender() {
+      if (enemy_goal) {
+        return -1e9;
+      }
+      for (auto& robot : robots) {
+        if (robot.is_teammate && robot.global_id % 2 == 1) {
+          return -(robot.position - Point{
+              0, 0, -Constants::rules.arena.depth / 2}).length();
+        }
+      }
+      exit(228);
+    }
 
   Simulator() {}
 

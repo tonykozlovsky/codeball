@@ -17,7 +17,7 @@ struct Helper {
   static int global_id;
   static int id;
 
-  static Plan best_plan;
+  static Plan best_plan[2];
 
   static bool tryInit(
       const model::Robot& _me,

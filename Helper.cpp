@@ -15,6 +15,6 @@ int Helper::tick = -1;
 model::Action Helper::actions[3];
 int Helper::global_id;
 int Helper::id;
-Plan Helper::best_plan;
+Plan Helper::best_plan[2];
 
 MyTimer Helper::t[100];
