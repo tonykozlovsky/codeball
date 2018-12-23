@@ -26,14 +26,14 @@ void doStrategy() {
 
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-    for (; Helper::t[0].cur() < 0.017; iteration++) {
+    for (; Helper::t[0].cur() < 0.016; iteration++) {
       if (id == 1) {
-        if (Helper::game.ball.z < 0) {
-          if (Helper::t[0].cur() > 0.0085) {
+        if (Helper::game.ball.z < -0.01) {
+          if (Helper::t[0].cur() > 0.008) {
             break;
           }
         } else {
-          if (Helper::t[0].cur() > 0.002) {
+          if (Helper::t[0].cur() > 0.0015) {
             break;
           }
         }

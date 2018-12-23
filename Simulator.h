@@ -48,7 +48,7 @@ struct Simulator {
               0, 0, -Constants::rules.arena.depth / 2}).length();
         }
       }
-      score += std::min(ball.position.z, 0.);
+      score += -2 * std::min(ball.position.z, 0.) * std::min(ball.position.z, 0.);
       return score;
     }
 
