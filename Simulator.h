@@ -41,13 +41,15 @@ struct Simulator {
       if (enemy_goal) {
         return -1e9;
       }
+      double score = 0;
       for (auto& robot : robots) {
         if (robot.is_teammate && robot.global_id % 2 == 1) {
-          return -(robot.position - Point{
+          score += -(robot.position - Point{
               0, 0, -Constants::rules.arena.depth / 2}).length();
         }
       }
-      exit(228);
+      score += std::min(ball.position.z, 0.);
+      return score;
     }
 
   Simulator() {}

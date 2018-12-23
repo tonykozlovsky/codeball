@@ -43,7 +43,7 @@ void doStrategy() {
         cur_plan = Helper::best_plan[id];
       }
       Simulator simulator(Helper::game.robots, Helper::game.ball);
-      double score = id == 0 ? 0 : -1e18;
+      double score = 0;
       double multiplier = 1.;
       for (int sim_tick = 0; sim_tick < Constants::MAX_SIMULATION_DEPTH; sim_tick++) {
         for (auto& robot : simulator.robots) {
@@ -61,16 +61,11 @@ void doStrategy() {
         if (id == 0) {
           score += simulator.getScoreFighter() * multiplier;
         } else {
-          double cur_score = simulator.getScoreDefender();
-          if (cur_score < -1e8) {
-            score = -1e9 * multiplier;
-          } else {
-            score = std::max(score, cur_score);
-          }
+          score += simulator.getScoreDefender() * multiplier;
         }
-        multiplier *= 0.99;
+        multiplier *= 0.9;
       }
-      if (iteration == 0) {
+      /*if (iteration == 0) {
         for (auto& robot : simulator.robots) {
           if (robot.global_id % 2 == id) {
             for (int i = 1; i < robot.trace.size(); i++) {
@@ -83,7 +78,7 @@ void doStrategy() {
             Painter::drawLine(simulator.ball.trace[i - 1], simulator.ball.trace[i]);
           }
         }
-      }
+      }*/
 
       cur_plan.score = score;
       for (auto& robot : simulator.robots) {
@@ -93,10 +88,10 @@ void doStrategy() {
       }
       Helper::best_plan[id] = std::max(Helper::best_plan[id], cur_plan);
     }
-    std::cout << Helper::best_plan[id].score << std::endl;
-    std::cout << iteration << std::endl;
+    //std::cout << Helper::best_plan[id].score << std::endl;
+    //std::cout << iteration << std::endl;
   }
-  std::cout << std::endl;
+  //std::cout << std::endl;
 
   Helper::actions[0] = Helper::best_plan[0].toMyAction(0, true).toAction();
   Helper::actions[1] = Helper::best_plan[1].toMyAction(0, true).toAction();
