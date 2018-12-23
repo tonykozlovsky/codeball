@@ -15,8 +15,6 @@
 MyStrategy::MyStrategy() {}
 
 void doStrategy() {
-  Helper::t[0].start();
-
   for (int id = 0; id < 2; id++) {
     Helper::best_plan[id].score = -1e18;
     Helper::best_plan[id].time_jump--;
@@ -26,14 +24,14 @@ void doStrategy() {
 
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-    for (; Helper::t[0].cur() < 0.016; iteration++) {
+    for (; Helper::global_timer.getCumulative(true) < Helper::time_limit; iteration++) {
       if (id == 1) {
         if (Helper::game.ball.z < -0.01) {
-          if (Helper::t[0].cur() > 0.008) {
+          if (Helper::global_timer.getCumulative(true) > Helper::half_time) {
             break;
           }
         } else {
-          if (Helper::t[0].cur() > 0.0015) {
+          if (Helper::global_timer.cur() > 0.0015) {
             break;
           }
         }
@@ -88,8 +86,10 @@ void doStrategy() {
       }
       Helper::best_plan[id] = std::max(Helper::best_plan[id], cur_plan);
     }
-    //std::cout << Helper::best_plan[id].score << std::endl;
-    //std::cout << iteration << std::endl;
+
+    if (Helper::tick + 1 % 2000 == 0) {
+      std::cout << "it: " << iteration << std::endl;
+    }
   }
   //std::cout << std::endl;
 
@@ -107,8 +107,15 @@ void MyStrategy::act(
     model::Action& action) {
   if (Helper::tryInit(me, rules, game)) {
     doStrategy();
+    action = Helper::getCurrentAction();
+  } else {
+    action = Helper::getCurrentAction();
+    Helper::global_timer.cur(true, true);
+    //std::cout << std::endl;
+    if (Helper::tick + 1 % 2000 == 0) {
+      std::cerr << "avg: " << std::fixed << std::setprecision(3) << 1000. * Helper::global_timer.avg() << std::endl;
+    }
   }
-  action = Helper::getCurrentAction();
 }
 
 #ifdef LOCAL

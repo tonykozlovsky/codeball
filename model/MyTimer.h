@@ -59,8 +59,11 @@ struct MyTimer {
     return max_;
   }
 
-  double getCumulative() {
-    return cumulative;
+  double getCumulative(bool with_cur = false) {
+    if (!with_cur) {
+      return cumulative;
+    }
+    return cumulative + cur();
   }
 
 };
