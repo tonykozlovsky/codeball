@@ -51,11 +51,11 @@ struct Helper {
       waiting_ticks--;
       return false;
     }
-    double time_per_tick = 380 / 18000.;
+    double time_per_tick = Constants::time_limit / 18000.;
     double ticks_remaining = (18000 - tick);
     double half_ticks_remaining = ticks_remaining / 50.;
     double tick_end_balance = tick + half_ticks_remaining;
-    double time_end_balance = 380. - time_per_tick * (ticks_remaining - half_ticks_remaining);
+    double time_end_balance = Constants::time_limit - time_per_tick * (ticks_remaining - half_ticks_remaining);
 
     half_time = (time_end_balance - global_timer.getCumulative()) / half_ticks_remaining / 2;
     //std::cout << "time: " << std::fixed << std::setprecision(3) << half_time * 2000 << std::endl;
