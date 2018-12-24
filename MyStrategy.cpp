@@ -58,9 +58,9 @@ void doStrategy() {
             }
           }
         }
-        H::t[0].start();
+        //H::t[0].start();
         simulator.tick();
-        H::t[0].cur(true);
+        //H::t[0].cur(true);
         if (id == 0) {
           score += simulator.getScoreFighter() * multiplier;
         } else {

@@ -33,7 +33,7 @@ struct MyTimer {
   double cur(bool accumulate = false, bool counter = false, bool upd_max_ = false) {
     double res = 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>
         (std::chrono::high_resolution_clock::now() - _start).count();
-    cumulative -= 620e-10;
+    cumulative -= 645e-10;
     if (counter) {
       k++;
     }
