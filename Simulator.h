@@ -270,10 +270,13 @@ struct Simulator {
   }
 
   Dan dan_to_arena_quarter(const Point& point, double radius) {
+    Dan dan = Dan({1e9, {0, 0, 0}});
 
     // Ground
     H::t[12].start(); // 12
-    Dan dan = dan_to_plane(point, {0, 0, 0}, {0, 1, 0});
+    if (point.y < radius) {
+      dan = std::min(dan, dan_to_plane(point, {0, 0, 0}, {0, 1, 0})); // TODO simplify
+    }
     if (radius > dan.distance) {
       H::t[12].cur(true);
       return dan;
@@ -547,7 +550,7 @@ struct Simulator {
 
 
     // Ceiling corners 1 part
-    H::t[25].start(); //32
+    H::t[25].start(); // 32
     if (point.y > C::rules.arena.height - C::rules.arena.top_radius) {
       // Side x
       if (point.x > (C::rules.arena.width / 2) - C::rules.arena.top_radius) {
@@ -581,7 +584,7 @@ struct Simulator {
 
 
     // Ceiling corners 2 part
-    H::t[27].start(); //33 34
+    H::t[27].start(); // 33 34
     if (point.y > C::rules.arena.height - C::rules.arena.top_radius) {
       // Side z
       if (point.z > (C::rules.arena.depth / 2) - C::rules.arena.top_radius) {
