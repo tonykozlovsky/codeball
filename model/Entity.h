@@ -40,6 +40,8 @@ struct Entity {
       radius_change_speed = 0;
     } else if (type == "robot") {
 
+    } else if (type == "test_points") {
+      radius = C::rules.BALL_RADIUS;
     }
   }
 
