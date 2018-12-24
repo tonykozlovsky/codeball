@@ -57,7 +57,7 @@ struct H {
     double tick_end_balance = tick + half_ticks_remaining;
     double time_end_balance = C::time_limit - time_per_tick * (ticks_remaining - half_ticks_remaining);
 
-    half_time = (time_end_balance - global_timer.getCumulative()) / half_ticks_remaining / 2;
+    half_time = 0.008;//(time_end_balance - global_timer.getCumulative()) / half_ticks_remaining / 2;
     //std::cout << "time: " << std::fixed << std::setprecision(3) << half_time * 2000 << std::endl;
     time_limit = global_timer.getCumulative() + half_time * 2;
     //std::cout << "time_limit: " << std::fixed << std::setprecision(3) << time_limit << std::endl;
