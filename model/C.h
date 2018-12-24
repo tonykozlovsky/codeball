@@ -33,6 +33,7 @@
 #include <map>
 #include <iomanip>
 #include <random>
+#include <string>
 
 struct C {
   static model::Rules rules;

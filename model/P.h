@@ -281,17 +281,30 @@ struct P {
   }
 
   template<typename... Args>
+  static void logn(Args... args) {
+#ifdef LOCAL
+#ifdef DRAWLR
+    logs.push_back(to_string(args...));
+#endif
+#endif
+  }
+
+  template<typename... Args>
   static void log(Args... args) {
 #ifdef LOCAL
-#ifndef DRAWLR
-    logs.push_back(to_string(args...));
+#ifdef DRAWLR
+    if (logs.size() == 0) {
+      logn(args...);
+    } else {
+      logs.back() += " " + to_string(args...);
+    }
 #endif
 #endif
   }
 
   template<typename T, typename... Args>
   static inline std::string to_string(T fmt, Args... args) {
-    return my_to_string(fmt) + my_to_string(args...);
+    return to_string(fmt) + to_string(args...);
   }
   static inline std::string to_string(std::string fmt) {
     return fmt;

@@ -70,6 +70,11 @@ struct Entity {
 
     global_id = robot.id;
     is_teammate = robot.is_teammate;
+
+    if (!is_teammate) {
+      action = {velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0.};
+    }
+
   }
 
 };

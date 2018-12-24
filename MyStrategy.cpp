@@ -15,35 +15,39 @@
 MyStrategy::MyStrategy() {}
 
 void doStrategy() {
+  if (H::tick % 100 == 0) {
+    for (int i = 0; i < 100; i++) {
+      //H::t[i].clear();
+    }
+  }
   for (int id = 0; id < 2; id++) {
     H::best_plan[id].score = -1e18;
     H::best_plan[id].time_jump--;
     H::best_plan[id].time_change--;
     H::best_plan[id].collide_with_ball = false;
   }
-
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
+    for (; iteration < 100 && (1 || H::global_timer.getCumulative(true) < H::time_limit); iteration++) {
       if (id == 1) {
-        if (H::game.ball.z < -0.01) {
-          if (H::global_timer.getCumulative(true) > H::half_time) {
+        //if (H::game.ball.z < -0.01) {
+          if (iteration > 50 && (1 || H::global_timer.getCumulative(true) > H::half_time)) {
             break;
           }
-        } else {
-          if (H::global_timer.cur() > 0.0015) {
-            break;
-          }
-        }
+        //} else {
+        //  if (iteration > 10 && (1 ||H::global_timer.cur() > 0.0015)) {
+        //    break;
+        //  }
+        //}
       }
       Plan cur_plan;
       if (iteration == 0) {
         cur_plan = H::best_plan[id];
       }
       Simulator simulator(H::game.robots, H::game.ball);
+
       double score = 0;
       double multiplier = 1.;
-      H::t[0].clear();
       for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
         for (auto& robot : simulator.robots) {
           if (robot.is_teammate) {
@@ -52,13 +56,11 @@ void doStrategy() {
             } else {
               robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick);
             }
-          } else {
-            robot.action = {robot.velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0.};
-          };
+          }
         }
         H::t[0].start();
         simulator.tick();
-        H::t[0].cur(true, true);
+        H::t[0].cur(true);
         if (id == 0) {
           score += simulator.getScoreFighter() * multiplier;
         } else {
@@ -66,7 +68,6 @@ void doStrategy() {
         }
         multiplier *= 0.9;
       }
-      P::log("200 sim: ", H::t[0].getCumulative(), " ", H::t[0].avg());
       /*if (iteration == 0) {
         for (auto& robot : simulator.robots) {
           if (robot.global_id % 2 == id) {
@@ -90,18 +91,35 @@ void doStrategy() {
       }
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
-
-    if (H::tick + 1 % 2000 == 0) {
-      std::cout << "it: " << iteration << std::endl;
-    }
   }
-  //std::cout << std::endl;
+  /*std::vector<std::pair<double, int> > timers;
+  for (int i = 12; i <= 35; i++) {
+    timers.push_back({(double)H::t[i].k / H::t[36].k, i});
+  }
+  std::sort(timers.begin(), timers.end());
+  for (auto& t : timers) {
+    P::logn("t" + std::to_string(t.second) + ": ", t.first * 100);
+  }
+  /*for (int i = 12; i <= 31; i++) {
+    H::t[i].cur(false, true);
+    P::logn("t" + std::to_string(i) + ": ", H::t[i].avg() * 1e3);
+  }*/
+  std::vector<std::pair<double, int> > timers;
+  for (int i = 0; i <= 31; i++) {
+    H::t[i].cur(false, true);
+    timers.push_back({H::t[i].avg(), i});
+  }
+  std::sort(timers.rbegin(), timers.rend());
+  int sum = 0;
+  for (auto& t : timers) {
+    sum += (int) (t.first * 1e3 / 16.95 * 100);
+    P::logn("t" + std::to_string(t.second) + ": ", t.first * 1e3, "    ", (int) (t.first * 1e3 / 16.95 * 100), "%");
+  }
+  P::logn("sum: ", sum);
+
 
   H::actions[0] = H::best_plan[0].toMyAction(0, true).toAction();
   H::actions[1] = H::best_plan[1].toMyAction(0, true).toAction();
-  //Painter::drawArena();
-  //Painter::drawEntities(simulator.robots, simulator.ball, 1. / Constants::rules.TICKS_PER_SECOND, 0xFF0000);
-  //Painter::endFrame();
 }
 
 void MyStrategy::act(
@@ -115,10 +133,6 @@ void MyStrategy::act(
   } else {
     action = H::getCurrentAction();
     H::global_timer.cur(true, true);
-    //std::cout << std::endl;
-    if (H::tick + 1 % 2000 == 0) {
-      std::cerr << "avg: " << std::fixed << std::setprecision(3) << 1000. * H::global_timer.avg() << std::endl;
-    }
   }
 }
 
@@ -171,7 +185,9 @@ std::string MyStrategy::custom_rendering() {
   for (auto& log : P::logs) {
     rapidjson::Value log_object;
     log_object.SetObject();
-    log_object.AddMember("Text", log, allocator);
+    rapidjson::Value value;
+    value.SetString(log.c_str(), allocator);
+    log_object.AddMember("Text", value, allocator);
     document.PushBack(log_object, allocator);
   }
 
