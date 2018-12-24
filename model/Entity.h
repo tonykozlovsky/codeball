@@ -3,7 +3,7 @@
 
 
 #ifdef LOCAL
-#include <model/Constants.h>
+#include <model/C.h>
 #else
 #include "Constants.h"
 #endif
@@ -33,10 +33,10 @@ struct Entity {
 
   Entity(const std::string& type) {
     if (type == "ball") {
-      radius = Constants::rules.BALL_RADIUS;
+      radius = C::rules.BALL_RADIUS;
 
-      arena_e = Constants::rules.BALL_ARENA_E;
-      mass = Constants::rules.BALL_MASS;
+      arena_e = C::rules.BALL_ARENA_E;
+      mass = C::rules.BALL_MASS;
       radius_change_speed = 0;
     } else if (type == "robot") {
 
@@ -48,8 +48,8 @@ struct Entity {
     velocity = {ball.velocity_x, ball.velocity_y, ball.velocity_z};
     radius = ball.radius;
 
-    arena_e = Constants::rules.BALL_ARENA_E;
-    mass = Constants::rules.BALL_MASS;
+    arena_e = C::rules.BALL_ARENA_E;
+    mass = C::rules.BALL_MASS;
     radius_change_speed = 0;
   }
 
@@ -63,8 +63,8 @@ struct Entity {
             robot.touch_normal_y,
             robot.touch_normal_z};
 
-    arena_e = Constants::rules.ROBOT_ARENA_E;
-    mass = Constants::rules.ROBOT_MASS;
+    arena_e = C::rules.ROBOT_ARENA_E;
+    mass = C::rules.ROBOT_MASS;
 
     radius_change_speed = 0;
 
