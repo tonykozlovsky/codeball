@@ -106,15 +106,15 @@ struct Simulator {
     double distance = length(delta_position);
     double penetration = a.radius + b.radius - distance;
     if (penetration > 0) {
-      double k_a = (1 / a.mass) / ((1 / a.mass) + (1 / b.mass));
-      double k_b = (1 / b.mass) / ((1 / a.mass) + (1 / b.mass));
+      double k_a = (1. / a.mass) / ((1. / a.mass) + (1. / b.mass));
+      double k_b = (1. / b.mass) / ((1. / a.mass) + (1. / b.mass));
       Point normal = normalize(delta_position);
       a.position -= normal * penetration * k_a;
       b.position += normal * penetration * k_b;
       double delta_velocity = dot(b.velocity - a.velocity, normal)
           + b.radius_change_speed - a.radius_change_speed;
       if (delta_velocity < 0) {
-        Point impulse = normal * (1 + (Constants::rules.MAX_HIT_E - Constants::rules.MIN_HIT_E) / 2) * delta_velocity;
+        Point impulse = normal * (1. + (Constants::rules.MAX_HIT_E + Constants::rules.MIN_HIT_E) / 2.) * delta_velocity;
         a.velocity += impulse * k_a;
         b.velocity -= impulse * k_b;
         return true;
