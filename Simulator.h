@@ -45,7 +45,7 @@ struct Simulator {
       }
     }
     //score += closest_enemy_dist;
-    double dist = (ball.position - Point{0, 0, C::rules.arena.depth / 2}).length();
+    double dist = (ball.position - Point{0, 0, C::rules.arena.depth / 2 + C::rules.arena.goal_depth}).length();
     score += -dist * dist;
     return score;
   }

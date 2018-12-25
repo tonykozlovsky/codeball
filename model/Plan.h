@@ -12,6 +12,7 @@ struct Plan {
   int time_jump;
   double score;
   bool collide_with_ball;
+  double speed1, speed2;
   Plan() {
     collide_with_ball = false;
     angle1 = C::rand_double(0, 2 * M_PI);
@@ -22,6 +23,16 @@ struct Plan {
     sangle2 = sin(angle2);
     time_change = C::rand_int(0, C::MAX_SIMULATION_DEPTH);
     time_jump = C::rand_int(0, C::MAX_SIMULATION_DEPTH);
+
+    speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
+
+    if (C::rand_double(0, 1) < 0.1) {
+      speed1 = 0;
+    }
+    if (C::rand_double(0, 1) < 0.1) {
+      speed2 = 0;
+    }
+
     score = -1e18;
   }
 
@@ -67,15 +78,15 @@ struct Plan {
     double jump_speed = ((!check_jump || collide_with_ball) && simulation_tick == time_jump) ? C::rules.ROBOT_MAX_JUMP_SPEED : 0;
     if (simulation_tick < time_change) {
       return MyAction{{
-          C::rules.ROBOT_MAX_GROUND_SPEED * cangle1,
+          speed1 * cangle1,
           0,
-          C::rules.ROBOT_MAX_GROUND_SPEED * sangle1},
+          speed1 * sangle1},
           jump_speed};
     } else {
       return MyAction{{
-                C::rules.ROBOT_MAX_GROUND_SPEED * cangle2,
+          speed2 * cangle2,
                 0,
-                C::rules.ROBOT_MAX_GROUND_SPEED * sangle2},
+          speed2 * sangle2},
                 jump_speed};
     }
   }
