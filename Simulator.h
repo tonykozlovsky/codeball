@@ -3,10 +3,12 @@
 
 #ifdef LOCAL
 #include <model/Entity.h>
-#include <model/Painter.h>
+#include <model/P.h>
+#include <H.h>
 #else
 #include "model/Entity.h"
 #include "model/Painter.h"
+#include "H.h"
 #endif
 
 struct Simulator {
@@ -19,7 +21,7 @@ struct Simulator {
     }
   };
 
-  std::vector<Entity> robots;
+  Entity robots[4];
   Entity ball;
   bool my_goal = false;
   bool enemy_goal = false;
@@ -33,31 +35,31 @@ struct Simulator {
       return -1e9;
     }
     return -(ball.position - Point{0, 0,
-        Constants::rules.arena.depth / 2
-        + Constants::rules.arena.goal_depth}).length();
+        C::rules.arena.depth / 2
+            + C::rules.arena.goal_depth}).length();
   }
 
   double getScoreDefender() {
-      if (enemy_goal) {
-        return -1e9;
-      }
-      double score = 0;
-      for (auto& robot : robots) {
-        if (robot.is_teammate && robot.global_id % 2 == 1) {
-          score += -(robot.position - Point{
-              0, 0, -Constants::rules.arena.depth / 2}).length();
-        }
-      }
-      score += -2 * std::min(ball.position.z, 0.) * std::min(ball.position.z, 0.);
-      return score;
+    if (enemy_goal) {
+      return -1e9;
     }
+    double score = 0;
+    for (auto& robot : robots) {
+      if (robot.is_teammate && robot.global_id % 2 == 1) {
+        score += -(robot.position - Point{
+            0, 0, -C::rules.arena.depth / 2}).length();
+      }
+    }
+    score += -2 * std::min(ball.position.z, 0.) * std::min(ball.position.z, 0.);
+    return score;
+  }
 
   Simulator() {}
 
   Simulator(const std::vector<model::Robot>& _robots, const model::Ball& _ball) {
-    for (auto& robot : _robots) {
-      robots.push_back(Entity(robot));
-      collide_with_ball[robot.id] = false;
+    for (int i = 0; i < 4; i++) {
+      robots[i] = Entity(_robots[i]);
+      collide_with_ball[_robots[i].id] = false;
     }
     ball = Entity(_ball);
     update_trace();
@@ -114,7 +116,7 @@ struct Simulator {
       double delta_velocity = dot(b.velocity - a.velocity, normal)
           + b.radius_change_speed - a.radius_change_speed;
       if (delta_velocity < 0) {
-        Point impulse = normal * (1. + (Constants::rules.MAX_HIT_E + Constants::rules.MIN_HIT_E) / 2.) * delta_velocity;
+        Point impulse = normal * (1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2.) * delta_velocity;
         a.velocity += impulse * k_a;
         b.velocity -= impulse * k_b;
         return true;
@@ -141,10 +143,10 @@ struct Simulator {
   }
 
   void move(Entity& e, const double delta_time) {
-    e.velocity = clamp(e.velocity, Constants::rules.MAX_ENTITY_SPEED);
+    e.velocity = clamp(e.velocity, C::rules.MAX_ENTITY_SPEED);
     e.position += e.velocity * delta_time;
-    e.position.y -= Constants::rules.GRAVITY * delta_time * delta_time / 2;
-    e.velocity.y -= Constants::rules.GRAVITY * delta_time;
+    e.position.y -= C::rules.GRAVITY * delta_time * delta_time / 2;
+    e.velocity.y -= C::rules.GRAVITY * delta_time;
   }
 
   void update(const double delta_time) {
@@ -152,25 +154,25 @@ struct Simulator {
       if (robot.touch) {
         Point target_velocity = clamp(
             robot.action.target_velocity,
-            Constants::rules.ROBOT_MAX_GROUND_SPEED);
+            C::rules.ROBOT_MAX_GROUND_SPEED);
         target_velocity -= robot.touch_normal * robot.touch_normal.dot(target_velocity);
         Point target_velocity_change = target_velocity - robot.velocity;
         if (length(target_velocity_change) > 0) {
-          double acceleration = Constants::rules.ROBOT_ACCELERATION * fmax(0., robot.touch_normal.y);
+          double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot.touch_normal.y);
           robot.velocity += clamp(
               normalize(target_velocity_change) * acceleration * delta_time,
               length(target_velocity_change));
         }
       }
       move(robot, delta_time);
-      robot.radius = Constants::rules.ROBOT_MIN_RADIUS
-          + (Constants::rules.ROBOT_MAX_RADIUS - Constants::rules.ROBOT_MIN_RADIUS)
-              * robot.action.jump_speed / Constants::rules.ROBOT_MAX_JUMP_SPEED;
+      robot.radius = C::rules.ROBOT_MIN_RADIUS
+          + (C::rules.ROBOT_MAX_RADIUS - C::rules.ROBOT_MIN_RADIUS)
+              * robot.action.jump_speed / C::rules.ROBOT_MAX_JUMP_SPEED;
       robot.radius_change_speed = robot.action.jump_speed;
     }
     move(ball, delta_time);
     Point collision_normal;
-    for (int i = 0; i < robots.size(); i++) {
+    for (int i = 0; i < 4; i++) {
       for (int j = 0; j < i; j++) {
         collide_entities(robots[i], robots[j]);
       }
@@ -190,9 +192,9 @@ struct Simulator {
     collide_with_arena(ball, collision_normal);
 
     if (!my_goal && !enemy_goal) {
-      if (ball.position.z > Constants::rules.arena.depth / 2 + ball.radius) {
+      if (ball.position.z > C::rules.arena.depth / 2 + ball.radius) {
         my_goal = true;
-      } else if (-ball.position.z > Constants::rules.arena.depth / 2 + ball.radius) {
+      } else if (-ball.position.z > C::rules.arena.depth / 2 + ball.radius) {
         enemy_goal = true;
       }
     }
@@ -206,7 +208,7 @@ struct Simulator {
   }
 
   void tick() {
-    double delta_time = 1. / Constants::rules.TICKS_PER_SECOND;
+    double delta_time = 1. / C::rules.TICKS_PER_SECOND;
     //for (int i = 0; i < Constants::rules.MICROTICKS_PER_TICK; i++) {
       //update(delta_time / Constants::rules.MICROTICKS_PER_TICK);
     //}
@@ -242,257 +244,257 @@ struct Simulator {
     Dan dan = dan_to_plane(point, Point(0, 0, 0), Point(0, 1, 0));
 
     // Ceiling
-    dan = std::min(dan, dan_to_plane(point, Point(0, Constants::rules.arena.height, 0), Point(0, -1, 0)));
+    dan = std::min(dan, dan_to_plane(point, Point(0, C::rules.arena.height, 0), Point(0, -1, 0)));
 
     // Side x
-    dan = std::min(dan, dan_to_plane(point, Point(Constants::rules.arena.width / 2, 0, 0), Point(-1, 0, 0)));
+    dan = std::min(dan, dan_to_plane(point, Point(C::rules.arena.width / 2, 0, 0), Point(-1, 0, 0)));
 
     // Side z (goal)
     dan = std::min(dan, dan_to_plane(
         point,
-        Point(0, 0, (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_depth),
+        Point(0, 0, (C::rules.arena.depth / 2) + C::rules.arena.goal_depth),
         Point(0, 0, -1)));
 
     // Side z
     Point2d v = Point2d(point.x, point.y) - Point2d(
-        (Constants::rules.arena.goal_width / 2) - Constants::rules.arena.goal_top_radius,
-        Constants::rules.arena.goal_height - Constants::rules.arena.goal_top_radius);
-    if (point.x >= (Constants::rules.arena.goal_width / 2) + Constants::rules.arena.goal_side_radius
-        || point.y >= Constants::rules.arena.goal_height + Constants::rules.arena.goal_side_radius
+        (C::rules.arena.goal_width / 2) - C::rules.arena.goal_top_radius,
+        C::rules.arena.goal_height - C::rules.arena.goal_top_radius);
+    if (point.x >= (C::rules.arena.goal_width / 2) + C::rules.arena.goal_side_radius
+        || point.y >= C::rules.arena.goal_height + C::rules.arena.goal_side_radius
         || (
             v.x > 0
                 && v.y > 0
-                && length(v) >= Constants::rules.arena.goal_top_radius + Constants::rules.arena.goal_side_radius)) {
-      dan = std::min(dan, dan_to_plane(point, Point(0, 0, Constants::rules.arena.depth / 2), Point(0, 0, -1)));
+                && length(v) >= C::rules.arena.goal_top_radius + C::rules.arena.goal_side_radius)) {
+      dan = std::min(dan, dan_to_plane(point, Point(0, 0, C::rules.arena.depth / 2), Point(0, 0, -1)));
     }
     // Side x & ceiling (goal)
-    if (point.z >= (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_side_radius) {
+    if (point.z >= (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius) {
       // x
       dan = std::min(dan, dan_to_plane(
           point,
-          Point(Constants::rules.arena.goal_width / 2, 0, 0),
+          Point(C::rules.arena.goal_width / 2, 0, 0),
           Point(-1, 0, 0)));
       // y
-      dan = std::min(dan, dan_to_plane(point, Point(0, Constants::rules.arena.goal_height, 0), Point(0, -1, 0)));
+      dan = std::min(dan, dan_to_plane(point, Point(0, C::rules.arena.goal_height, 0), Point(0, -1, 0)));
     }
 
     // Goal back corners
-    if (point.z > (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_depth - Constants::rules.arena.bottom_radius) {
+    if (point.z > (C::rules.arena.depth / 2) + C::rules.arena.goal_depth - C::rules.arena.bottom_radius) {
       dan = std::min(dan, dan_to_sphere_inner(
           point,
           Point(
               std::clamp(
                   point.x,
-                  Constants::rules.arena.bottom_radius - (Constants::rules.arena.goal_width / 2),
-                  (Constants::rules.arena.goal_width / 2) - Constants::rules.arena.bottom_radius
+                  C::rules.arena.bottom_radius - (C::rules.arena.goal_width / 2),
+                  (C::rules.arena.goal_width / 2) - C::rules.arena.bottom_radius
               ),
               std::clamp(
                   point.y,
-                  Constants::rules.arena.bottom_radius,
-                  Constants::rules.arena.goal_height - Constants::rules.arena.goal_top_radius
+                  C::rules.arena.bottom_radius,
+                  C::rules.arena.goal_height - C::rules.arena.goal_top_radius
               ),
-              (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_depth - Constants::rules.arena.bottom_radius),
-          Constants::rules.arena.bottom_radius));
+              (C::rules.arena.depth / 2) + C::rules.arena.goal_depth - C::rules.arena.bottom_radius),
+          C::rules.arena.bottom_radius));
     }
     // Corner
-    if (point.x > (Constants::rules.arena.width / 2) - Constants::rules.arena.corner_radius
-        && point.z > (Constants::rules.arena.depth / 2) - Constants::rules.arena.corner_radius) {
+    if (point.x > (C::rules.arena.width / 2) - C::rules.arena.corner_radius
+        && point.z > (C::rules.arena.depth / 2) - C::rules.arena.corner_radius) {
       dan = std::min(dan, dan_to_sphere_inner(
           point,
           Point(
-              (Constants::rules.arena.width / 2) - Constants::rules.arena.corner_radius,
+              (C::rules.arena.width / 2) - C::rules.arena.corner_radius,
               point.y,
-              (Constants::rules.arena.depth / 2) - Constants::rules.arena.corner_radius
+              (C::rules.arena.depth / 2) - C::rules.arena.corner_radius
           ),
-          Constants::rules.arena.corner_radius));
+          C::rules.arena.corner_radius));
     }
     // Goal outer corner
-    if (point.z < (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_side_radius) {
+    if (point.z < (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius) {
       // Side x
-      if (point.x < (Constants::rules.arena.goal_width / 2) + Constants::rules.arena.goal_side_radius) {
+      if (point.x < (C::rules.arena.goal_width / 2) + C::rules.arena.goal_side_radius) {
         dan = std::min(dan, dan_to_sphere_outer(
             point,
             Point(
-                (Constants::rules.arena.goal_width / 2) + Constants::rules.arena.goal_side_radius,
+                (C::rules.arena.goal_width / 2) + C::rules.arena.goal_side_radius,
                 point.y,
-                (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_side_radius
+                (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius
             ),
-            Constants::rules.arena.goal_side_radius));
+            C::rules.arena.goal_side_radius));
       }
       // Ceiling
-      if (point.y < Constants::rules.arena.goal_height + Constants::rules.arena.goal_side_radius) {
+      if (point.y < C::rules.arena.goal_height + C::rules.arena.goal_side_radius) {
         dan = std::min(dan, dan_to_sphere_outer(
             point,
             Point(
                 point.x,
-                Constants::rules.arena.goal_height + Constants::rules.arena.goal_side_radius,
-                (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_side_radius
+                C::rules.arena.goal_height + C::rules.arena.goal_side_radius,
+                (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius
             ),
-            Constants::rules.arena.goal_side_radius));
+            C::rules.arena.goal_side_radius));
       }
       // Top corner
       Point2d o = Point2d(
-          (Constants::rules.arena.goal_width / 2) - Constants::rules.arena.goal_top_radius,
-          Constants::rules.arena.goal_height - Constants::rules.arena.goal_top_radius
+          (C::rules.arena.goal_width / 2) - C::rules.arena.goal_top_radius,
+          C::rules.arena.goal_height - C::rules.arena.goal_top_radius
       );
       Point2d v = Point2d(point.x, point.y) - o;
       if (v.x > 0 && v.y > 0) {
-        o = o + normalize(v) * (Constants::rules.arena.goal_top_radius + Constants::rules.arena.goal_side_radius);
+        o = o + normalize(v) * (C::rules.arena.goal_top_radius + C::rules.arena.goal_side_radius);
         dan = std::min(dan, dan_to_sphere_outer(
             point,
-            Point(o.x, o.y, (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_side_radius),
-            Constants::rules.arena.goal_side_radius));
+            Point(o.x, o.y, (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius),
+            C::rules.arena.goal_side_radius));
       }
     }
     // Goal inside top corners
-    if (point.z > (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_side_radius
-        && point.y > Constants::rules.arena.goal_height - Constants::rules.arena.goal_top_radius) {
+    if (point.z > (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius
+        && point.y > C::rules.arena.goal_height - C::rules.arena.goal_top_radius) {
       // Side x
-      if (point.x > (Constants::rules.arena.goal_width / 2) - Constants::rules.arena.goal_top_radius) {
+      if (point.x > (C::rules.arena.goal_width / 2) - C::rules.arena.goal_top_radius) {
         dan = std::min(dan, dan_to_sphere_inner(
             point,
             Point(
-                (Constants::rules.arena.goal_width / 2) - Constants::rules.arena.goal_top_radius,
-                Constants::rules.arena.goal_height - Constants::rules.arena.goal_top_radius,
+                (C::rules.arena.goal_width / 2) - C::rules.arena.goal_top_radius,
+                C::rules.arena.goal_height - C::rules.arena.goal_top_radius,
                 point.z
             ),
-            Constants::rules.arena.goal_top_radius));
+            C::rules.arena.goal_top_radius));
       }
       // Side z
-      if (point.z > (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_depth - Constants::rules.arena.goal_top_radius) {
+      if (point.z > (C::rules.arena.depth / 2) + C::rules.arena.goal_depth - C::rules.arena.goal_top_radius) {
         dan = std::min(dan, dan_to_sphere_inner(
             point,
             Point(
                 point.x,
-                Constants::rules.arena.goal_height - Constants::rules.arena.goal_top_radius,
-                (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_depth - Constants::rules.arena.goal_top_radius
+                C::rules.arena.goal_height - C::rules.arena.goal_top_radius,
+                (C::rules.arena.depth / 2) + C::rules.arena.goal_depth - C::rules.arena.goal_top_radius
             ),
-            Constants::rules.arena.goal_top_radius));
+            C::rules.arena.goal_top_radius));
       }
     }
 
     // Bottom corners
-    if (point.y < Constants::rules.arena.bottom_radius) {
+    if (point.y < C::rules.arena.bottom_radius) {
       // Side x
-      if (point.x > (Constants::rules.arena.width / 2) - Constants::rules.arena.bottom_radius) {
+      if (point.x > (C::rules.arena.width / 2) - C::rules.arena.bottom_radius) {
         dan = std::min(dan, dan_to_sphere_inner(
             point,
             Point(
-                (Constants::rules.arena.width / 2) - Constants::rules.arena.bottom_radius,
-                Constants::rules.arena.bottom_radius,
+                (C::rules.arena.width / 2) - C::rules.arena.bottom_radius,
+                C::rules.arena.bottom_radius,
                 point.z
             ),
-            Constants::rules.arena.bottom_radius));
+            C::rules.arena.bottom_radius));
       }
       // Side z
-      if (point.z > (Constants::rules.arena.depth / 2) - Constants::rules.arena.bottom_radius
-          && point.x >= (Constants::rules.arena.goal_width / 2) + Constants::rules.arena.goal_side_radius) {
+      if (point.z > (C::rules.arena.depth / 2) - C::rules.arena.bottom_radius
+          && point.x >= (C::rules.arena.goal_width / 2) + C::rules.arena.goal_side_radius) {
         dan = std::min(dan, dan_to_sphere_inner(
             point,
             Point(
                 point.x,
-                Constants::rules.arena.bottom_radius,
-                (Constants::rules.arena.depth / 2) - Constants::rules.arena.bottom_radius
+                C::rules.arena.bottom_radius,
+                (C::rules.arena.depth / 2) - C::rules.arena.bottom_radius
             ),
-            Constants::rules.arena.bottom_radius));
+            C::rules.arena.bottom_radius));
       }
       // Side z (goal)
-      if (point.z > (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_depth - Constants::rules.arena.bottom_radius) {
+      if (point.z > (C::rules.arena.depth / 2) + C::rules.arena.goal_depth - C::rules.arena.bottom_radius) {
         dan = std::min(dan, dan_to_sphere_inner(
             point,
             Point(
                 point.x,
-                Constants::rules.arena.bottom_radius,
-                (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_depth - Constants::rules.arena.bottom_radius
+                C::rules.arena.bottom_radius,
+                (C::rules.arena.depth / 2) + C::rules.arena.goal_depth - C::rules.arena.bottom_radius
             ),
-            Constants::rules.arena.bottom_radius));
+            C::rules.arena.bottom_radius));
       }
       // Goal outer corner
       Point2d o = Point2d(
-          (Constants::rules.arena.goal_width / 2) + Constants::rules.arena.goal_side_radius,
-          (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_side_radius
+          (C::rules.arena.goal_width / 2) + C::rules.arena.goal_side_radius,
+          (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius
       );
       Point2d v = Point2d(point.x, point.z) - o;
       if (v.x < 0 && v.y < 0
-          && length(v) < Constants::rules.arena.goal_side_radius + Constants::rules.arena.bottom_radius) {
-        o = o + normalize(v) * (Constants::rules.arena.goal_side_radius + Constants::rules.arena.bottom_radius);
+          && length(v) < C::rules.arena.goal_side_radius + C::rules.arena.bottom_radius) {
+        o = o + normalize(v) * (C::rules.arena.goal_side_radius + C::rules.arena.bottom_radius);
         dan = std::min(dan, dan_to_sphere_inner(
             point,
-            Point(o.x, Constants::rules.arena.bottom_radius, o.y),
-            Constants::rules.arena.bottom_radius));
+            Point(o.x, C::rules.arena.bottom_radius, o.y),
+            C::rules.arena.bottom_radius));
       }
       // Side x (goal)
-      if (point.z >= (Constants::rules.arena.depth / 2) + Constants::rules.arena.goal_side_radius
-          && point.x > (Constants::rules.arena.goal_width / 2) - Constants::rules.arena.bottom_radius) {
+      if (point.z >= (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius
+          && point.x > (C::rules.arena.goal_width / 2) - C::rules.arena.bottom_radius) {
         dan = std::min(dan, dan_to_sphere_inner(
             point,
             Point(
-                (Constants::rules.arena.goal_width / 2) - Constants::rules.arena.bottom_radius,
-                Constants::rules.arena.bottom_radius,
+                (C::rules.arena.goal_width / 2) - C::rules.arena.bottom_radius,
+                C::rules.arena.bottom_radius,
                 point.z
             ),
-            Constants::rules.arena.bottom_radius));
+            C::rules.arena.bottom_radius));
       }
       // Corner
-      if (point.x > (Constants::rules.arena.width / 2) - Constants::rules.arena.corner_radius
-          && point.z > (Constants::rules.arena.depth / 2) - Constants::rules.arena.corner_radius) {
+      if (point.x > (C::rules.arena.width / 2) - C::rules.arena.corner_radius
+          && point.z > (C::rules.arena.depth / 2) - C::rules.arena.corner_radius) {
         Point2d corner_o = Point2d(
-            (Constants::rules.arena.width / 2) - Constants::rules.arena.corner_radius,
-            (Constants::rules.arena.depth / 2) - Constants::rules.arena.corner_radius
+            (C::rules.arena.width / 2) - C::rules.arena.corner_radius,
+            (C::rules.arena.depth / 2) - C::rules.arena.corner_radius
         );
         Point2d n = Point2d(point.x, point.z) - corner_o;
         double dist = n.length();
-        if (dist > Constants::rules.arena.corner_radius - Constants::rules.arena.bottom_radius) {
+        if (dist > C::rules.arena.corner_radius - C::rules.arena.bottom_radius) {
           n = n / dist;
-          Point2d o2 = corner_o + n * (Constants::rules.arena.corner_radius - Constants::rules.arena.bottom_radius);
+          Point2d o2 = corner_o + n * (C::rules.arena.corner_radius - C::rules.arena.bottom_radius);
           dan = std::min(dan, dan_to_sphere_inner(
               point,
-              Point(o2.x, Constants::rules.arena.bottom_radius, o2.y),
-              Constants::rules.arena.bottom_radius));
+              Point(o2.x, C::rules.arena.bottom_radius, o2.y),
+              C::rules.arena.bottom_radius));
         }
       }
     }
 
     // Ceiling corners
-    if (point.y > Constants::rules.arena.height - Constants::rules.arena.top_radius) {
+    if (point.y > C::rules.arena.height - C::rules.arena.top_radius) {
       // Side x
-      if (point.x > (Constants::rules.arena.width / 2) - Constants::rules.arena.top_radius) {
+      if (point.x > (C::rules.arena.width / 2) - C::rules.arena.top_radius) {
         dan = std::min(dan, dan_to_sphere_inner(
             point,
             Point(
-                (Constants::rules.arena.width / 2) - Constants::rules.arena.top_radius,
-                Constants::rules.arena.height - Constants::rules.arena.top_radius,
+                (C::rules.arena.width / 2) - C::rules.arena.top_radius,
+                C::rules.arena.height - C::rules.arena.top_radius,
                 point.z
             ),
-            Constants::rules.arena.top_radius));
+            C::rules.arena.top_radius));
       }
       // Side z
-      if (point.z > (Constants::rules.arena.depth / 2) - Constants::rules.arena.top_radius) {
+      if (point.z > (C::rules.arena.depth / 2) - C::rules.arena.top_radius) {
         dan = std::min(dan, dan_to_sphere_inner(
             point,
             Point(
                 point.x,
-                Constants::rules.arena.height - Constants::rules.arena.top_radius,
-                (Constants::rules.arena.depth / 2) - Constants::rules.arena.top_radius
+                C::rules.arena.height - C::rules.arena.top_radius,
+                (C::rules.arena.depth / 2) - C::rules.arena.top_radius
             ),
-            Constants::rules.arena.top_radius));
+            C::rules.arena.top_radius));
       }
 
       // Corner
-      if (point.x > (Constants::rules.arena.width / 2) - Constants::rules.arena.corner_radius
-          && point.z > (Constants::rules.arena.depth / 2) - Constants::rules.arena.corner_radius) {
+      if (point.x > (C::rules.arena.width / 2) - C::rules.arena.corner_radius
+          && point.z > (C::rules.arena.depth / 2) - C::rules.arena.corner_radius) {
         Point2d corner_o = Point2d(
-            (Constants::rules.arena.width / 2) - Constants::rules.arena.corner_radius,
-            (Constants::rules.arena.depth / 2) - Constants::rules.arena.corner_radius
+            (C::rules.arena.width / 2) - C::rules.arena.corner_radius,
+            (C::rules.arena.depth / 2) - C::rules.arena.corner_radius
         );
         Point2d dv = Point2d(point.x, point.z) - corner_o;
-        if (length(dv) > Constants::rules.arena.corner_radius - Constants::rules.arena.top_radius) {
+        if (length(dv) > C::rules.arena.corner_radius - C::rules.arena.top_radius) {
           Point2d n = normalize(dv);
-          Point2d o2 = corner_o + n * (Constants::rules.arena.corner_radius - Constants::rules.arena.top_radius);
+          Point2d o2 = corner_o + n * (C::rules.arena.corner_radius - C::rules.arena.top_radius);
           dan = std::min(dan, dan_to_sphere_inner(
               point,
-              Point(o2.x, Constants::rules.arena.height - Constants::rules.arena.top_radius, o2.y),
-              Constants::rules.arena.top_radius));
+              Point(o2.x, C::rules.arena.height - C::rules.arena.top_radius, o2.y),
+              C::rules.arena.top_radius));
         }
       }
     }
@@ -575,6 +577,8 @@ struct Simulator {
     }
 
   }
+
+
 
 };
 

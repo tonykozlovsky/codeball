@@ -33,8 +33,9 @@
 #include <map>
 #include <iomanip>
 #include <random>
+#include <string>
 
-struct Constants {
+struct C {
   static model::Rules rules;
 
   static constexpr int MAX_SIMULATION_DEPTH = 200;

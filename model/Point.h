@@ -20,6 +20,10 @@ struct Point {
   Point operator*(const double value) const {
     return {x * value, y * value, z * value};
   }
+
+  Point operator/(const double value) const {
+    return {x / value, y / value, z / value};
+  }
   Point& operator-=(const Point& other) {
     x -= other.x;
     y -= other.y;
@@ -30,6 +34,12 @@ struct Point {
     x += other.x;
     y += other.y;
     z += other.z;
+    return *this;
+  }
+  Point& operator/=(const double value) {
+    x /= value;
+    y /= value;
+    z /= value;
     return *this;
   }
   double length() const {

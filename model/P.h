@@ -8,7 +8,7 @@
 #include "Entity.h"
 #endif
 
-struct Painter {
+struct P {
   struct Line {
     Point a, b;
     uint32_t color;
@@ -47,6 +47,7 @@ struct Painter {
 
   static std::vector<Line> lines_to_draw;
   static std::vector<Sphere> spheres_to_draw;
+  static std::vector<std::string> logs;
 
   static void drawLine(const Point& p1, const Point& p2, const uint32_t color = 0) {
 #ifdef LOCAL
@@ -277,6 +278,48 @@ struct Painter {
     RewindClient::instance().end_frame();
 #endif
 #endif
+  }
+
+  template<typename... Args>
+  static void logn(Args... args) {
+#ifdef LOCAL
+#ifdef DRAWLR
+    logs.push_back(to_string(args...));
+#endif
+#endif
+  }
+
+  template<typename... Args>
+  static void log(Args... args) {
+#ifdef LOCAL
+#ifdef DRAWLR
+    if (logs.size() == 0) {
+      logn(args...);
+    } else {
+      logs.back() += " " + to_string(args...);
+    }
+#endif
+#endif
+  }
+
+  template<typename T, typename... Args>
+  static inline std::string to_string(T fmt, Args... args) {
+    return to_string(fmt) + to_string(args...);
+  }
+  static inline std::string to_string(std::string fmt) {
+    return fmt;
+  }
+  static inline std::string to_string(double fmt) {
+    std::stringstream _s;
+    _s << std::fixed << std::setprecision(6) << fmt;
+    return _s.str();
+  }
+  static inline std::string to_string(const char*& fmt) {
+    return std::string(fmt);
+  }
+  template<typename T>
+  static inline std::string to_string(T fmt) {
+    return std::to_string(fmt);
   }
 
 };

@@ -9,13 +9,13 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(${CMAKE_SOURCE_DIR})
 
 add_executable(CodeBall
-        Helper.cpp
+        H.cpp
         MyStrategy.cpp
         RemoteProcessClient.cpp
         Runner.cpp
         Strategy.cpp
-        model/Constants.cpp
-        model/Painter.cpp)
+        model/C.cpp
+        model/P.cpp)
 
 add_subdirectory(RewindClient/csimplesocket)
 target_link_libraries(CodeBall csimplesocket)

@@ -1,9 +1,9 @@
 #ifdef LOCAL
 #include <MyStrategy.h>
 #include <Simulator.h>
-#include <model/Constants.h>
-#include <model/Painter.h>
-#include <Helper.h>
+#include <model/C.h>
+#include <model/P.h>
+#include <H.h>
 #else
 #include "MyStrategy.h"
 #include "Simulator.h"
@@ -16,44 +16,43 @@ MyStrategy::MyStrategy() {}
 
 void doStrategy() {
   for (int id = 0; id < 2; id++) {
-    Helper::best_plan[id].score = -1e18;
-    Helper::best_plan[id].time_jump--;
-    Helper::best_plan[id].time_change--;
-    Helper::best_plan[id].collide_with_ball = false;
+    H::best_plan[id].score = -1e18;
+    H::best_plan[id].time_jump--;
+    H::best_plan[id].time_change--;
+    H::best_plan[id].collide_with_ball = false;
   }
 
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-    for (; Helper::global_timer.getCumulative(true) < Helper::time_limit; iteration++) {
+    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
-        if (Helper::game.ball.z < -0.01) {
-          if (Helper::global_timer.getCumulative(true) > Helper::half_time) {
+        if (H::game.ball.z < -0.01) {
+          if (H::global_timer.getCumulative(true) > H::half_time) {
             break;
           }
         } else {
-          if (Helper::global_timer.cur() > 0.0015) {
+          if (H::global_timer.cur() > 0.0015) {
             break;
           }
         }
       }
       Plan cur_plan;
       if (iteration == 0) {
-        cur_plan = Helper::best_plan[id];
+        cur_plan = H::best_plan[id];
       }
-      Simulator simulator(Helper::game.robots, Helper::game.ball);
+      Simulator simulator(H::game.robots, H::game.ball);
+
       double score = 0;
       double multiplier = 1.;
-      for (int sim_tick = 0; sim_tick < Constants::MAX_SIMULATION_DEPTH; sim_tick++) {
+      for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
         for (auto& robot : simulator.robots) {
           if (robot.is_teammate) {
             if (robot.global_id % 2 == id) {
               robot.action = cur_plan.toMyAction(sim_tick);
             } else {
-              robot.action = Helper::best_plan[robot.global_id % 2].toMyAction(sim_tick);
+              robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick);
             }
-          } else {
-            robot.action = {robot.velocity.normalize() * Constants::rules.ROBOT_MAX_GROUND_SPEED, 0.};
-          };
+          }
         }
         simulator.tick();
         if (id == 0) {
@@ -63,20 +62,20 @@ void doStrategy() {
         }
         multiplier *= 0.9;
       }
-      /*if (iteration == 0) {
+      if (iteration == 0) {
         for (auto& robot : simulator.robots) {
           if (robot.global_id % 2 == id) {
             for (int i = 1; i < robot.trace.size(); i++) {
-              Painter::drawLine(robot.trace[i - 1], robot.trace[i]);
+              P::drawLine(robot.trace[i - 1], robot.trace[i], 0xFF0000);
             }
           }
         }
         if (id == 0) {
           for (int i = 1; i < simulator.ball.trace.size(); i++) {
-            Painter::drawLine(simulator.ball.trace[i - 1], simulator.ball.trace[i]);
+            P::drawLine(simulator.ball.trace[i - 1], simulator.ball.trace[i]);
           }
         }
-      }*/
+      }
 
       cur_plan.score = score;
       for (auto& robot : simulator.robots) {
@@ -84,20 +83,13 @@ void doStrategy() {
           cur_plan.collide_with_ball = simulator.collide_with_ball[robot.global_id];
         }
       }
-      Helper::best_plan[id] = std::max(Helper::best_plan[id], cur_plan);
+      H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
 
-    if (Helper::tick + 1 % 2000 == 0) {
-      std::cout << "it: " << iteration << std::endl;
-    }
   }
-  //std::cout << std::endl;
 
-  Helper::actions[0] = Helper::best_plan[0].toMyAction(0, true).toAction();
-  Helper::actions[1] = Helper::best_plan[1].toMyAction(0, true).toAction();
-  //Painter::drawArena();
-  //Painter::drawEntities(simulator.robots, simulator.ball, 1. / Constants::rules.TICKS_PER_SECOND, 0xFF0000);
-  //Painter::endFrame();
+  H::actions[0] = H::best_plan[0].toMyAction(0, true).toAction();
+  H::actions[1] = H::best_plan[1].toMyAction(0, true).toAction();
 }
 
 void MyStrategy::act(
@@ -105,16 +97,12 @@ void MyStrategy::act(
     const model::Rules& rules,
     const model::Game& game,
     model::Action& action) {
-  if (Helper::tryInit(me, rules, game)) {
+  if (H::tryInit(me, rules, game)) {
     doStrategy();
-    action = Helper::getCurrentAction();
+    action = H::getCurrentAction();
   } else {
-    action = Helper::getCurrentAction();
-    Helper::global_timer.cur(true, true);
-    //std::cout << std::endl;
-    if (Helper::tick + 1 % 2000 == 0) {
-      std::cerr << "avg: " << std::fixed << std::setprecision(3) << 1000. * Helper::global_timer.avg() << std::endl;
-    }
+    action = H::getCurrentAction();
+    H::global_timer.cur(true, true);
   }
 }
 
@@ -128,7 +116,7 @@ std::string MyStrategy::custom_rendering() {
   rapidjson::Document document;
   document.SetArray();
   rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
-  for (auto line : Painter::lines_to_draw) {
+  for (auto line : P::lines_to_draw) {
     rapidjson::Value line_object;
     line_object.SetObject();
     rapidjson::Value line_data;
@@ -147,7 +135,7 @@ std::string MyStrategy::custom_rendering() {
     line_object.AddMember("Line", line_data, allocator);
     document.PushBack(line_object, allocator);
   }
-  for (auto sphere : Painter::spheres_to_draw) {
+  for (auto sphere : P::spheres_to_draw) {
     rapidjson::Value sphere_object;
     sphere_object.SetObject();
     rapidjson::Value sphere_data;
@@ -163,12 +151,23 @@ std::string MyStrategy::custom_rendering() {
     sphere_object.AddMember("Sphere", sphere_data, allocator);
     document.PushBack(sphere_object, allocator);
   }
+
+  for (auto& log : P::logs) {
+    rapidjson::Value log_object;
+    log_object.SetObject();
+    rapidjson::Value value;
+    value.SetString(log.c_str(), allocator);
+    log_object.AddMember("Text", value, allocator);
+    document.PushBack(log_object, allocator);
+  }
+
   rapidjson::StringBuffer buf;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
   document.Accept(writer);
 
-  Painter::lines_to_draw.clear();
-  Painter::spheres_to_draw.clear();
+  P::logs.clear();
+  P::lines_to_draw.clear();
+  P::spheres_to_draw.clear();
   return buf.GetString();
 }
 #endif
