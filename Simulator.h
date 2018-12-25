@@ -104,19 +104,19 @@ struct Simulator {
   }
 
   bool collide_entities(Entity& a, Entity& b) {
-    Point delta_position = b.position - a.position;
-    double distance = length(delta_position);
-    double penetration = a.radius + b.radius - distance;
-    if (penetration > 0) {
-      double k_a = (1. / a.mass) / ((1. / a.mass) + (1. / b.mass));
-      double k_b = (1. / b.mass) / ((1. / a.mass) + (1. / b.mass));
-      Point normal = normalize(delta_position);
-      a.position -= normal * penetration * k_a;
-      b.position += normal * penetration * k_b;
-      double delta_velocity = dot(b.velocity - a.velocity, normal)
-          + b.radius_change_speed - a.radius_change_speed;
+    const Point& delta_position = b.position - a.position;
+    const double distance_sq = delta_position.length_sq();
+    if ( (a.radius + b.radius) * (a.radius + b.radius) > distance_sq) {
+      const double penetration = a.radius + b.radius - sqrt(distance_sq);
+      const double k_a = 1. / (a.mass * ((1 / a.mass) + (1 / b.mass)));
+      const double k_b = 1. / (b.mass * ((1 / a.mass) + (1 / b.mass)));
+      const Point& normal = normalize(delta_position);
+      a.position -= normal * (penetration * k_a);
+      b.position += normal * (penetration * k_b);
+      const double delta_velocity = dot(b.velocity - a.velocity, normal)
+          + (b.radius_change_speed - a.radius_change_speed);
       if (delta_velocity < 0) {
-        Point impulse = normal * (1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2.) * delta_velocity;
+        const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2.) * delta_velocity);
         a.velocity += impulse * k_a;
         b.velocity -= impulse * k_b;
         return true;
