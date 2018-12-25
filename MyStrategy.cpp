@@ -70,6 +70,7 @@ void doStrategy() {
             }
           }
         }
+        P::logn(simulator.ball.trace.size());
         if (id == 0) {
           for (int i = 1; i < simulator.ball.trace.size(); i++) {
             P::drawLine(simulator.ball.trace[i - 1], simulator.ball.trace[i]);

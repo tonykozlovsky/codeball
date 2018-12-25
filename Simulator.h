@@ -158,16 +158,22 @@ struct Simulator {
     //H::t[2].start();
     for (auto& robot : robots) {
       if (robot.touch) {
-        Point target_velocity = clamp(
-            robot.action.target_velocity,
-            C::rules.ROBOT_MAX_GROUND_SPEED);
-        target_velocity -= robot.touch_normal * robot.touch_normal.dot(target_velocity);
-        Point target_velocity_change = target_velocity - robot.velocity;
-        if (length(target_velocity_change) > 0) {
-          double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot.touch_normal.y);
-          robot.velocity += clamp(
-              normalize(target_velocity_change) * acceleration * delta_time,
-              length(target_velocity_change));
+        //H::t[10].start();
+        const Point& target_velocity = robot.action.target_velocity - robot.touch_normal * robot.touch_normal.dot(robot.action.target_velocity);
+        //H::t[10].cur(true);
+        //H::t[14].start();
+        const Point& target_velocity_change = target_velocity - robot.velocity;
+        //H::t[14].cur(true);
+        //H::t[15].start();
+        double length = target_velocity_change.length_sq();
+        if (length > 0) {
+          const double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot.touch_normal.y);
+          length = sqrt(length);
+          if (acceleration * delta_time < length) {
+            robot.velocity += target_velocity_change * (acceleration * delta_time / length);
+          } else {
+            robot.velocity += target_velocity_change;
+          }
         }
         //H::t[15].cur(true);
       }

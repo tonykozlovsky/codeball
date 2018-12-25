@@ -28,15 +28,15 @@ struct Plan {
     double jump_speed = ((!check_jump || collide_with_ball) && simulation_tick == time_jump) ? C::rules.ROBOT_MAX_JUMP_SPEED : 0;
     if (simulation_tick < time_change) {
       return MyAction{{
-          C::rules.MAX_ENTITY_SPEED * cangle1,
+          C::rules.ROBOT_MAX_GROUND_SPEED * cangle1,
           0,
-          C::rules.MAX_ENTITY_SPEED * sangle1},
+          C::rules.ROBOT_MAX_GROUND_SPEED * sangle1},
           jump_speed};
     } else {
       return MyAction{{
-                C::rules.MAX_ENTITY_SPEED * cangle2,
+                C::rules.ROBOT_MAX_GROUND_SPEED * cangle2,
                 0,
-                C::rules.MAX_ENTITY_SPEED * sangle2},
+                C::rules.ROBOT_MAX_GROUND_SPEED * sangle2},
                 jump_speed};
     }
   }
