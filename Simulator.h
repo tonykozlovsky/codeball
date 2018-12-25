@@ -44,7 +44,7 @@ struct Simulator {
         closest_enemy_dist = std::min(closest_enemy_dist, (ball.position - robot.position).length());
       }
     }
-    score += closest_enemy_dist;
+    //score += closest_enemy_dist;
     double dist = (ball.position - Point{0, 0, C::rules.arena.depth / 2}).length();
     score += -dist * dist;
     return score;
@@ -65,7 +65,7 @@ struct Simulator {
         closest_enemy_dist = std::min(closest_enemy_dist, (ball.position - robot.position).length());
       }
     }
-    score += -2 * std::min(ball.position.z, 0.) * std::min(ball.position.z, 0.);
+    score += -5 * std::min(ball.position.z, 0.) * std::min(ball.position.z, 0.);
     //score += 5 * closest_enemy_dist;
     return score;
   }
