@@ -27,6 +27,28 @@ struct Simulator {
   bool enemy_goal = false;
   bool collide_with_ball[10];
 
+  double getScoreEnemy(int id) {
+    double score = 0;
+    if (enemy_goal) {
+      score += 1e9;
+    }
+    if (my_goal) {
+      score -= 1e9;
+    }
+    for (auto& robot : robots) {
+      if (!robot.is_teammate && robot.global_id % 2 == id) {
+        score += -0.01 * (robot.position - ball.position).length();
+        if (!robot.touch) {
+          score -= 0.5;
+        }
+      }
+    }
+    //score += closest_enemy_dist;
+    double dist = (ball.position - Point{0, 0, -C::rules.arena.depth / 2 + -C::rules.arena.goal_depth}).length();
+    score += -dist;
+    return score;
+  }
+
   double getScoreFighter() {
     double score = 0;
     if (my_goal) {
@@ -58,15 +80,23 @@ struct Simulator {
     double closest_enemy_dist = 1e9;
     for (auto& robot : robots) {
       if (robot.is_teammate && robot.global_id % 2 == 1) {
-        score += -(robot.position - Point{
-            0, 0, -C::rules.arena.depth / 2}).length();
+        double x = std::clamp(-ball.position.x, -12., 12.);
+        score += -0.01 * (robot.position - Point{
+            x, 0, -C::rules.arena.depth / 2}).length();
+        //if (!robot.touch) {
+        //  score -= 0.5;
+        //}
       }
       if (!robot.is_teammate) {
         closest_enemy_dist = std::min(closest_enemy_dist, (ball.position - robot.position).length());
       }
     }
-    score += -5 * std::min(ball.position.z, 0.) * std::min(ball.position.z, 0.);
-    //score += 5 * closest_enemy_dist;
+    double dist = (ball.position - Point{0, 0, -C::rules.arena.depth / 2 -C::rules.arena.goal_depth}).length();
+    dist = std::min(dist, C::rules.arena.depth / 2 + C::rules.arena.goal_depth);
+    score += 5 * dist;
+    //if (dist < C::rules.arena.depth / 2 + C::rules.arena.goal_depth) {
+    //score += closest_enemy_dist;
+    //}
     return score;
   }
 

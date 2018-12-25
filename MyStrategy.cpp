@@ -18,7 +18,13 @@ void doStrategy() {
   for (int id = 0; id < 2; id++) {
     H::best_plan[id].score = -1e18;
     H::best_plan[id].time_jump--;
+    if (H::best_plan[id].time_jump < -1) {
+      H::best_plan[id].time_jump = -1;
+    }
     H::best_plan[id].time_change--;
+    if (H::best_plan[id].time_change < -1) {
+      H::best_plan[id].time_change = -1;
+    }
     H::best_plan[id].collide_with_ball = false;
   }
 
@@ -39,10 +45,11 @@ void doStrategy() {
       Plan cur_plan;
       if (iteration == 0) {
         cur_plan = H::best_plan[id];
-      } else if (id == 0) {
-        //cur_plan = H::best_plan[id];
-        //cur_plan.mutate();
       }
+      //else if (C::rand_int(0, 1) == 0) {
+      //  cur_plan = H::best_plan[id];
+      //  cur_plan.mutate();
+      //}
       Simulator simulator(H::game.robots, H::game.ball);
 
       double score = 0;
@@ -67,38 +74,74 @@ void doStrategy() {
         }
         multiplier *= 0.9;
       }
-      if (iteration == 0) {
-        for (auto& robot : simulator.robots) {
-          if (robot.global_id % 2 == id) {
-            for (int i = 1; i < robot.trace.size(); i++) {
-              P::drawLine(robot.trace[i - 1], robot.trace[i], 0xFF0000);
-            }
-          }
-        }
-        P::logn(simulator.ball.trace.size());
-        if (id == 0) {
-          for (int i = 1; i < simulator.ball.trace.size(); i++) {
-            P::drawLine(simulator.ball.trace[i - 1], simulator.ball.trace[i]);
-          }
-        }
-      }
 
       cur_plan.score = score;
       for (auto& robot : simulator.robots) {
-        if (robot.global_id % 2 == id) {
+        if (robot.is_teammate && robot.global_id % 2 == id) {
           cur_plan.collide_with_ball = simulator.collide_with_ball[robot.global_id];
+          //cur_plan.robot_trace = robot.trace;
         }
       }
-      H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
+      //cur_plan.ball_trace = simulator.ball.trace;
+
       /*if (iteration == 0) {
         if (id == 0) {
-          P::logn("Fight: ", H::best_plan[id].score);
+          P::logn("Prev_Fight: ", cur_plan.score);
         } else {
-          P::logn("Def: ", H::best_plan[id].score);
+          P::logn("Prev_Def: ", cur_plan.score);
         }
+        P::logn("Prev_angle1: ", cur_plan.angle1);
+        P::logn("Prev_angle2: ", cur_plan.angle2);
+        P::logn("Prev_time_change: ", cur_plan.time_change);
+        P::logn("Prev_time_jump: ", cur_plan.time_jump);
+        P::logn("Prev_speed1: ", cur_plan.speed1);
+        P::logn("Prev_speed2: ", cur_plan.speed2);
+        P::logn("____________________________");
+
       }*/
+      H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
+
     }
-    //std::cout << iteration << std::endl;
+    /*if (id == 0) {
+      P::logn("Fight: ", H::best_plan[id].score);
+      P::logn("it: ", iteration);
+
+      P::logn("angle1: ", H::best_plan[id].angle1);
+      P::logn("angle2: ", H::best_plan[id].angle2);
+      P::logn("time_change: ", H::best_plan[id].time_change);
+      P::logn("time_jump: ", H::best_plan[id].time_jump);
+      P::logn("speed1: ", H::best_plan[id].speed1);
+      P::logn("speed2: ", H::best_plan[id].speed2);
+      P::logn("____________________________");
+
+      for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
+        P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);
+      }
+      for (int i = 1; i < H::best_plan[id].ball_trace.size(); i++) {
+        P::drawLine(H::best_plan[id].ball_trace[i - 1], H::best_plan[id].ball_trace[i], 0x00FF00);
+      }
+
+    } else {
+      P::logn("Def: ", H::best_plan[id].score);
+      P::logn("it: ", iteration);
+
+      P::logn("angle1: ", H::best_plan[id].angle1);
+      P::logn("angle2: ", H::best_plan[id].angle2);
+      P::logn("time_change: ", H::best_plan[id].time_change);
+      P::logn("time_jump: ", H::best_plan[id].time_jump);
+      P::logn("speed1: ", H::best_plan[id].speed1);
+      P::logn("speed2: ", H::best_plan[id].speed2);
+      P::logn("____________________________");
+
+      for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
+        P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);
+      }
+      for (int i = 1; i < H::best_plan[id].ball_trace.size(); i++) {
+        P::drawLine(H::best_plan[id].ball_trace[i - 1], H::best_plan[id].ball_trace[i], 0x00FF00);
+      }
+
+    }*/
+
   }
   /*std::vector<std::pair<double, int> > timers;
   for (int i = 12; i <= 35; i++) {

@@ -13,6 +13,8 @@ struct Plan {
   double score;
   bool collide_with_ball;
   double speed1, speed2;
+  std::vector<Point> robot_trace;
+  std::vector<Point> ball_trace;
   Plan() {
     collide_with_ball = false;
     angle1 = C::rand_double(0, 2 * M_PI);
@@ -26,10 +28,10 @@ struct Plan {
 
     speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
 
-    if (C::rand_double(0, 1) < 0.1) {
+    if (C::rand_double(0, 1) < 0.05) {
       speed1 = 0;
     }
-    if (C::rand_double(0, 1) < 0.1) {
+    if (C::rand_double(0, 1) < 0.05) {
       speed2 = 0;
     }
 
