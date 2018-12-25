@@ -1,7 +1,7 @@
 #ifdef LOCAL
 #include <model/P.h>
 #else
-#include "Painter.h"
+#include "P.h"
 #endif
 
 std::vector<P::Line> P::lines_to_draw;

@@ -7,9 +7,9 @@
 #else
 #include "MyStrategy.h"
 #include "Simulator.h"
-#include "model/Constants.h"
-#include "model/Painter.h"
-#include "Helper.h"
+#include "model/C.h"
+#include "model/P.h"
+#include "H.h"
 #endif
 
 MyStrategy::MyStrategy() {}
@@ -39,6 +39,9 @@ void doStrategy() {
       Plan cur_plan;
       if (iteration == 0) {
         cur_plan = H::best_plan[id];
+      } else if (id == 0) {
+        //cur_plan = H::best_plan[id];
+        //cur_plan.mutate();
       }
       Simulator simulator(H::game.robots, H::game.ball);
 
@@ -64,7 +67,7 @@ void doStrategy() {
         }
         multiplier *= 0.9;
       }
-      /*if (iteration == 0) {
+      if (iteration == 0) {
         for (auto& robot : simulator.robots) {
           if (robot.global_id % 2 == id) {
             for (int i = 1; i < robot.trace.size(); i++) {
@@ -78,7 +81,7 @@ void doStrategy() {
             P::drawLine(simulator.ball.trace[i - 1], simulator.ball.trace[i]);
           }
         }
-      }*/
+      }
 
       cur_plan.score = score;
       for (auto& robot : simulator.robots) {
@@ -87,6 +90,13 @@ void doStrategy() {
         }
       }
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
+      if (iteration == 0) {
+        if (id == 0) {
+          P::logn("Fight: ", H::best_plan[id].score);
+        } else {
+          P::logn("Def: ", H::best_plan[id].score);
+        }
+      }
     }
     //std::cout << iteration << std::endl;
   }

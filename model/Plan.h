@@ -24,6 +24,45 @@ struct Plan {
     time_jump = C::rand_int(0, C::MAX_SIMULATION_DEPTH);
     score = -1e18;
   }
+
+  static constexpr double angle_mutation = M_PI / 5;
+  static constexpr int time_mutation = 3;
+
+  void mutate() {
+    angle1 += C::rand_double(-angle_mutation, angle_mutation);
+    if (angle1 > 2 * M_PI) {
+      angle1 -= 2 * M_PI;
+    }
+    if (angle1 < 0) {
+      angle1 += 2 * M_PI;
+    }
+    cangle1 = cos(angle1);
+    sangle1 = sin(angle1);
+    angle2 += C::rand_double(-angle_mutation, angle_mutation);
+    if (angle2 > 2 * M_PI) {
+      angle2 -= 2 * M_PI;
+    }
+    if (angle2 < 0) {
+      angle2 += 2 * M_PI;
+    }
+    cangle2 = cos(angle2);
+    sangle2 = sin(angle2);
+    time_change = time_change + C::rand_int(-time_mutation, time_mutation);
+    if (time_change < 0) {
+      time_change = 0;
+    }
+    if (time_change > C::MAX_SIMULATION_DEPTH) {
+      time_change = C::MAX_SIMULATION_DEPTH;
+    }
+    time_jump = time_jump + C::rand_int(-time_mutation, time_mutation);
+    if (time_jump < 0) {
+      time_jump = 0;
+    }
+    if (time_jump > C::MAX_SIMULATION_DEPTH) {
+      time_jump = C::MAX_SIMULATION_DEPTH;
+    }
+  }
+
   MyAction toMyAction(int simulation_tick, bool check_jump = false) {
     double jump_speed = ((!check_jump || collide_with_ball) && simulation_tick == time_jump) ? C::rules.ROBOT_MAX_JUMP_SPEED : 0;
     if (simulation_tick < time_change) {

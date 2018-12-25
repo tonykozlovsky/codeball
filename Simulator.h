@@ -7,7 +7,7 @@
 #include <H.h>
 #else
 #include "model/Entity.h"
-#include "model/Painter.h"
+#include "model/P.h"
 #include "H.h"
 #endif
 
@@ -28,22 +28,33 @@ struct Simulator {
   bool collide_with_ball[10];
 
   double getScoreFighter() {
+    double score = 0;
     if (my_goal) {
-      return 1e9;
+      score += 1e9;
     }
     if (enemy_goal) {
-      return -1e9;
+      score -= 1e9;
     }
-    return -(ball.position - Point{0, 0,
-        C::rules.arena.depth / 2
-            + C::rules.arena.goal_depth}).length();
+    double closest_enemy_dist = 1e9;
+    for (auto& robot : robots) {
+      if (robot.is_teammate && robot.global_id % 2 == 0) {
+        score += -0.01 * (robot.position - ball.position).length();
+      }
+      if (!robot.is_teammate) {
+        closest_enemy_dist = std::min(closest_enemy_dist, (ball.position - robot.position).length());
+      }
+    }
+    score += closest_enemy_dist;
+    double dist = (ball.position - Point{0, 0, C::rules.arena.depth / 2}).length();
+    score += -dist * dist;
+    return score;
   }
 
   double getScoreDefender() {
-    if (enemy_goal) {
-      return -1e9;
-    }
     double score = 0;
+    if (enemy_goal) {
+      score += -1e9;
+    }
     double closest_enemy_dist = 1e9;
     for (auto& robot : robots) {
       if (robot.is_teammate && robot.global_id % 2 == 1) {
@@ -55,7 +66,7 @@ struct Simulator {
       }
     }
     score += -2 * std::min(ball.position.z, 0.) * std::min(ball.position.z, 0.);
-    score += closest_enemy_dist * closest_enemy_dist;
+    //score += 5 * closest_enemy_dist;
     return score;
   }
 
@@ -67,7 +78,7 @@ struct Simulator {
       collide_with_ball[_robots[i].id] = false;
     }
     ball = Entity(_ball);
-    //update_trace();
+    update_trace();
   }
 
   void print_velocity(const Point& p) {
@@ -236,7 +247,6 @@ struct Simulator {
   }
 
   void update_trace() {
-    return;
     for (auto& robot : robots) {
       robot.trace.push_back(robot.position);
     }
@@ -251,7 +261,7 @@ struct Simulator {
     //}
     update(delta_time);
     //H::t[1].cur(true);
-    //update_trace();
+    update_trace();
   }
 
   Dan dan_to_plane(
@@ -695,7 +705,7 @@ struct Simulator {
         //return dan;
         //}
       }
-      
+
     }
     //H::t[33].cur(true);
 
