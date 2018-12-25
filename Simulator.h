@@ -126,19 +126,24 @@ struct Simulator {
   }
 
   bool collide_with_arena(Entity& e, Point& result) {
-    Dan dan = dan_to_arena(e.position);
-    double distance = dan.distance;
-    Point normal = dan.normal;
-    double penetration = e.radius - distance;
-    if (penetration > 0) {
+    //H::t[10].start();
+    const Dan& dan = dan_to_arena(e.position, e.radius);
+    //H::t[10].cur(true);
+    //H::t[11].start();
+    const double distance = dan.distance;
+    const Point& normal = dan.normal;
+    if (e.radius > distance ) { // TODO distance sq
+      const double penetration = e.radius - distance;
       e.position += normal * penetration;
-      double velocity = dot(e.velocity, normal) - e.radius_change_speed;
+      const double velocity = dot(e.velocity, normal) - e.radius_change_speed;
       if (velocity < 0) {
-        e.velocity -= normal * (1 + e.arena_e) * velocity;
+        e.velocity -= normal * ((1. + e.arena_e) * velocity);
         result = normal;
+        //H::t[11].cur(true);
         return true;
       }
     }
+    //H::t[11].cur(true);
     return false;
   }
 
@@ -150,6 +155,7 @@ struct Simulator {
   }
 
   void update(const double delta_time) {
+    //H::t[2].start();
     for (auto& robot : robots) {
       if (robot.touch) {
         Point target_velocity = clamp(
@@ -163,34 +169,51 @@ struct Simulator {
               normalize(target_velocity_change) * acceleration * delta_time,
               length(target_velocity_change));
         }
+        //H::t[15].cur(true);
       }
+      //H::t[11].start();
       move(robot, delta_time);
       robot.radius = C::rules.ROBOT_MIN_RADIUS
           + (C::rules.ROBOT_MAX_RADIUS - C::rules.ROBOT_MIN_RADIUS)
               * robot.action.jump_speed / C::rules.ROBOT_MAX_JUMP_SPEED;
       robot.radius_change_speed = robot.action.jump_speed;
+      //H::t[12].cur(true);
     }
+    //H::t[2].cur(true);
+    //H::t[5].start();
     move(ball, delta_time);
+    //H::t[5].cur(true);
+    //H::t[6].start();
     Point collision_normal;
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < i; j++) {
         collide_entities(robots[i], robots[j]);
       }
     }
+    //H::t[6].cur(true);
+    //H::t[7].start();
     for (auto& robot : robots) {
+      //H::t[8].start();
       if (collide_entities(robot, ball) && !robot.touch) {
         collide_with_ball[robot.global_id] = true;
       }
+      //H::t[8].cur(true);
+      //H::t[9].start();
       if (!collide_with_arena(robot, collision_normal)) {
         robot.touch = false;
       } else {
         robot.touch = true;
         robot.touch_normal = collision_normal;
       }
+      //H::t[9].cur(true);
     }
+    //H::t[7].cur(true);
 
+    //H::t[3].start();
     collide_with_arena(ball, collision_normal);
+    //H::t[3].cur(true);
 
+    //H::t[4].start();
     if (!my_goal && !enemy_goal) {
       if (ball.position.z > C::rules.arena.depth / 2 + ball.radius) {
         my_goal = true;
@@ -198,6 +221,7 @@ struct Simulator {
         enemy_goal = true;
       }
     }
+    //H::t[4].cur(true);
   }
 
   void update_trace() {
@@ -208,11 +232,13 @@ struct Simulator {
   }
 
   void tick() {
+    //H::t[1].start();
     double delta_time = 1. / C::rules.TICKS_PER_SECOND;
     //for (int i = 0; i < Constants::rules.MICROTICKS_PER_TICK; i++) {
-      //update(delta_time / Constants::rules.MICROTICKS_PER_TICK);
+    //update(delta_time / Constants::rules.MICROTICKS_PER_TICK);
     //}
     update(delta_time);
+    //H::t[1].cur(true);
     update_trace();
   }
 
@@ -239,7 +265,8 @@ struct Simulator {
         normalize(point - sphere_center)};
   }
 
-  Dan dan_to_arena_quarter(Point point) {
+  Dan dan_to_arena_quarter(const Point& point, const double radius) {
+
     // Ground
     Dan dan = dan_to_plane(point, Point(0, 0, 0), Point(0, 1, 0));
 
@@ -502,21 +529,23 @@ struct Simulator {
     return dan;
   }
 
-  Dan dan_to_arena(Point point) {
-    bool negate_x = point.x < 0;
-    bool negate_z = point.z < 0;
+  Dan dan_to_arena(Point& point, const double radius) {
+    const bool negate_x = point.x < 0;
+    const bool negate_z = point.z < 0;
     if (negate_x) {
       point.x = -point.x;
     }
     if (negate_z) {
       point.z = -point.z;
     }
-    auto result = dan_to_arena_quarter(point);
+    Dan result = dan_to_arena_quarter(point, radius);
     if (negate_x) {
       result.normal.x = -result.normal.x;
+      point.x = -point.x;
     }
     if (negate_z) {
       result.normal.z = -result.normal.z;
+      point.z = -point.z;
     }
     return result;
   }
@@ -578,7 +607,31 @@ struct Simulator {
 
   }
 
-
+  void test_random_points() {
+    Point min_p{1e9, 1e9, 1e9}, max_p{-1e9, -1e9, -1e9};
+    long long it = 0;
+    for (;; it++) {
+      Point p;
+      p.x = C::rand_double(0, C::rules.arena.width / 2);
+      p.y = C::rand_double(0, C::rules.arena.height);
+      p.z = C::rand_double(0, C::rules.arena.depth / 2 + C::rules.arena.goal_depth);
+      Dan d = dan_to_arena_quarter(p, C::rules.BALL_RADIUS);
+      if (d.distance < C::rules.BALL_RADIUS) {
+        min_p.x = std::min(min_p.x, p.x);
+        min_p.y = std::min(min_p.y, p.y);
+        min_p.z = std::min(min_p.z, p.z);
+        max_p.x = std::max(max_p.x, p.x);
+        max_p.y = std::max(max_p.y, p.y);
+        max_p.z = std::max(max_p.z, p.z);
+      }
+      if (it % 10000000 == 0) {
+        std::cout << std::endl;
+        std::cout << min_p.x << " " << max_p.x << std::endl;
+        std::cout << min_p.y << " " << max_p.y << std::endl;
+        std::cout << min_p.z << " " << max_p.z << std::endl;
+      }
+    }
+  }
 
 };
 
