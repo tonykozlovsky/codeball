@@ -54,7 +54,9 @@ void doStrategy() {
             }
           }
         }
+        //H::t[0].start();
         simulator.tick();
+        //H::t[0].cur(true);
         if (id == 0) {
           score += simulator.getScoreFighter() * multiplier;
         } else {
@@ -62,7 +64,7 @@ void doStrategy() {
         }
         multiplier *= 0.9;
       }
-      if (iteration == 0) {
+      /*if (iteration == 0) {
         for (auto& robot : simulator.robots) {
           if (robot.global_id % 2 == id) {
             for (int i = 1; i < robot.trace.size(); i++) {
@@ -76,7 +78,7 @@ void doStrategy() {
             P::drawLine(simulator.ball.trace[i - 1], simulator.ball.trace[i]);
           }
         }
-      }
+      }*/
 
       cur_plan.score = score;
       for (auto& robot : simulator.robots) {
@@ -86,8 +88,33 @@ void doStrategy() {
       }
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
-
+    //std::cout << iteration << std::endl;
   }
+  /*std::vector<std::pair<double, int> > timers;
+  for (int i = 12; i <= 35; i++) {
+    timers.push_back({(double)H::t[i].k / H::t[36].k, i});
+  }
+  std::sort(timers.begin(), timers.end());
+  for (auto& t : timers) {
+    P::logn("t" + std::to_string(t.second) + ": ", t.first * 100);
+  }
+  /*for (int i = 12; i <= 31; i++) {
+    H::t[i].cur(false, true);
+    P::logn("t" + std::to_string(i) + ": ", H::t[i].avg() * 1e3);
+  }*/
+  /*std::vector<std::pair<double, int> > timers;
+  for (int i = 0; i <= 50; i++) {
+    H::t[i].cur(false, true);
+    timers.push_back({H::t[i].avg(), i});
+  }
+  std::sort(timers.rbegin(), timers.rend());
+  int sum = 0;
+  for (auto& t : timers) {
+    sum += (int) (t.first * 1e3 / 21 * 100);
+    P::logn("t" + std::to_string(t.second) + ": ", t.first * 1e3, "    ", (int) (t.first * 1e3 / 21 * 100), "%");
+  }
+  P::logn("sum: ", sum);*/
+
 
   H::actions[0] = H::best_plan[0].toMyAction(0, true).toAction();
   H::actions[1] = H::best_plan[1].toMyAction(0, true).toAction();
