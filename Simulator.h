@@ -173,9 +173,9 @@ struct Simulator {
       }
       //H::t[11].start();
       move(robot, delta_time);
-      robot.radius = C::rules.ROBOT_MIN_RADIUS
-          + (C::rules.ROBOT_MAX_RADIUS - C::rules.ROBOT_MIN_RADIUS)
-              * robot.action.jump_speed / C::rules.ROBOT_MAX_JUMP_SPEED;
+      //H::t[11].cur(true);
+      //H::t[12].start();
+      robot.radius = C::rules.ROBOT_MIN_RADIUS + (C::rules.ROBOT_MAX_RADIUS - C::rules.ROBOT_MIN_RADIUS) * robot.action.jump_speed / C::rules.ROBOT_MAX_JUMP_SPEED;
       robot.radius_change_speed = robot.action.jump_speed;
       //H::t[12].cur(true);
     }
