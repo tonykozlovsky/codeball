@@ -21,7 +21,7 @@ struct Simulator {
     }
   };
 
-  Entity robots[4];
+  std::vector<Entity> robots;
   Entity ball;
   bool my_goal = false;
   bool enemy_goal = false;
@@ -91,7 +91,7 @@ struct Simulator {
         closest_enemy_dist = std::min(closest_enemy_dist, (ball.position - robot.position).length());
       }
     }
-    double dist = (ball.position - Point{0, 0, -C::rules.arena.depth / 2 -C::rules.arena.goal_depth}).length();
+    double dist = (ball.position - Point{0, 0, -C::rules.arena.depth / 2 - C::rules.arena.goal_depth}).length();
     dist = std::min(dist, C::rules.arena.depth / 2 + C::rules.arena.goal_depth);
     score += 5 * dist;
     //if (dist < C::rules.arena.depth / 2 + C::rules.arena.goal_depth) {
@@ -103,8 +103,8 @@ struct Simulator {
   Simulator() {}
 
   Simulator(const std::vector<model::Robot>& _robots, const model::Ball& _ball) {
-    for (int i = 0; i < 4; i++) {
-      robots[i] = Entity(_robots[i]);
+    for (int i = 0; i < _robots.size(); i++) {
+      robots.push_back(Entity(_robots[i]));
       collide_with_ball[_robots[i].id] = false;
     }
     ball = Entity(_ball);
@@ -161,10 +161,16 @@ struct Simulator {
       b.position += normal * (penetration * k_b);
       const double delta_velocity = dot(b.velocity - a.velocity, normal)
           + (b.radius_change_speed - a.radius_change_speed);
+      // Неправильный рассчёт столкновения роботов при расширении
+      // let delta_velocity = dot(b.velocity - a.velocity, normal) + b.radius_change_speed - a.radius_change_speed
+      // Надо заменить на
+      // let delta_velocity = dot(b.velocity - a.velocity, normal) - b.radius_change_speed - a.radius_change_speed
+      // Потому что в случае, когда 2 робота одновременно "расширяются",  вместо того, чтобы оттолкнуться с большей силой, они компенсируют расширение друг друга и вовсе не отталкиваются
       if (delta_velocity < 0) {
         const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2.) * delta_velocity);
         a.velocity += impulse * k_a;
         b.velocity -= impulse * k_b;
+        P::logn("Collide");
         return true;
       }
     }
@@ -237,7 +243,7 @@ struct Simulator {
     //H::t[5].cur(true);
     //H::t[6].start();
     Point collision_normal;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < robots.size(); i++) {
       for (int j = 0; j < i; j++) {
         collide_entities(robots[i], robots[j]);
       }
@@ -283,13 +289,16 @@ struct Simulator {
     ball.trace.push_back(ball.position);
   }
 
-  void tick() {
+  void tick(bool micro = false) {
     //H::t[1].start();
     double delta_time = 1. / C::rules.TICKS_PER_SECOND;
-    //for (int i = 0; i < Constants::rules.MICROTICKS_PER_TICK; i++) {
-    //update(delta_time / Constants::rules.MICROTICKS_PER_TICK);
-    //}
-    update(delta_time);
+    if (micro) {
+      for (int i = 0; i < C::rules.MICROTICKS_PER_TICK; i++) {
+        update(delta_time / C::rules.MICROTICKS_PER_TICK);
+      }
+    } else {
+      update(delta_time);
+    }
     //H::t[1].cur(true);
     update_trace();
   }
@@ -964,6 +973,53 @@ struct Simulator {
     }
   }
 
+  void test_trajectory() {
+    double delta = pow(0.9, H::tick);
+    for (double power = 0; power <= C::rules.ROBOT_MAX_JUMP_SPEED; power += C::rules.ROBOT_MAX_JUMP_SPEED / 10.) {
+
+      ball = Entity("ball");
+      ball.position = {0, 2, 0};
+      ball.velocity = {0, 0, 0};
+      P::drawEntities(ball);
+
+      robots.clear();
+      robots.push_back(Entity("robot"));
+      robots[0].position = {2 + delta, 10, 0};
+      robots[0].velocity = {0, 0, 0};
+      robots[0].action.target_velocity = {0, 0, 0};//Point{cos(angle), 0, sin(angle)} * C::rules.ROBOT_MAX_GROUND_SPEED;
+      robots[0].action.jump_speed = power;
+      P::drawEntities(robots[0]);
+
+
+      robots.push_back(Entity("robot"));
+      robots[1].position = {0, 10, 0};
+      robots[1].velocity = {0, 0, 0};
+      robots[1].action.target_velocity = {0, 0, 0};//Point{cos(angle), 0, sin(angle)} * C::rules.ROBOT_MAX_GROUND_SPEED;
+      robots[1].action.jump_speed = power;
+      P::drawEntities(robots[1]);
+
+      for (int sim = 0; sim < 20; sim++) {
+        //if (sim == jump) {
+        //robots[0].action.jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
+        //}
+        tick(true);
+      }
+
+      for (int i = 1; i < robots[0].trace.size(); i++) {
+        P::drawLine(robots[0].trace[i - 1], robots[0].trace[i], 0x00FF00);
+      }
+
+
+      for (int i = 1; i < robots[1].trace.size(); i++) {
+        P::drawLine(robots[1].trace[i - 1], robots[1].trace[i], 0x00FFFF);
+      }
+
+      for (int i = 1; i < ball.trace.size(); i++) {
+        P::drawLine(ball.trace[i - 1], ball.trace[i], 0x0000FF);
+      }
+    }
+
+  }
 };
 
 #endif //CODEBALL_SIMULATOR_H

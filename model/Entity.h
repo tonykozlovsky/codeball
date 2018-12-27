@@ -39,7 +39,19 @@ struct Entity {
       mass = C::rules.BALL_MASS;
       radius_change_speed = 0;
     } else if (type == "robot") {
+      position = {0, 0, 0};
+      velocity = {0, 0, 0};
+      radius = C::rules.ROBOT_RADIUS;
+      touch = true;
+      touch_normal = {0, 1, 0};
 
+      arena_e = C::rules.ROBOT_ARENA_E;
+      mass = C::rules.ROBOT_MASS;
+      radius_change_speed = 0;
+      
+      global_id = 0;
+      is_teammate = false;
+      
     } else if (type == "test_points") {
       radius = C::rules.BALL_RADIUS;
     }
@@ -74,6 +86,7 @@ struct Entity {
     is_teammate = robot.is_teammate;
 
     if (!is_teammate) {
+
       action = {velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0.};
     }
 

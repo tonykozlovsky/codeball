@@ -87,7 +87,7 @@ struct P {
 #ifdef LOCAL
 #ifdef DRAWLR
     for (auto& e : entities) {
-      spheres_to_draw.push_back(Sphere{e.position, e.radius, color});
+      spheres_to_draw.push_back(Sphere{e.position, e.radius * 10. / 9., color});
       Point next_pos = e.position + e.velocity * delta_time;
       lines_to_draw.push_back(Line{e.position, next_pos, color});
     }
