@@ -170,7 +170,7 @@ struct Simulator {
         const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2.) * delta_velocity);
         a.velocity += impulse * k_a;
         b.velocity -= impulse * k_b;
-        P::logn("Collide");
+        //P::logn("Collide");
         return true;
       }
     }
@@ -245,16 +245,20 @@ struct Simulator {
     Point collision_normal;
     for (int i = 0; i < robots.size(); i++) {
       for (int j = 0; j < i; j++) {
-        collide_entities(robots[i], robots[j]);
+        //bool collision = collide_entities(robots[i], robots[j]);
+        //if (collision) {
+          //P::drawEntities({robots[i], robots[j]});
+        //}
       }
     }
     //H::t[6].cur(true);
     //H::t[7].start();
     for (auto& robot : robots) {
       //H::t[8].start();
-      if (collide_entities(robot, ball) && !robot.touch) {
-        collide_with_ball[robot.global_id] = true;
-      }
+      //if (collide_entities(robot, ball) && !robot.touch) {
+      //  collide_with_ball[robot.global_id] = true;
+        //P::drawEntities({robot, ball});
+      //}
       //H::t[8].cur(true);
       //H::t[9].start();
       if (!collide_with_arena(robot, collision_normal)) {

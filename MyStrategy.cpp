@@ -14,14 +14,110 @@
 
 MyStrategy::MyStrategy() {}
 
-void doStrategy() {
-  H::t[0].start();
-  for (int i = 0; ; i++) {
-    if (H::t[0].cur() > 1) {
-      P::logn(i);
-      break;
+double func(const Simulator& simulator) {
+  double score = 1e9;
+  // double multiplier = 1.;
+  for (auto& robot : simulator.robots) {
+    if (robot.global_id == 1) {
+      bool flag = false;
+      for (int i = 1; i < 200; i++) {
+        double delta = (robot.trace[i].to2d() - simulator.ball.trace[i].to2d()).length() - (robot.trace[i - 1].to2d() - simulator.ball.trace[i - 1].to2d()).length();
+        if (delta > 0 && flag) {
+          break;
+        }
+        if (delta < 0) {
+          flag = true;
+        }
+        score = std::min(score, (robot.trace[i].to2d() - simulator.ball.trace[i].to2d()).length());
+      }
     }
   }
+  return score;
+}
+
+double simulate(double angle, bool draw = false) {
+  Simulator simulator(H::game.robots, H::game.ball);
+  for (auto& robot : simulator.robots) {
+    if (robot.global_id == 1) {
+      robot.action.target_velocity = Point{cos(angle), 0, sin(angle)} * C::rules.ROBOT_MAX_GROUND_SPEED;
+    }
+  }
+  for (int i = 0; i < 200; i++) {
+    simulator.tick();
+  }
+  if (draw) {
+    for (auto& robot : simulator.robots) {
+      if (robot.global_id == 1) {
+        for (int i = 1; i < robot.trace.size(); i++) {
+          P::drawLine(robot.trace[i], robot.trace[i - 1], 0x00FF00);
+        }
+      } else {
+        for (int i = 1; i < robot.trace.size(); i++) {
+          P::drawLine(robot.trace[i], robot.trace[i - 1], 0x0000FF);
+        }
+      }
+    }
+    for (int i = 1; i < simulator.ball.trace.size(); i++) {
+      P::drawLine(simulator.ball.trace[i], simulator.ball.trace[i - 1], 0xFF0000);
+    }
+
+  }
+  return func(simulator);
+}
+
+double gradient(double angle) {
+  return simulate(angle + 0.01) - simulate(angle);
+}
+
+void doStrategy1() {
+  double angle[5] = {0, M_PI / 2, M_PI, M_PI * 3 / 2, 2 * M_PI};
+  double g[4] = {gradient(0), gradient(M_PI / 2), gradient(M_PI), gradient(M_PI * 3 / 2)};
+
+  for (int i = 0; i < 4; ++i) {
+    P::logn(g[i]);
+    //P::logn(simulate(angle[i]));
+  }
+
+  double l = 0, r = 0;
+  for (int i = 0; i < 4; i++) {
+    int j = (i + 1) % 4;
+    if (g[i] < 0 && g[j] > 0) {
+      l = angle[i];
+      r = angle[i + 1];
+    }
+  }
+
+  //for (double angle = 0; angle < 2 * M_PI; angle += 2 * M_PI / 10) {
+    //P::logn(simulate(angle, true));
+  //}
+  //P::logn("");
+
+  //P::logn("0: ", simulate(0));
+  //P::logn("PI: ", simulate(M_PI));
+
+  for (int it = 0; it < 10; ++it) {
+    double m1 = l + (r - l) / 3.;
+    double m2 = r - (r - l) / 3.;
+    double v1 = simulate(m1);
+    double v2 = simulate(m2);
+    //P::logn(m1, " ", m2, " ", v1," " , v2);
+    if (v1 > v2) {
+      l = m1;
+    } else {
+      r = m2;
+    }
+  }
+
+  P::logn(simulate(l, true));
+  double jump = 0;
+  if (C::rand_double(0, 1) < 0.01) {
+    jump = C::rules.ROBOT_MAX_JUMP_SPEED;
+  }
+  H::actions[1] = MyAction{Point{cos(l), 0, sin(l)} * C::rules.ROBOT_MAX_GROUND_SPEED, jump}.toAction();
+}
+
+void doStrategy() {
+
 }
 
 void MyStrategy::act(

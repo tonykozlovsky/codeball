@@ -4,12 +4,22 @@
 #include <math.h>
 #include <iostream>
 
+#ifdef LOCAL
+#include <model/Point2d.h>
+#else
+#include "Point2d.h"
+#endif
+
 struct Point {
   double x, y, z;
 
   Point() {}
 
   Point(double x, double y, double z) : x(x), y(y), z(z) {}
+
+  Point2d to2d() const {
+    return Point2d{x, z};
+  }
 
   Point operator-(const Point& other) const {
     return {x - other.x, y - other.y, z - other.z};
