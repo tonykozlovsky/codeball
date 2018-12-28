@@ -45,7 +45,7 @@ struct Simulator {
       }
     }
     score += closest_enemy_dist;
-    double dist = (ball.position - Point{0, 0, C::rules.arena.depth / 2}).length();
+    double dist = (ball.position - Point{0, 0, C::rules.arena.depth / 2 + C::rules.arena.goal_depth}).length();
     score += -dist * dist;
     return score;
   }
@@ -58,15 +58,17 @@ struct Simulator {
     double closest_enemy_dist = 1e9;
     for (auto& robot : robots) {
       if (robot.is_teammate && robot.global_id % 2 == 1) {
-        score += -(robot.position - Point{
-            0, 0, -C::rules.arena.depth / 2}).length();
+        double x = std::clamp(-ball.position.x, -12., 12.);
+        score += -0.01 * (robot.position - Point{
+            x, 0, -C::rules.arena.depth / 2}).length();
       }
       if (!robot.is_teammate) {
         closest_enemy_dist = std::min(closest_enemy_dist, (ball.position - robot.position).length());
       }
     }
-    score += -2 * std::min(ball.position.z, 0.) * std::min(ball.position.z, 0.);
-    //score += 5 * closest_enemy_dist;
+    double dist = (ball.position - Point{0, 0, -C::rules.arena.depth / 2 -C::rules.arena.goal_depth}).length();
+    dist = std::min(dist, C::rules.arena.depth / 2 + C::rules.arena.goal_depth);
+    score += 5 * dist;
     return score;
   }
 
