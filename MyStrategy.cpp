@@ -69,55 +69,16 @@ double gradient(double angle) {
   return simulate(angle + 0.01) - simulate(angle);
 }
 
-void doStrategy1() {
-  double angle[5] = {0, M_PI / 2, M_PI, M_PI * 3 / 2, 2 * M_PI};
-  double g[4] = {gradient(0), gradient(M_PI / 2), gradient(M_PI), gradient(M_PI * 3 / 2)};
-
-  for (int i = 0; i < 4; ++i) {
-    P::logn(g[i]);
-    //P::logn(simulate(angle[i]));
-  }
-
-  double l = 0, r = 0;
-  for (int i = 0; i < 4; i++) {
-    int j = (i + 1) % 4;
-    if (g[i] < 0 && g[j] > 0) {
-      l = angle[i];
-      r = angle[i + 1];
-    }
-  }
-
-  //for (double angle = 0; angle < 2 * M_PI; angle += 2 * M_PI / 10) {
-    //P::logn(simulate(angle, true));
-  //}
-  //P::logn("");
-
-  //P::logn("0: ", simulate(0));
-  //P::logn("PI: ", simulate(M_PI));
-
-  for (int it = 0; it < 10; ++it) {
-    double m1 = l + (r - l) / 3.;
-    double m2 = r - (r - l) / 3.;
-    double v1 = simulate(m1);
-    double v2 = simulate(m2);
-    //P::logn(m1, " ", m2, " ", v1," " , v2);
-    if (v1 > v2) {
-      l = m1;
-    } else {
-      r = m2;
-    }
-  }
-
-  P::logn(simulate(l, true));
-  double jump = 0;
-  if (C::rand_double(0, 1) < 0.01) {
-    jump = C::rules.ROBOT_MAX_JUMP_SPEED;
-  }
-  H::actions[1] = MyAction{Point{cos(l), 0, sin(l)} * C::rules.ROBOT_MAX_GROUND_SPEED, jump}.toAction();
+double gradient2(double angle) {
+  return (simulate(angle + 0.0001) - simulate(angle)) / 0.0001;
 }
 
 void doStrategy() {
 
+  Simulator simulator;
+  simulator.test_collision();
+
+  //H::actions[1] = MyAction{Point{1, 0, 0} * C::rules.ROBOT_MAX_GROUND_SPEED, 0}.toAction();
 }
 
 void MyStrategy::act(
