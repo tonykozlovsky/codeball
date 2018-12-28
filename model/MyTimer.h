@@ -9,7 +9,7 @@
 #ifdef LOCAL
 #include <model/getCPUTime.h>
 #else
-#include 'getCPUTime.h'
+#include "getCPUTime.h"
 #endif
 #endif
 

@@ -32,7 +32,7 @@ void doStrategy() {
     int iteration = 0;
     for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
-        if (H::game.ball.z < -0.01) {
+        if (1 || H::game.ball.z < -0.01) {
           if (H::global_timer.getCumulative(true) > H::half_time) {
             break;
           }
@@ -61,7 +61,7 @@ void doStrategy() {
           }
         }
         simulator.tick();
-        if (id == 0) {
+        if (1 || id == 0) {
           score += simulator.getScoreFighter() * multiplier;
         } else {
           score += simulator.getScoreDefender() * multiplier;
