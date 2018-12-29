@@ -58,6 +58,9 @@ void doStrategy() {
       Plan cur_plan;
       if (iteration == 0) {
         cur_plan = H::best_plan[id];
+      } else if (C::rand_double(0, 1) < 0.5){
+        cur_plan = H::best_plan[id];
+        cur_plan.mutate();
       }
       Simulator simulator(H::game.robots, H::game.ball);
 
@@ -90,16 +93,20 @@ void doStrategy() {
       for (auto& robot : simulator.robots) {
         if (robot.is_teammate && robot.global_id % 2 == id) {
           cur_plan.collide_with_ball = simulator.collide_with_ball[robot.global_id];
-          //cur_plan.robot_trace = robot.trace;
+#ifdef DEBUG
+          cur_plan.robot_trace = robot.trace;
+#endif
         }
       }
-      //cur_plan.ball_trace = simulator.ball.trace;
+#ifdef DEBUG
+      cur_plan.ball_trace = simulator.ball.trace;
+#endif
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
 
     H::sum_bushes_near_the_road += iteration;
-
-    /*Plan accurate_plan;
+#ifdef DEBUG
+    Plan accurate_plan;
     if (id == 1) {
       Simulator simulator(H::game.robots, H::game.ball);
       for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
@@ -112,7 +119,7 @@ void doStrategy() {
             }
           }
         }
-        simulator.tick(id, false, true);
+        simulator.tick(false, true);
       }
       for (auto& robot : simulator.robots) {
         if (robot.is_teammate && robot.global_id % 2 == id) {
@@ -148,7 +155,8 @@ void doStrategy() {
       for (int i = 1; i < accurate_plan.ball_trace.size(); i++) {
         P::drawLine(accurate_plan.ball_trace[i - 1], accurate_plan.ball_trace[i], 0xFFFFFF);
       }
-    }*/
+    }
+#endif
   }
   H::bushes_near_the_road_k += 1.;
   if ((H::tick + 1) % 2000 == 0) {
