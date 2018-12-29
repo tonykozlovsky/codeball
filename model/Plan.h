@@ -28,18 +28,18 @@ struct Plan {
 
     speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
 
-    if (C::rand_double(0, 1) < 0.05) {
+    if (C::rand_double(0, 1) < 0.01) {
       speed1 = 0;
     }
-    if (C::rand_double(0, 1) < 0.05) {
+    if (C::rand_double(0, 1) < 0.01) {
       speed2 = 0;
     }
 
     score = -1e18;
   }
 
-  static constexpr double angle_mutation = M_PI / 5;
-  static constexpr int time_mutation = 3;
+  static constexpr double angle_mutation = M_PI / 50;
+  static constexpr int time_mutation = 1;
 
   void mutate() {
     angle1 += C::rand_double(-angle_mutation, angle_mutation);

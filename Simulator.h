@@ -80,7 +80,9 @@ struct Simulator {
       collide_with_ball[_robots[i].id] = false;
     }
     ball = Entity(_ball);
-    //update_trace();
+#ifdef DEBUG
+    update_trace();
+#endif
   }
 
   void print_velocity(const Point& p) {
@@ -285,7 +287,9 @@ struct Simulator {
       }
     }
     //H::t[1].cur(true);
-    //update_trace();
+#ifdef DEBUG
+    update_trace();
+#endif
   }
 
   Dan dan_to_plane(
