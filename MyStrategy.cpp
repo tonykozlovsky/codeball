@@ -112,7 +112,7 @@ void doStrategy() {
             }
           }
         }
-        simulator.tick(id, true);
+        simulator.tick(id, false, true);
       }
       for (auto& robot : simulator.robots) {
         if (robot.is_teammate && robot.global_id % 2 == id) {

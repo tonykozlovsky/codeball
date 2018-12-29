@@ -172,7 +172,7 @@ struct Simulator {
     e.velocity.y -= C::rules.GRAVITY * delta_time;
   }
 
-  void update(const double delta_time) {
+  void update(const double delta_time, bool fix_accuracy = false) {
     //H::t[2].start();
     for (auto& robot : robots) {
       if (robot.touch) {
@@ -188,7 +188,7 @@ struct Simulator {
           const double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot.touch_normal.y);
           length = sqrt(length);
           if (acceleration * delta_time < length) {
-            robot.velocity += target_velocity_change * (acceleration * delta_time / length);
+            robot.velocity += target_velocity_change * (acceleration * delta_time / length * (fix_accuracy ? 0.946 : 1.));
           } else {
             robot.velocity += target_velocity_change;
           }
@@ -274,15 +274,14 @@ struct Simulator {
       //P::log(".");
     } else {
       if (!sbd_jump) {
-        update(delta_time);
+        update(delta_time, true);
       } else {
         //for (int i = 0; i < C::rules.MICROTICKS_PER_TICK; i++) {
         //  update(delta_time / C::rules.MICROTICKS_PER_TICK);
         //}
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
-        update((
-                   C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
+        update((C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
       }
     }
     //H::t[1].cur(true);
