@@ -29,6 +29,10 @@ struct Entity {
   int global_id;
   bool is_teammate;
 
+  bool operator <(const Entity& other) const {
+    return global_id < other.global_id;
+  }
+
   Entity() {}
 
   Entity(const std::string& type) {
