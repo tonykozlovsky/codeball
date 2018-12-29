@@ -84,6 +84,8 @@ void doStrategy() {
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
 
+    H::sum_bushes_near_the_road += iteration;
+
     /*Plan accurate_plan;
     if (id == 1) {
       Simulator simulator(H::game.robots, H::game.ball);
@@ -134,6 +136,10 @@ void doStrategy() {
         P::drawLine(accurate_plan.ball_trace[i - 1], accurate_plan.ball_trace[i], 0xFFFFFF);
       }
     }*/
+  }
+  H::bushes_near_the_road_k += 1.;
+  if ((H::tick + 1) % 2000 == 0) {
+    std::cout << "Bushes near the road: " <<  H::sum_bushes_near_the_road / H::bushes_near_the_road_k << std::endl;
   }
   H::actions[0] = H::best_plan[0].toMyAction(0, true).toAction();
   H::actions[1] = H::best_plan[1].toMyAction(0, true).toAction();
