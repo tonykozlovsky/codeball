@@ -30,7 +30,7 @@ void doStrategy() {
 
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
+/*    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
         if (H::game.ball.z < -0.01) {
           if (H::global_timer.getCumulative(true) > H::half_time) {
@@ -40,6 +40,19 @@ void doStrategy() {
           if (H::global_timer.cur() > 0.0015) {
             break;
           }
+        }
+      }*/
+    for (;; iteration++) {
+      if (H::game.ball.z < -0.01) {
+        if (iteration >= 100) {
+          break;
+        }
+      } else {
+        if (id == 1 && iteration >= 10) {
+          break;
+        }
+        if (id == 0 && iteration >= 190) {
+          break;
         }
       }
       Plan cur_plan;
@@ -139,7 +152,7 @@ void doStrategy() {
   }
   H::bushes_near_the_road_k += 1.;
   if ((H::tick + 1) % 2000 == 0) {
-    std::cout << "Bushes near the road: " <<  H::sum_bushes_near_the_road / H::bushes_near_the_road_k << std::endl;
+    std::cout << "Bushes near the road: " << H::sum_bushes_near_the_road / H::bushes_near_the_road_k << std::endl;
   }
   H::actions[0] = H::best_plan[0].toMyAction(0, true).toAction();
   H::actions[1] = H::best_plan[1].toMyAction(0, true).toAction();
