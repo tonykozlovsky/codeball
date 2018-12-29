@@ -66,7 +66,7 @@ struct Simulator {
         closest_enemy_dist = std::min(closest_enemy_dist, (ball.position - robot.position).length());
       }
     }
-    double dist = (ball.position - Point{0, 0, -C::rules.arena.depth / 2 -C::rules.arena.goal_depth}).length();
+    double dist = (ball.position - Point{0, 0, -C::rules.arena.depth / 2 - C::rules.arena.goal_depth}).length();
     dist = std::min(dist, C::rules.arena.depth / 2 + C::rules.arena.goal_depth);
     score += 5 * dist;
     return score;
@@ -218,8 +218,13 @@ struct Simulator {
     //H::t[7].start();
     for (auto& robot : robots) {
       //H::t[8].start();
-      if (collide_entities(robot, ball) && !robot.touch) {
-        collide_with_ball[robot.global_id] = true;
+      if (collide_entities(robot, ball)) {
+        //if (robot.is_teammate && robot.global_id % 2 == 1) {
+        //  cpt++;
+        //}
+        if (!robot.touch) {
+          collide_with_ball[robot.global_id] = true;
+        }
       }
       //H::t[8].cur(true);
       //H::t[9].start();
@@ -254,14 +259,32 @@ struct Simulator {
     }
     ball.trace.push_back(ball.position);
   }
-
-  void tick() {
+  //int cpt = 0;
+  void tick(bool sbd_jump, bool micro = false) {
     //H::t[1].start();
     double delta_time = 1. / C::rules.TICKS_PER_SECOND;
-    //for (int i = 0; i < Constants::rules.MICROTICKS_PER_TICK; i++) {
-    //update(delta_time / Constants::rules.MICROTICKS_PER_TICK);
-    //}
-    update(delta_time);
+    if (micro) {
+      for (int i = 0; i < C::rules.MICROTICKS_PER_TICK; i++) {
+        //cpt = 0;
+        update(delta_time / C::rules.MICROTICKS_PER_TICK);
+        //if (main_robot_id == 1 && cpt != 0) {
+        //  P::log(i, " ");
+        //}
+      }
+      //P::log(".");
+    } else {
+      if (!sbd_jump) {
+        update(delta_time);
+      } else {
+        //for (int i = 0; i < C::rules.MICROTICKS_PER_TICK; i++) {
+        //  update(delta_time / C::rules.MICROTICKS_PER_TICK);
+        //}
+        update(delta_time / C::rules.MICROTICKS_PER_TICK);
+        update(delta_time / C::rules.MICROTICKS_PER_TICK);
+        update((
+                   C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
+      }
+    }
     //H::t[1].cur(true);
     //update_trace();
   }
@@ -851,63 +874,6 @@ struct Simulator {
       point.z = -point.z;
     }
     return result;
-  }
-
-  void test() {
-    { // test 1
-      ball = Entity("ball");
-      ball.position = {-3.094469, 14.393752, -37.612641};
-      ball.velocity = {1.741709, 5.221515, -24.657713};
-      tick();
-      std::cerr << "########## Test 1:" << std::endl;
-      std::cerr << "Position:" << std::endl;
-      print_error(ball.position, Point{-3.065441, 14.362125, -37.640170});
-      std::cerr << "Velocity:" << std::endl;
-      print_error(ball.velocity, Point{1.741709, -7.465922, 16.160170});
-    }
-    { // test 2
-      ball = Entity("ball");
-      ball.position = {-23.019338622046326748, 17.999962430128810809, -19.14657426491466552};
-      ball.velocity = {14.682921642666871165, 0.058461879134667917024, -1.4818202142470027205};
-      tick();
-      std::cerr << "########## Test 2:" << std::endl;
-      std::cerr << "Position:" << std::endl;
-      print_error(ball.position,
-                  Point{-22.774622648706465355, 17.996454426285627193, -19.171271268485416073});
-      std::cerr << "Velocity:" << std::endl;
-      print_error(ball.velocity,
-                  Point{14.682959226403681896, -0.46121522321528829469, -1.4818202142470027205});
-    }
-    { // test 3
-      ball = Entity("ball");
-      ball.position = Point{16.329517921537998859, 16.195591242457055614, -36.845542433926816273};
-      ball.velocity = Point{-25.283203469330487678, 7.6680203103518476127, 6.3722070924858815744};
-
-      tick();
-      std::cerr << "########## Test 3:" << std::endl;
-      std::cerr << "Position:" << std::endl;
-      print_error(ball.position,
-                  Point{15.908131197049071304, 16.319208932268558954, -36.739319891201859036});
-      std::cerr << "Velocity:" << std::endl;
-      print_error(ball.velocity,
-                  Point{-25.283203469330487678, 7.1669386313658574039, 6.3734987090127770415});
-
-    }
-    { // test 4
-      ball = Entity("ball");
-      ball.position = Point{-27.995519339371629286, 2.9054418436248079516, 6.1702947673222912073};
-      ball.velocity = Point{-0.57403220611490801684, 6.0725454135943017775, -12.125100730674212457};
-      tick();
-      std::cerr << "########## Test 4:" << std::endl;
-      std::cerr << "Position:" << std::endl;
-      print_error(ball.position,
-                  Point{-27.999998915097581431, 3.0028025199069756646, 5.9682097551443806793});
-      std::cerr << "Velocity:" << std::endl;
-      print_error(ball.velocity,
-                  Point{0.0021698048401537694749, 5.600275987957815893, -12.125100730674212457});
-
-    }
-
   }
 
   void test_random_points() {

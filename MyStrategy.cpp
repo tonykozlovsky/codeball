@@ -51,6 +51,7 @@ void doStrategy() {
       double score = 0;
       double multiplier = 1.;
       for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
+        bool sbd_jump = false;
         for (auto& robot : simulator.robots) {
           if (robot.is_teammate) {
             if (robot.global_id % 2 == id) {
@@ -58,9 +59,12 @@ void doStrategy() {
             } else {
               robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick);
             }
+            if (robot.action.jump_speed > 0) {
+              sbd_jump = true;
+            }
           }
         }
-        simulator.tick();
+        simulator.tick(sbd_jump);
         if (id == 0) {
           score += simulator.getScoreFighter() * multiplier;
         } else {
@@ -73,10 +77,63 @@ void doStrategy() {
       for (auto& robot : simulator.robots) {
         if (robot.is_teammate && robot.global_id % 2 == id) {
           cur_plan.collide_with_ball = simulator.collide_with_ball[robot.global_id];
+          //cur_plan.robot_trace = robot.trace;
         }
       }
+      //cur_plan.ball_trace = simulator.ball.trace;
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
+
+    /*Plan accurate_plan;
+    if (id == 1) {
+      Simulator simulator(H::game.robots, H::game.ball);
+      for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
+        for (auto& robot : simulator.robots) {
+          if (robot.is_teammate) {
+            if (robot.global_id % 2 == id) {
+              robot.action = H::best_plan[id].toMyAction(sim_tick);
+            } else {
+              robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick);
+            }
+          }
+        }
+        simulator.tick(id, true);
+      }
+      for (auto& robot : simulator.robots) {
+        if (robot.is_teammate && robot.global_id % 2 == id) {
+          accurate_plan.collide_with_ball = simulator.collide_with_ball[robot.global_id];
+          accurate_plan.robot_trace = robot.trace;
+        }
+      }
+      accurate_plan.ball_trace = simulator.ball.trace;
+    }
+    if (id == 0) {
+      for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
+        P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);
+      }
+      for (int i = 1; i < H::best_plan[id].ball_trace.size(); i++) {
+        P::drawLine(H::best_plan[id].ball_trace[i - 1], H::best_plan[id].ball_trace[i], 0x00FF00);
+      }
+      for (int i = 1; i < accurate_plan.robot_trace.size(); i++) {
+        P::drawLine(accurate_plan.robot_trace[i - 1], accurate_plan.robot_trace[i], 0xFFFF00);
+      }
+      for (int i = 1; i < accurate_plan.ball_trace.size(); i++) {
+        P::drawLine(accurate_plan.ball_trace[i - 1], accurate_plan.ball_trace[i], 0x000000);
+      }
+    } else {
+      for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
+        P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);
+      }
+      for (int i = 1; i < H::best_plan[id].ball_trace.size(); i++) {
+        P::drawLine(H::best_plan[id].ball_trace[i - 1], H::best_plan[id].ball_trace[i], 0x00FF00);
+      }
+      for (int i = 1; i < accurate_plan.robot_trace.size(); i++) {
+        P::drawLine(accurate_plan.robot_trace[i - 1], accurate_plan.robot_trace[i], 0x00FFFF);
+      }
+      for (int i = 1; i < accurate_plan.ball_trace.size(); i++) {
+        P::drawLine(accurate_plan.ball_trace[i - 1], accurate_plan.ball_trace[i], 0xFFFFFF);
+      }
+    }*/
   }
   H::actions[0] = H::best_plan[0].toMyAction(0, true).toAction();
   H::actions[1] = H::best_plan[1].toMyAction(0, true).toAction();
