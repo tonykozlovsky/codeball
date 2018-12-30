@@ -134,7 +134,7 @@ struct Simulator {
       a.position -= normal * (penetration * k_a);
       b.position += normal * (penetration * k_b);
       const double delta_velocity = dot(b.velocity - a.velocity, normal)
-          + (b.radius_change_speed - a.radius_change_speed);
+          - (b.radius_change_speed + a.radius_change_speed);
       if (delta_velocity < 0) {
         const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2.) * delta_velocity);
         a.velocity += impulse * k_a;
