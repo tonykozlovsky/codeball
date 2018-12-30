@@ -74,29 +74,16 @@ struct Simulator {
 
   Simulator() {}
 
-  Simulator(const std::vector<model::Robot>& _robots, const model::Ball& _ball) {
+  Simulator(const std::vector<model::Robot>& _robots, const model::Ball& _ball, bool debug = false) {
     for (int i = 0; i < 4; i++) {
       robots[i] = Entity(_robots[i]);
       collide_with_ball[_robots[i].id] = false;
     }
+    this->debug = debug;
     ball = Entity(_ball);
 #ifdef DEBUG
     update_trace();
 #endif
-  }
-
-  void print_velocity(const Point& p) {
-    std::cerr << "velocity: " << std::fixed << std::setprecision(30) << p.length() << std::endl;
-    std::cerr << "x: " << std::fixed << std::setprecision(30) << p.x << std::endl;
-    std::cerr << "y: " << std::fixed << std::setprecision(30) << p.y << std::endl;
-    std::cerr << "z: " << std::fixed << std::setprecision(30) << p.z << std::endl;
-  }
-
-  void print_error(const Point& p1, const Point& p2) {
-    std::cerr << "d: " << std::fixed << std::setprecision(30) << (p1 - p2).length() << std::endl;
-    std::cerr << "x: " << std::fixed << std::setprecision(30) << fabs(p1.x - p2.x) << std::endl;
-    std::cerr << "y: " << std::fixed << std::setprecision(30) << fabs(p1.y - p2.y) << std::endl;
-    std::cerr << "z: " << std::fixed << std::setprecision(30) << fabs(p1.z - p2.z) << std::endl;
   }
 
   double length(const Point& p) {
@@ -123,18 +110,25 @@ struct Simulator {
     return v.clamp(ub);
   }
 
-  bool collide_entities(Entity& a, Entity& b) {
+  bool collide_entities(Entity& a, Entity& b, bool check_with_ball = false) {
     const Point& delta_position = b.position - a.position;
     const double distance_sq = delta_position.length_sq();
-    if ((a.radius + b.radius) * (a.radius + b.radius) > distance_sq) {
-      const double penetration = a.radius + b.radius - sqrt(distance_sq);
+    const double sum_r = a.radius + b.radius;
+    if (check_with_ball) {
+      a.collide_with_ball_in_air = false;
+      if ((sum_r + 0.05) * (sum_r + 0.05) > distance_sq) {
+        a.collide_with_ball_in_air = true;
+      }
+    }
+    if (sum_r * sum_r > distance_sq) {
+      const double penetration = sum_r - sqrt(distance_sq);
       const double k_a = 1. / (a.mass * ((1 / a.mass) + (1 / b.mass)));
       const double k_b = 1. / (b.mass * ((1 / a.mass) + (1 / b.mass)));
       const Point& normal = normalize(delta_position);
       a.position -= normal * (penetration * k_a);
       b.position += normal * (penetration * k_b);
       const double delta_velocity = dot(b.velocity - a.velocity, normal)
-          + (b.radius_change_speed - a.radius_change_speed);
+          - (b.radius_change_speed + a.radius_change_speed);
       if (delta_velocity < 0) {
         const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
         a.velocity += impulse * k_a;
@@ -146,10 +140,7 @@ struct Simulator {
   }
 
   bool collide_with_arena(Entity& e, Point& result) {
-    //H::t[10].start();
     const Dan& dan = dan_to_arena(e.position, e.radius);
-    //H::t[10].cur(true);
-    //H::t[11].start();
     const double distance = dan.distance;
     const Point& normal = dan.normal;
     if (e.radius > distance) { // TODO distance sq
@@ -159,11 +150,9 @@ struct Simulator {
       if (velocity < 0) {
         e.velocity -= normal * ((1. + e.arena_e) * velocity);
         result = normal;
-        //H::t[11].cur(true);
         return true;
       }
     }
-    //H::t[11].cur(true);
     return false;
   }
 
@@ -174,18 +163,22 @@ struct Simulator {
     e.velocity.y -= C::rules.GRAVITY * delta_time;
   }
 
+  bool debug = false;
+
   void update(const double delta_time) {
-    //H::t[2].start();
     for (auto& robot : robots) {
       if (robot.touch) {
-        //H::t[10].start();
         const Point& target_velocity = robot.action.target_velocity - robot.touch_normal * robot.touch_normal.dot(robot.action.target_velocity);
-        //H::t[10].cur(true);
-        //H::t[14].start();
+
         const Point& target_velocity_change = target_velocity - robot.velocity;
-        //H::t[14].cur(true);
-        //H::t[15].start();
+
         double length = target_velocity_change.length_sq();
+#ifdef DEBUG
+        if (robot.global_id == 2 && debug) {
+          P::logn("touch");
+          P::logn("length: ", sqrt(length));
+        }
+#endif
         if (length > 0) {
           const double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot.touch_normal.y);
           length = sqrt(length);
@@ -195,56 +188,39 @@ struct Simulator {
             robot.velocity += target_velocity_change;
           }
         }
-        //H::t[15].cur(true);
       }
-      //H::t[11].start();
+
       move(robot, delta_time);
-      //H::t[11].cur(true);
-      //H::t[12].start();
+
       robot.radius = C::rules.ROBOT_MIN_RADIUS + (C::rules.ROBOT_MAX_RADIUS - C::rules.ROBOT_MIN_RADIUS) * robot.action.jump_speed / C::rules.ROBOT_MAX_JUMP_SPEED;
       robot.radius_change_speed = robot.action.jump_speed;
-      //H::t[12].cur(true);
     }
-    //H::t[2].cur(true);
-    //H::t[5].start();
+
     move(ball, delta_time);
-    //H::t[5].cur(true);
-    //H::t[6].start();
+
     Point collision_normal;
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < i; j++) {
         collide_entities(robots[i], robots[j]);
       }
     }
-    //H::t[6].cur(true);
-    //H::t[7].start();
+
     for (auto& robot : robots) {
-      //H::t[8].start();
-      if (collide_entities(robot, ball)) {
-        //if (robot.is_teammate && robot.global_id % 2 == 1) {
-        //  cpt++;
-        //}
+      if (collide_entities(robot, ball, true)) {
         if (!robot.touch) {
           collide_with_ball[robot.global_id] = true;
         }
       }
-      //H::t[8].cur(true);
-      //H::t[9].start();
       if (!collide_with_arena(robot, collision_normal)) {
         robot.touch = false;
       } else {
         robot.touch = true;
         robot.touch_normal = collision_normal;
       }
-      //H::t[9].cur(true);
     }
-    //H::t[7].cur(true);
 
-    //H::t[3].start();
     collide_with_arena(ball, collision_normal);
-    //H::t[3].cur(true);
 
-    //H::t[4].start();
     if (!my_goal && !enemy_goal) {
       if (ball.position.z > C::rules.arena.depth / 2 + ball.radius) {
         my_goal = true;
@@ -252,41 +228,50 @@ struct Simulator {
         enemy_goal = true;
       }
     }
-    //H::t[4].cur(true);
   }
 
+#ifdef DEBUG
   void update_trace() {
     for (auto& robot : robots) {
       robot.trace.push_back(robot.position);
     }
     ball.trace.push_back(ball.position);
   }
-  //int cpt = 0;
+#endif
+
+  void rollback() {
+    for (auto& robot : robots) {
+      robot.roll_back();
+    }
+    ball.roll_back();
+  }
+
+  void save() {
+    for (auto& robot : robots) {
+      robot.save();
+    }
+    ball.save();
+  }
+
   void tick(bool sbd_jump, bool micro = false) {
-    //H::t[1].start();
+    save();
     double delta_time = 1. / C::rules.TICKS_PER_SECOND;
     if (micro) {
-      for (int i = 0; i < C::rules.MICROTICKS_PER_TICK; i++) {
-        //cpt = 0;
-        update(delta_time / C::rules.MICROTICKS_PER_TICK);
-        //if (main_robot_id == 1 && cpt != 0) {
-        //  P::log(i, " ");
-        //}
+      if (debug) {
+        P::logn("micro");
       }
-      //P::log(".");
+      for (int i = 0; i < 4; i++) {
+        update(delta_time / 4);
+      }
     } else {
       if (!sbd_jump) {
         update(delta_time);
       } else {
-        //for (int i = 0; i < C::rules.MICROTICKS_PER_TICK; i++) {
-        //  update(delta_time / C::rules.MICROTICKS_PER_TICK);
-        //}
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
         update((C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
       }
     }
-    //H::t[1].cur(true);
 #ifdef DEBUG
     update_trace();
 #endif

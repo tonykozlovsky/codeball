@@ -11,11 +11,16 @@
 
 struct Entity {
   Point position;
+  Point prev_position;
   Point velocity;
+  Point prev_velocity;
   double radius;
+  double prev_radius;
 
   bool touch;
+  bool prev_touch;
   Point touch_normal;
+  Point prev_touch_normal;
 
   MyAction action;
 
@@ -23,11 +28,14 @@ struct Entity {
   double mass;
 
   double radius_change_speed;
+  double prev_radius_change_speed;
 
   std::vector<Point> trace;
 
   int global_id;
   bool is_teammate;
+
+  bool collide_with_ball_in_air;
 
   bool operator <(const Entity& other) const {
     return global_id < other.global_id;
@@ -81,6 +89,24 @@ struct Entity {
       action = {velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0.};
     }
 
+  }
+
+  void save() {
+    prev_position = position;
+    prev_velocity = velocity;
+    prev_radius = radius;
+    prev_radius_change_speed = radius_change_speed;
+    prev_touch = touch;
+    prev_touch_normal = touch_normal;
+  }
+
+  void roll_back() {
+    position = prev_position;
+    velocity = prev_velocity;
+    radius = prev_radius;
+    radius_change_speed = prev_radius_change_speed;
+    touch = prev_touch;
+    touch_normal = prev_touch_normal;
   }
 
 };
