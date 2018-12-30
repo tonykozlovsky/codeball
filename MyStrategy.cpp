@@ -58,7 +58,7 @@ void doStrategy() {
       Plan cur_plan;
       if (iteration == 0) {
         cur_plan = H::best_plan[id];
-      } else if (C::rand_double(0, 1) < 0.5){
+      } else if (0 && C::rand_double(0, 1) < 0.5) {
         cur_plan = H::best_plan[id];
         cur_plan.mutate();
       }
@@ -164,6 +164,44 @@ void doStrategy() {
   }
   H::actions[0] = H::best_plan[0].toMyAction(0, true).toAction();
   H::actions[1] = H::best_plan[1].toMyAction(0, true).toAction();
+
+  P::logn(H::best_plan[0].toMyAction(0).target_velocity.x);
+  P::logn(H::best_plan[0].toMyAction(0).target_velocity.y);
+  P::logn(H::best_plan[0].toMyAction(0).target_velocity.z);
+  P::logn(H::best_plan[0].toMyAction(0).jump_speed);
+  P::logn(H::best_plan[0].toMyAction(0).target_velocity.length());
+  P::logn(" ");
+
+  Simulator simulator(H::game.robots, H::game.ball);
+  for (auto& robot : simulator.robots) {
+    if (robot.is_teammate) {
+      robot.action = H::best_plan[robot.global_id % 2].toMyAction(0);
+      robot.action = H::best_plan[robot.global_id % 2].toMyAction(0);
+    }
+  }
+  simulator.tick(false);
+  Simulator simulator2(H::game.robots, H::game.ball);
+  for (auto& robot : simulator2.robots) {
+    if (robot.is_teammate) {
+      robot.action = H::best_plan[robot.global_id % 2].toMyAction(0);
+      robot.action = H::best_plan[robot.global_id % 2].toMyAction(0);
+    }
+  }
+  simulator2.tick(false, true);
+  for (int i = 1; i < 2; ++i) {
+    P::logn(simulator.robots[i].global_id, "pos: ");
+    P::logn(simulator.robots[i].position.x - simulator2.robots[i].position.x);
+    P::logn(simulator.robots[i].position.y - simulator2.robots[i].position.y);
+    P::logn(simulator.robots[i].position.z - simulator2.robots[i].position.z);
+    P::logn((simulator.robots[i].position - simulator2.robots[i].position).length());
+    P::logn("vel:");
+    P::logn(simulator.robots[i].velocity.x - simulator2.robots[i].velocity.x);
+    P::logn(simulator.robots[i].velocity.y - simulator2.robots[i].velocity.y);
+    P::logn(simulator.robots[i].velocity.z - simulator2.robots[i].velocity.z);
+    P::logn((simulator.robots[i].velocity - simulator2.robots[i].velocity).length());
+  }
+  //P::logn(" ");
+  //P::logn("ball", ": ", (simulator.ball.position - simulator2.ball.position).length(), " ", (simulator.ball.position - simulator2.ball.position).length());
 }
 
 void MyStrategy::act(
