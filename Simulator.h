@@ -52,9 +52,6 @@ struct Simulator {
 
   double getScoreDefender() {
     double score = 0;
-    if (my_goal) {
-      score += 1e9;
-    }
     if (enemy_goal) {
       score -= 1e9;
     }
