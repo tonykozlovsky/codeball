@@ -25,6 +25,8 @@ void doStrategy() {
     if (H::best_plan[id].time_change < -1) {
       H::best_plan[id].time_change = -1;
     }
+
+    H::best_plan[id].additional_jump = -1;
     H::best_plan[id].collide_with_ball = false;
   }
 
@@ -81,6 +83,17 @@ void doStrategy() {
           }
         }
         simulator.tick(sbd_jump);
+        if (cur_plan.additional_jump == -1 && simulator.robots[1 - id].collide_with_ball_in_air) {
+          simulator.rollback();
+          simulator.robots[1 - id].action.jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
+          simulator.tick(false);
+          cur_plan.additional_jump = sim_tick;
+#ifdef DEBUG
+          if (iteration == 0) {
+            P::logn("BALL_COLLIDE: ", sim_tick);
+          }
+#endif
+        }
         if (id == 0) {
           score += simulator.getScoreFighter() * multiplier;
         } else {
