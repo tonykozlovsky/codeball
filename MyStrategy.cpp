@@ -116,6 +116,13 @@ void doStrategy() {
               }
             } else {
               robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick);
+              if (robot.action.jump_speed > 0) {
+                if (robot.touch) {
+                  sbd_jump = true;
+                } else {
+                  robot.action.jump_speed = 0;
+                }
+              }
             }
           }
         }
