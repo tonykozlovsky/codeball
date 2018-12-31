@@ -41,7 +41,7 @@ struct H {
     C::rules = _rules;
     tick = game.current_tick;
     actions[0] = actions[1] = actions[2] = model::Action();
-    if (tick == 0) { // init on tick 0
+    if (tick == 0) {
       for (auto& player : game.players) {
         if (player.me) {
           my_id = player.id;
@@ -55,7 +55,6 @@ struct H {
       if (player_score[player.id - 1] != player.score) {
         player_score[player.id - 1] = player.score;
         waiting_ticks = 119;
-        std::cout << "Rain probability: " << global_timer.avg() << std::endl;
       }
     }
     if (waiting_ticks > 0) {
@@ -69,10 +68,7 @@ struct H {
     double time_end_balance = C::time_limit - time_per_tick * (ticks_remaining - half_ticks_remaining);
 
     half_time = (time_end_balance - global_timer.getCumulative()) / half_ticks_remaining / 2;
-    //std::cout << "time: " << std::fixed << std::setprecision(3) << half_time * 2000 << std::endl;
     time_limit = global_timer.getCumulative() + half_time * 2;
-    //std::cout << "time_limit: " << std::fixed << std::setprecision(3) << time_limit << std::endl;
-    //std::cout << "global_timer: " << std::fixed << std::setprecision(3) <<  global_timer.getCumulative() << std::endl;
     half_time = global_timer.getCumulative() + half_time;
     return true;
   }
