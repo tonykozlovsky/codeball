@@ -114,11 +114,8 @@ struct Simulator {
     const Point& delta_position = b.position - a.position;
     const double distance_sq = delta_position.length_sq();
     const double sum_r = a.radius + b.radius;
-    if (check_with_ball) {
-      a.collide_with_ball_in_air = false;
-      if ((sum_r + 0.05) * (sum_r + 0.05) > distance_sq) {
-        a.collide_with_ball_in_air = true;
-      }
+    if (check_with_ball && (sum_r + 0.05) * (sum_r + 0.05) > distance_sq) {
+      a.collide_with_ball_in_air = true;
     }
     if (sum_r * sum_r > distance_sq) {
       const double penetration = sum_r - sqrt(distance_sq);
@@ -173,12 +170,6 @@ struct Simulator {
         const Point& target_velocity_change = target_velocity - robot.velocity;
 
         double length = target_velocity_change.length_sq();
-#ifdef DEBUG
-        if (robot.global_id == 2 && debug) {
-          P::logn("touch");
-          P::logn("length: ", sqrt(length));
-        }
-#endif
         if (length > 0) {
           const double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot.touch_normal.y);
           length = sqrt(length);
@@ -206,11 +197,8 @@ struct Simulator {
     }
 
     for (auto& robot : robots) {
-      if (collide_entities(robot, ball, true)) {
-        if (!robot.touch) {
-          collide_with_ball[robot.global_id] = true;
-        }
-      }
+      robot.collide_with_ball_in_air = false;
+      collide_entities(robot, ball, !robot.touch);
       if (!collide_with_arena(robot, collision_normal)) {
         robot.touch = false;
       } else {
@@ -242,8 +230,14 @@ struct Simulator {
   void rollback() {
     for (auto& robot : robots) {
       robot.roll_back();
+#ifdef DEBUG
+      robot.trace.pop_back();
+#endif
     }
     ball.roll_back();
+#ifdef DEBUG
+    ball.trace.pop_back();
+#endif
   }
 
   void save() {
@@ -257,11 +251,8 @@ struct Simulator {
     save();
     double delta_time = 1. / C::rules.TICKS_PER_SECOND;
     if (micro) {
-      if (debug) {
-        P::logn("micro");
-      }
-      for (int i = 0; i < 4; i++) {
-        update(delta_time / 4);
+      for (int i = 0; i < C::rules.MICROTICKS_PER_TICK; i++) {
+        update(delta_time / C::rules.MICROTICKS_PER_TICK);
       }
     } else {
       if (!sbd_jump) {

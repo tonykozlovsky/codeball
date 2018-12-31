@@ -25,9 +25,11 @@ void doStrategy() {
     if (H::best_plan[id].time_change < -1) {
       H::best_plan[id].time_change = -1;
     }
-
+    H::best_plan[id].was_jumping = false;
+    H::best_plan[id].was_in_air_after_jumping = false;
+    H::best_plan[id].was_on_ground_after_in_air_after_jumping = false;
+    H::best_plan[id].collide_with_ball_before_on_ground_after_jumping = false;
     H::best_plan[id].additional_jump = -1;
-    H::best_plan[id].collide_with_ball = false;
   }
 
   for (int id = 1; id >= 0; id--) {
@@ -60,7 +62,7 @@ void doStrategy() {
       Plan cur_plan;
       if (iteration == 0) {
         cur_plan = H::best_plan[id];
-      } else if (0 && C::rand_double(0, 1) < 0.5) {
+      } else if (C::rand_double(0, 1) < 0.5) {
         cur_plan = H::best_plan[id];
         cur_plan.mutate();
       }
@@ -74,23 +76,76 @@ void doStrategy() {
           if (robot.is_teammate) {
             if (robot.global_id % 2 == id) {
               robot.action = cur_plan.toMyAction(sim_tick);
+              if (!cur_plan.was_on_ground_after_in_air_after_jumping && cur_plan.was_in_air_after_jumping && robot.touch) {
+                cur_plan.was_on_ground_after_in_air_after_jumping = true;
+#ifdef DEBUG
+                if (id == 0 && iteration == 0) {
+                  P::logn("cur_plan.was_on_ground_after_in_air_after_jumping = true; ", sim_tick);
+                }
+#endif
+                if (!cur_plan.collide_with_ball_before_on_ground_after_jumping) {
+                  cur_plan.time_jump = -1;
+#ifdef DEBUG
+                  if (id == 0 && iteration == 0) {
+                    P::logn("cur_plan.time_jump = -1; ", sim_tick);
+                  }
+#endif
+                }
+              }
+              if (!cur_plan.was_in_air_after_jumping && cur_plan.was_jumping && !robot.touch) {
+                cur_plan.was_in_air_after_jumping = true;
+#ifdef DEBUG
+                if (id == 0 && iteration == 0) {
+                  P::logn("cur_plan.was_in_air_after_jumping = true; ", sim_tick);
+                }
+#endif
+              }
+              if (robot.action.jump_speed > 0) {
+                if (robot.touch) {
+                  sbd_jump = true;
+                  cur_plan.was_jumping = true;
+#ifdef DEBUG
+                  if (id == 0 && iteration == 0) {
+                    P::logn("cur_plan.was_jumping = true; ", sim_tick);
+                  }
+#endif
+                } else {
+                  robot.action.jump_speed = 0;
+                  cur_plan.time_jump = -1;
+                }
+              }
             } else {
               robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick);
-            }
-            if (robot.action.jump_speed > 0) {
-              sbd_jump = true;
             }
           }
         }
         simulator.tick(sbd_jump);
-        if (cur_plan.additional_jump == -1 && simulator.robots[1 - id].collide_with_ball_in_air) {
-          simulator.rollback();
-          simulator.robots[1 - id].action.jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
-          simulator.tick(false);
-          cur_plan.additional_jump = sim_tick;
-          if (iteration == 0) {
-            P::logn("BALL_COLLIDE: ", sim_tick);
+        bool needs_rollback = false;
+        for (auto& robot : simulator.robots){
+          if (robot.collide_with_ball_in_air) {
+            needs_rollback = true;
+            robot.action.jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
           }
+        }
+        if (needs_rollback) {
+          if (simulator.robots[1 - id].collide_with_ball_in_air && cur_plan.additional_jump == -1) {
+            if (cur_plan.was_in_air_after_jumping) {
+              cur_plan.collide_with_ball_before_on_ground_after_jumping = true;
+#ifdef DEBUG
+              if (id == 0 && iteration == 0) {
+                P::logn("cur_plan.collide_with_ball_before_on_ground_after_jumping = true; ", sim_tick);
+              }
+#endif
+            }
+#ifdef DEBUG
+            if (id == 0 && iteration == 0) {
+              P::logn("BALL_COLLIDE: ", sim_tick);
+            }
+#endif
+            cur_plan.additional_jump = sim_tick;
+          }
+          simulator.rollback();
+          simulator.tick(true);
         }
         if (id == 0) {
           score += simulator.getScoreFighter() * multiplier;
@@ -101,24 +156,23 @@ void doStrategy() {
       }
 
       cur_plan.score = score;
+
+#ifdef DEBUG
       for (auto& robot : simulator.robots) {
         if (robot.is_teammate && robot.global_id % 2 == id) {
-          cur_plan.collide_with_ball = simulator.collide_with_ball[robot.global_id];
-#ifdef DEBUG
           cur_plan.robot_trace = robot.trace;
-#endif
         }
       }
-#ifdef DEBUG
       cur_plan.ball_trace = simulator.ball.trace;
 #endif
+
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
 
     H::sum_bushes_near_the_road += iteration;
 #ifdef DEBUG
     Plan accurate_plan;
-    if (id == 1) {
+    if (id == 0) {
       Simulator simulator(H::game.robots, H::game.ball);
       for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
         for (auto& robot : simulator.robots) {
@@ -134,14 +188,13 @@ void doStrategy() {
       }
       for (auto& robot : simulator.robots) {
         if (robot.is_teammate && robot.global_id % 2 == id) {
-          accurate_plan.collide_with_ball = simulator.collide_with_ball[robot.global_id];
           accurate_plan.robot_trace = robot.trace;
         }
       }
       accurate_plan.ball_trace = simulator.ball.trace;
     }
-    if (id == 0) {
-      for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
+    if (id == 1) {
+      /*for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
         P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);
       }
       for (int i = 1; i < H::best_plan[id].ball_trace.size(); i++) {
@@ -152,7 +205,7 @@ void doStrategy() {
       }
       for (int i = 1; i < accurate_plan.ball_trace.size(); i++) {
         P::drawLine(accurate_plan.ball_trace[i - 1], accurate_plan.ball_trace[i], 0x000000);
-      }
+      }*/
     } else {
       for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
         P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);
@@ -173,10 +226,10 @@ void doStrategy() {
   if ((H::tick + 1) % 2000 == 0) {
     std::cout << "Bushes near the road: " << H::sum_bushes_near_the_road / H::bushes_near_the_road_k << std::endl;
   }
-  H::actions[0] = H::best_plan[0].toMyAction(0, true).toAction();
-  H::actions[1] = H::best_plan[1].toMyAction(0, true).toAction();
+  H::actions[0] = H::best_plan[0].toMyAction(0).toAction();
+  H::actions[1] = H::best_plan[1].toMyAction(0).toAction();
 #ifdef DEBUG
-  P::logn(H::best_plan[0].additional_jump);
+  /*P::logn(H::best_plan[0].additional_jump);
   P::logn(H::best_plan[1].additional_jump);
 
   P::logn(H::best_plan[0].toMyAction(0).target_velocity.x);
@@ -213,10 +266,8 @@ void doStrategy() {
     P::logn(simulator.robots[i].velocity.y - simulator2.robots[i].velocity.y);
     P::logn(simulator.robots[i].velocity.z - simulator2.robots[i].velocity.z);
     P::logn((simulator.robots[i].velocity - simulator2.robots[i].velocity).length());
-  }
+  }*/
 #endif
-  //P::logn(" ");
-  //P::logn("ball", ": ", (simulator.ball.position - simulator2.ball.position).length(), " ", (simulator.ball.position - simulator2.ball.position).length());
 }
 
 void MyStrategy::act(

@@ -11,14 +11,22 @@ struct Plan {
   int time_change;
   int time_jump;
   double score;
-  bool collide_with_ball;
   double speed1, speed2;
   std::vector<Point> robot_trace;
   std::vector<Point> ball_trace;
+
   int additional_jump;
+  bool was_jumping;
+  bool was_in_air_after_jumping;
+  bool was_on_ground_after_in_air_after_jumping;
+  bool collide_with_ball_before_on_ground_after_jumping;
   Plan() {
+    was_jumping = false;
+    was_in_air_after_jumping = false;
+    was_on_ground_after_in_air_after_jumping = false;
+    collide_with_ball_before_on_ground_after_jumping = false;
     additional_jump  = -1;
-    collide_with_ball = false;
+
     angle1 = C::rand_double(0, 2 * M_PI);
     cangle1 = cos(angle1);
     sangle1 = sin(angle1);
@@ -44,6 +52,13 @@ struct Plan {
   static constexpr int time_mutation = 1;
 
   void mutate() {
+
+    was_jumping = false;
+    was_in_air_after_jumping = false;
+    was_on_ground_after_in_air_after_jumping = false;
+    collide_with_ball_before_on_ground_after_jumping = false;
+    additional_jump  = -1;
+
     angle1 += C::rand_double(-angle_mutation, angle_mutation);
     if (angle1 > 2 * M_PI) {
       angle1 -= 2 * M_PI;
@@ -78,8 +93,8 @@ struct Plan {
     }
   }
 
-  MyAction toMyAction(int simulation_tick, bool check_jump = false) {
-    double jump_speed = ((!check_jump || collide_with_ball) && (simulation_tick == time_jump || simulation_tick == additional_jump)) ? C::rules.ROBOT_MAX_JUMP_SPEED : 0;
+  MyAction toMyAction(int simulation_tick) {
+    double jump_speed = ((simulation_tick == time_jump || simulation_tick == additional_jump) ? C::rules.ROBOT_MAX_JUMP_SPEED : 0);
     if (simulation_tick < time_change) {
       return MyAction{{
           speed1 * cangle1,
