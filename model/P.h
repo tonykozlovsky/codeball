@@ -296,7 +296,7 @@ struct P {
     if (logs.size() == 0) {
       logn(args...);
     } else {
-      logs.back() += " " + to_string(args...);
+      logs.back() += to_string(args...);
     }
 #endif
 #endif

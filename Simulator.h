@@ -283,7 +283,7 @@ struct Simulator {
         //}
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
-        update((C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
+        update((C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK, true);
       }
     }
     //H::t[1].cur(true);

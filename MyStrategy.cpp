@@ -30,19 +30,19 @@ void doStrategy() {
 
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-/*    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
+    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
         if (H::game.ball.z < -0.01) {
           if (H::global_timer.getCumulative(true) > H::half_time) {
             break;
           }
         } else {
-          if (H::global_timer.cur() > 0.0015) {
+          if (H::global_timer.cur() > 0.002) {
             break;
           }
         }
-      }*/
-    for (;; iteration++) {
+      }
+    /*for (;; iteration++) {
       if (H::game.ball.z < -0.01) {
         if (iteration >= 100) {
           break;
@@ -54,7 +54,7 @@ void doStrategy() {
         if (id == 0 && iteration >= 190) {
           break;
         }
-      }
+      }*/
       Plan cur_plan;
       if (iteration == 0) {
         cur_plan = H::best_plan[id];

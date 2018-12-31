@@ -48,7 +48,6 @@ struct H {
       if (player_score[player.id - 1] != player.score) {
         player_score[player.id - 1] = player.score;
         waiting_ticks = 119;
-        std::cout << "Rain probability: " << global_timer.avg() << std::endl;
       }
     }
     if (waiting_ticks > 0) {
