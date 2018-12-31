@@ -15,6 +15,7 @@ int H::tick = -1;
 model::Action H::actions[3];
 int H::global_id;
 int H::id;
+int H::my_id;
 Plan H::best_plan[2];
 
 MyTimer H::t[100];

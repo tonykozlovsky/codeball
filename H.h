@@ -16,6 +16,7 @@ struct H {
   static model::Action actions[3];
   static int global_id;
   static int id;
+  static int my_id;
 
   static Plan best_plan[2];
   static int player_score[2];
@@ -41,6 +42,12 @@ struct H {
     tick = game.current_tick;
     actions[0] = actions[1] = actions[2] = model::Action();
     if (tick == 0) { // init on tick 0
+      for (auto& player : game.players) {
+        if (player.me) {
+          my_id = player.id;
+          break;
+        }
+      }
       player_score[0] = player_score[1] = 0;
       waiting_ticks = 0;
     }

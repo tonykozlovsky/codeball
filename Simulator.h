@@ -50,6 +50,14 @@ struct Simulator {
     return score;
   }
 
+  Entity& getMyRobotById(const int id) {
+    if (H::my_id == 1) {
+      return robots[1 - id];
+    } else {
+      return robots[3 - id];
+    }
+  }
+
   double getScoreDefender() {
     double score = 0;
     if (enemy_goal) {
@@ -79,6 +87,7 @@ struct Simulator {
       robots[i] = Entity(_robots[i]);
       collide_with_ball[_robots[i].id] = false;
     }
+    std::sort(robots, robots + 4);
     this->debug = debug;
     ball = Entity(_ball);
 #ifdef DEBUG
@@ -114,11 +123,8 @@ struct Simulator {
     const Point& delta_position = b.position - a.position;
     const double distance_sq = delta_position.length_sq();
     const double sum_r = a.radius + b.radius;
-    if (check_with_ball) {
-      a.collide_with_ball_in_air = false;
-      if ((sum_r + 0.05) * (sum_r + 0.05) > distance_sq) {
-        a.collide_with_ball_in_air = true;
-      }
+    if (check_with_ball && (sum_r + 0.05) * (sum_r + 0.05) > distance_sq) {
+      a.collide_with_ball_in_air = true;
     }
     if (sum_r * sum_r > distance_sq) {
       const double penetration = sum_r - sqrt(distance_sq);
@@ -200,11 +206,8 @@ struct Simulator {
     }
 
     for (auto& robot : robots) {
-      if (collide_entities(robot, ball, true)) {
-        if (!robot.touch) {
-          collide_with_ball[robot.global_id] = true;
-        }
-      }
+      robot.collide_with_ball_in_air = false;
+      collide_entities(robot, ball, !robot.touch);
       if (!collide_with_arena(robot, collision_normal)) {
         robot.touch = false;
       } else {
@@ -236,8 +239,14 @@ struct Simulator {
   void rollback() {
     for (auto& robot : robots) {
       robot.roll_back();
+#ifdef DEBUG
+      robot.trace.pop_back();
+#endif
     }
     ball.roll_back();
+#ifdef DEBUG
+    ball.trace.pop_back();
+#endif
   }
 
   void save() {
