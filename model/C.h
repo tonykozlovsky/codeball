@@ -37,7 +37,7 @@
 
 struct C {
   static model::Rules rules;
-  static constexpr int MAX_SIMULATION_DEPTH = 100;
+  static constexpr int MAX_SIMULATION_DEPTH = 50;
 #ifdef LOCAL
   static constexpr double time_limit = 355. * 1.5;
 #else
