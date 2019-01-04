@@ -33,6 +33,13 @@ void doStrategy() {
   }
 
   for (int id = 1; id >= 0; id--) {
+#ifdef DEBUG
+    if (id == 1) {
+      P::logn("DEFENDER:");
+    } else {
+      P::logn("ATTACKER:");
+    }
+#endif
     int iteration = 0;
 /*    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
@@ -78,37 +85,17 @@ void doStrategy() {
               robot.action = cur_plan.toMyAction(sim_tick);
               if (!cur_plan.was_on_ground_after_in_air_after_jumping && cur_plan.was_in_air_after_jumping && robot.touch) {
                 cur_plan.was_on_ground_after_in_air_after_jumping = true;
-#ifdef DEBUG
-                if (id == 0 && iteration == 0) {
-                  P::logn("cur_plan.was_on_ground_after_in_air_after_jumping = true; ", sim_tick);
-                }
-#endif
                 if (!cur_plan.collide_with_ball_before_on_ground_after_jumping) {
                   cur_plan.time_jump = -1;
-#ifdef DEBUG
-                  if (id == 0 && iteration == 0) {
-                    P::logn("cur_plan.time_jump = -1; ", sim_tick);
-                  }
-#endif
                 }
               }
               if (!cur_plan.was_in_air_after_jumping && cur_plan.was_jumping && !robot.touch) {
                 cur_plan.was_in_air_after_jumping = true;
-#ifdef DEBUG
-                if (id == 0 && iteration == 0) {
-                  P::logn("cur_plan.was_in_air_after_jumping = true; ", sim_tick);
-                }
-#endif
               }
               if (robot.action.jump_speed > 0) {
                 if (robot.touch) {
                   sbd_jump = true;
                   cur_plan.was_jumping = true;
-#ifdef DEBUG
-                  if (id == 0 && iteration == 0) {
-                    P::logn("cur_plan.was_jumping = true; ", sim_tick);
-                  }
-#endif
                 } else {
                   robot.action.jump_speed = 0;
                   cur_plan.time_jump = -1;
@@ -138,17 +125,7 @@ void doStrategy() {
           if (simulator.getMyRobotById(id).collide_with_ball_in_air && cur_plan.additional_jump == -1) {
             if (cur_plan.was_in_air_after_jumping) {
               cur_plan.collide_with_ball_before_on_ground_after_jumping = true;
-#ifdef DEBUG
-              if (id == 0 && iteration == 0) {
-                P::logn("cur_plan.collide_with_ball_before_on_ground_after_jumping = true; ", sim_tick);
-              }
-#endif
             }
-#ifdef DEBUG
-            if (id == 0 && iteration == 0) {
-              P::logn("BALL_COLLIDE: ", sim_tick);
-            }
-#endif
             cur_plan.additional_jump = sim_tick;
           }
           simulator.rollback();
