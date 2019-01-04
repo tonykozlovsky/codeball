@@ -4,8 +4,10 @@
 
 #ifdef LOCAL
 #include <model/C.h>
+#include <model/EntityState.h>
 #else
 #include "C.h"
+#include "EntityState.h"
 #endif
 
 
@@ -24,7 +26,7 @@ struct Entity {
 
   double radius_change_speed;
 
-  std::vector<Point> trace;
+  std::vector<EntityState> trace;
 
   int global_id;
   bool is_teammate;
@@ -90,6 +92,10 @@ struct Entity {
       action = {velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0.};
     }
 
+  }
+
+  EntityState toEntityState() {
+    return EntityState(position, velocity, radius, touch, touch_normal, radius_change_speed);
   }
 
 };

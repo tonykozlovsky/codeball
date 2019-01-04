@@ -288,9 +288,9 @@ struct Simulator {
 
   void update_trace() {
     for (auto& robot : robots) {
-      robot.trace.push_back(robot.position);
+      robot.trace.push_back(robot.toEntityState());
     }
-    ball.trace.push_back(ball.position);
+    ball.trace.push_back(ball.toEntityState());
   }
 
   void tick(bool micro = false) {
@@ -1010,16 +1010,16 @@ struct Simulator {
       }
 
       for (int i = 1; i < robots[0].trace.size(); i++) {
-        P::drawLine(robots[0].trace[i - 1], robots[0].trace[i], 0x00FF00);
+        P::drawLine(robots[0].trace[i - 1].position, robots[0].trace[i].position, 0x00FF00);
       }
 
 
       for (int i = 1; i < robots[1].trace.size(); i++) {
-        P::drawLine(robots[1].trace[i - 1], robots[1].trace[i], 0x00FFFF);
+        P::drawLine(robots[1].trace[i - 1].position, robots[1].trace[i].position, 0x00FFFF);
       }
 
       for (int i = 1; i < ball.trace.size(); i++) {
-        P::drawLine(ball.trace[i - 1], ball.trace[i], 0x0000FF);
+        P::drawLine(ball.trace[i - 1].position, ball.trace[i].position, 0x0000FF);
       }
     }
 
