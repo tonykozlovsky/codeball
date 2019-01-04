@@ -44,14 +44,14 @@ void doStrategy() {
       }*/
     for (;; iteration++) {
       if (H::game.ball.z < -0.01) {
-        if (iteration >= 100) {
+        if (iteration >= 200) {
           break;
         }
       } else {
-        if (id == 1 && iteration >= 10) {
+        if (id == 1 && iteration >= 20) {
           break;
         }
-        if (id == 0 && iteration >= 190) {
+        if (id == 0 && iteration >= 380) {
           break;
         }
       }
