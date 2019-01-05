@@ -29,12 +29,6 @@ struct Simulator {
 
   double getScoreFighter() {
     double score = 0;
-    if (my_goal) {
-      score += 1e9;
-    }
-    if (enemy_goal) {
-      score -= 1e9;
-    }
     double closest_enemy_dist = 1e9;
     for (auto& robot : robots) {
       if (robot.is_teammate && robot.global_id % 2 == 0) {
@@ -51,6 +45,13 @@ struct Simulator {
     double dist = (ball.position - Point{0, 0, C::rules.arena.depth / 2 + C::rules.arena.goal_depth}).length();
     score += -dist * dist;
     return score;
+  }
+
+  double getScoreFighter1() {
+    double d1 = (Point{-C::rules.arena.goal_width / 2 + 2, C::rules.arena.goal_height - 2, C::rules.arena.depth / 2 + 2} - ball.position).length();
+    double d2 = (Point{0, C::rules.arena.goal_height - 2, C::rules.arena.depth / 2 + 2} - ball.position).length();
+    double d3 = (Point{C::rules.arena.goal_width / 2 - 2, C::rules.arena.goal_height - 2, C::rules.arena.depth / 2 + 2} - ball.position).length();
+    return C::rules.arena.depth + C::rules.arena.width + C::rules.arena.height - std::min(d1, std::min(d2, d3));
   }
 
   Entity& getMyRobotById(const int id) {
@@ -142,7 +143,7 @@ struct Simulator {
       const double delta_velocity = dot(b.velocity - a.velocity, normal)
           - (b.radius_change_speed + a.radius_change_speed);
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2.) * delta_velocity);
+        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
         a.velocity += impulse * k_a;
         b.velocity -= impulse * k_b;
         return true;
@@ -207,7 +208,9 @@ struct Simulator {
       robot.radius_change_speed = robot.action.jump_speed;
     }
 
-    move(ball, delta_time, true);
+    if (!my_goal && !enemy_goal) {
+      move(ball, delta_time, true);
+    }
 
     Point collision_normal;
     for (int i = 0; i < 4; i++) {
@@ -268,7 +271,6 @@ struct Simulator {
 
   void tick(bool sbd_jump, bool micro = false) {
     save();
-
     for (auto& robot : robots) {
       robot.collide_with_ball_in_air = false;
     }

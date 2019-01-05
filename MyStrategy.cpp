@@ -69,6 +69,7 @@ void doStrategy() {
       Simulator simulator(H::game.robots, H::game.ball);
 
       double score = 0;
+      double score1 = 0;
       double multiplier = 1.;
       for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
         bool sbd_jump = false;
@@ -126,6 +127,7 @@ void doStrategy() {
         }
         if (id == 0) {
           score += simulator.getScoreFighter() * multiplier;
+          score1 = std::max(simulator.getScoreFighter1(), score1);
         } else {
           score += simulator.getScoreDefender() * multiplier;
         }
@@ -134,7 +136,15 @@ void doStrategy() {
       if (cur_plan.was_in_air_after_jumping && !cur_plan.collide_with_ball_before_on_ground_after_jumping) {
         cur_plan.time_jump = -1;
       }
-      cur_plan.score = score;
+      if (id == 0) {
+        if (simulator.my_goal) {
+          score += 1e9;
+        } else if (simulator.enemy_goal) {
+          score -= 1e9;
+        }
+      }
+      cur_plan.score = score + 100 * score1;
+
 
 #ifdef DEBUG
       for (auto& robot : simulator.robots) {
