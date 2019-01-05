@@ -14,6 +14,7 @@ struct Entity {
   Point prev_position;
   Point velocity;
   Point prev_velocity;
+  Point acceleration;
   double radius;
   double prev_radius;
 
@@ -36,6 +37,8 @@ struct Entity {
   bool is_teammate;
 
   bool collide_with_ball_in_air;
+
+  CollisionTrigger collision_trigger;
 
   bool operator <(const Entity& other) const {
     return global_id < other.global_id;

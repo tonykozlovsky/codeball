@@ -33,13 +33,6 @@ void doStrategy() {
   }
 
   for (int id = 1; id >= 0; id--) {
-#ifdef DEBUG
-    if (id == 1) {
-      P::logn("DEFENDER:");
-    } else {
-      P::logn("ATTACKER:");
-    }
-#endif
     int iteration = 0;
 /*    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
@@ -55,14 +48,14 @@ void doStrategy() {
       }*/
     for (;; iteration++) {
       if (H::game.ball.z < -0.01) {
-        if (iteration >= 100) {
+        if (iteration >= 200) {
           break;
         }
       } else {
-        if (id == 1 && iteration >= 10) {
+        if (id == 1 && iteration >= 20) {
           break;
         }
-        if (id == 0 && iteration >= 190) {
+        if (id == 0 && iteration >= 380) {
           break;
         }
       }
@@ -115,7 +108,7 @@ void doStrategy() {
         }
         simulator.tick(sbd_jump);
         bool needs_rollback = false;
-        for (auto& robot : simulator.robots){
+        for (auto& robot : simulator.robots) {
           if (robot.collide_with_ball_in_air) {
             needs_rollback = true;
             robot.action.jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
@@ -138,7 +131,9 @@ void doStrategy() {
         }
         multiplier *= 0.9;
       }
-
+      if (cur_plan.was_in_air_after_jumping && !cur_plan.collide_with_ball_before_on_ground_after_jumping) {
+        cur_plan.time_jump = -1;
+      }
       cur_plan.score = score;
 
 #ifdef DEBUG
@@ -169,6 +164,17 @@ void doStrategy() {
           }
         }
         simulator.tick(false, true);
+        bool needs_rollback = false;
+        for (auto& robot : simulator.robots) {
+          if (robot.collide_with_ball_in_air) {
+            needs_rollback = true;
+            robot.action.jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
+          }
+        }
+        if (needs_rollback) {
+          simulator.rollback();
+          simulator.tick(false, true);
+        }
       }
       for (auto& robot : simulator.robots) {
         if (robot.is_teammate && robot.global_id % 2 == id) {
@@ -178,7 +184,7 @@ void doStrategy() {
       accurate_plan.ball_trace = simulator.ball.trace;
     }
     if (id == 1) {
-      /*for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
+      for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
         P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);
       }
       for (int i = 1; i < H::best_plan[id].ball_trace.size(); i++) {
@@ -189,7 +195,7 @@ void doStrategy() {
       }
       for (int i = 1; i < accurate_plan.ball_trace.size(); i++) {
         P::drawLine(accurate_plan.ball_trace[i - 1], accurate_plan.ball_trace[i], 0x000000);
-      }*/
+      }
     } else {
       for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
         P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);
@@ -206,41 +212,100 @@ void doStrategy() {
     }
 #endif
   }
-  H::bushes_near_the_road_k += 1.;
-  if ((H::tick + 1) % 2000 == 0) {
-    std::cout << "Bushes near the road: " << H::sum_bushes_near_the_road / H::bushes_near_the_road_k << std::endl;
-  }
   H::actions[0] = H::best_plan[0].toMyAction(0).toAction();
   H::actions[1] = H::best_plan[1].toMyAction(0).toAction();
+
 #ifdef DEBUG
-  /*P::logn(H::best_plan[0].additional_jump);
-  P::logn(H::best_plan[1].additional_jump);
+  P::logn("Score0: ", H::best_plan[0].score);
+  P::logn("Score1: ", H::best_plan[1].score);
+  P::logn("H::actions[0]: ", H::actions[0].jump_speed);
+  P::logn("H::actions[1]: ", H::actions[1].jump_speed);
+  //P::logn(H::best_plan[0].additional_jump);
+  //P::logn(H::best_plan[1].additional_jump);
 
-  P::logn(H::best_plan[0].toMyAction(0).target_velocity.x);
-  P::logn(H::best_plan[0].toMyAction(0).target_velocity.y);
-  P::logn(H::best_plan[0].toMyAction(0).target_velocity.z);
-  P::logn(H::best_plan[0].toMyAction(0).jump_speed);
-  P::logn(H::best_plan[0].toMyAction(0).target_velocity.length());
-  P::logn(" ");
+  //P::logn(H::best_plan[0].toMyAction(0).target_velocity.x);
+  //P::logn(H::best_plan[0].toMyAction(0).target_velocity.y);
+  //P::logn(H::best_plan[0].toMyAction(0).target_velocity.z);
+  //P::logn(H::best_plan[0].toMyAction(0).jump_speed);
+  //P::logn(H::best_plan[0].toMyAction(0).target_velocity.length());
 
+  bool sbd_jump = false;
   Simulator simulator(H::game.robots, H::game.ball, true);
   for (auto& robot : simulator.robots) {
     if (robot.is_teammate) {
       robot.action = H::best_plan[robot.global_id % 2].toMyAction(0);
-      robot.action = H::best_plan[robot.global_id % 2].toMyAction(0);
+      if (robot.action.jump_speed > 0) {
+        sbd_jump = true;
+      }
+      if (robot.global_id == 3) {
+
+        /*P::logn("before sim 1");
+        P::logn("position: ");
+        P::logn(robot.position.x);
+        P::logn(robot.position.y);
+        P::logn(robot.position.z);
+        P::logn("velocity: ");
+        P::logn(robot.velocity.x);
+        P::logn(robot.velocity.y);
+        P::logn(robot.velocity.z);*/
+      }
     }
   }
-  simulator.tick(false);
+  simulator.tick(sbd_jump);
+  for (auto& robot : simulator.robots) {
+    if (robot.is_teammate) {
+      if (robot.global_id == 3) {
+
+        /*P::logn("after sim 1");
+        P::logn("position: ");
+        P::logn(robot.position.x);
+        P::logn(robot.position.y);
+        P::logn(robot.position.z);
+        P::logn("velocity: ");
+        P::logn(robot.velocity.x);
+        P::logn(robot.velocity.y);
+        P::logn(robot.velocity.z);*/
+
+      }
+    }
+  }
   Simulator simulator2(H::game.robots, H::game.ball, true);
   for (auto& robot : simulator2.robots) {
     if (robot.is_teammate) {
       robot.action = H::best_plan[robot.global_id % 2].toMyAction(0);
-      robot.action = H::best_plan[robot.global_id % 2].toMyAction(0);
+      if (robot.global_id == 3) {
+
+        /*P::logn("before sim 2");
+        P::logn("position: ");
+        P::logn(robot.position.x);
+        P::logn(robot.position.y);
+        P::logn(robot.position.z);
+        P::logn("velocity: ");
+        P::logn(robot.velocity.x);
+        P::logn(robot.velocity.y);
+        P::logn(robot.velocity.z);*/
+      }
     }
   }
   simulator2.tick(false, true);
-  for (int i = 1; i < 2; ++i) {
-    P::logn(simulator.robots[i].global_id, "pos: ");
+  for (auto& robot : simulator2.robots) {
+    if (robot.is_teammate) {
+      if (robot.global_id == 3) {
+
+        /*P::logn("after sim 2");
+        P::logn("position: ");
+        P::logn(robot.position.x);
+        P::logn(robot.position.y);
+        P::logn(robot.position.z);
+        P::logn("velocity: ");
+        P::logn(robot.velocity.x);
+        P::logn(robot.velocity.y);
+        P::logn(robot.velocity.z);*/
+      }
+    }
+  }
+  for (int i = 2; i < 4; ++i) {
+    /*P::logn(simulator.robots[i].global_id, "pos: ");
     P::logn(simulator.robots[i].position.x - simulator2.robots[i].position.x);
     P::logn(simulator.robots[i].position.y - simulator2.robots[i].position.y);
     P::logn(simulator.robots[i].position.z - simulator2.robots[i].position.z);
@@ -249,8 +314,8 @@ void doStrategy() {
     P::logn(simulator.robots[i].velocity.x - simulator2.robots[i].velocity.x);
     P::logn(simulator.robots[i].velocity.y - simulator2.robots[i].velocity.y);
     P::logn(simulator.robots[i].velocity.z - simulator2.robots[i].velocity.z);
-    P::logn((simulator.robots[i].velocity - simulator2.robots[i].velocity).length());
-  }*/
+    P::logn((simulator.robots[i].velocity - simulator2.robots[i].velocity).length());*/
+  }
 #endif
 }
 

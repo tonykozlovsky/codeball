@@ -66,9 +66,9 @@ struct Simulator {
     double closest_enemy_dist = 1e9;
     for (auto& robot : robots) {
       if (robot.is_teammate && robot.global_id % 2 == 1) {
-        double x = std::clamp(-ball.position.x, -12., 12.);
+        double x = 0;
         score += -0.01 * (robot.position - Point{
-            x, 0, -C::rules.arena.depth / 2}).length();
+            x, 0, -C::rules.arena.depth / 2 - 2}).length();
       }
       if (!robot.is_teammate) {
         closest_enemy_dist = std::min(closest_enemy_dist, (ball.position - robot.position).length());
@@ -162,17 +162,21 @@ struct Simulator {
     return false;
   }
 
-  void move(Entity& e, const double delta_time) {
+  void move(Entity& e, const double delta_time, bool accurate = false) {
     e.velocity = clamp(e.velocity, C::rules.MAX_ENTITY_SPEED);
     e.position += e.velocity * delta_time;
+    if (!accurate) {
+      e.position -= e.acceleration * 0.4950 * delta_time;
+    }
     e.position.y -= C::rules.GRAVITY * delta_time * delta_time / 2;
     e.velocity.y -= C::rules.GRAVITY * delta_time;
   }
 
   bool debug = false;
 
-  void update(const double delta_time, bool fix_accuracy = false) {
+  void update(const double delta_time, bool accurate = false) {
     for (auto& robot : robots) {
+      robot.acceleration = {0, 0, 0};
       if (robot.touch) {
         const Point& target_velocity = robot.action.target_velocity - robot.touch_normal * robot.touch_normal.dot(robot.action.target_velocity);
 
@@ -183,20 +187,21 @@ struct Simulator {
           const double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot.touch_normal.y);
           length = sqrt(length);
           if (acceleration * delta_time < length) {
-            robot.velocity += target_velocity_change * (acceleration * delta_time / length * (fix_accuracy ? 0.946 : 1.));
+            robot.acceleration = target_velocity_change * (acceleration * delta_time / length);
+            robot.velocity += robot.acceleration;
           } else {
             robot.velocity += target_velocity_change;
           }
         }
       }
 
-      move(robot, delta_time);
+      move(robot, delta_time, accurate);
 
       robot.radius = C::rules.ROBOT_MIN_RADIUS + (C::rules.ROBOT_MAX_RADIUS - C::rules.ROBOT_MIN_RADIUS) * robot.action.jump_speed / C::rules.ROBOT_MAX_JUMP_SPEED;
       robot.radius_change_speed = robot.action.jump_speed;
     }
 
-    move(ball, delta_time);
+    move(ball, delta_time, true);
 
     Point collision_normal;
     for (int i = 0; i < 4; i++) {
@@ -206,7 +211,6 @@ struct Simulator {
     }
 
     for (auto& robot : robots) {
-      robot.collide_with_ball_in_air = false;
       collide_entities(robot, ball, !robot.touch);
       if (!collide_with_arena(robot, collision_normal)) {
         robot.touch = false;
@@ -258,18 +262,23 @@ struct Simulator {
 
   void tick(bool sbd_jump, bool micro = false) {
     save();
+
+    for (auto& robot : robots) {
+      robot.collide_with_ball_in_air = false;
+    }
+
     double delta_time = 1. / C::rules.TICKS_PER_SECOND;
     if (micro) {
       for (int i = 0; i < C::rules.MICROTICKS_PER_TICK; i++) {
-        update(delta_time / C::rules.MICROTICKS_PER_TICK);
+        update(delta_time / C::rules.MICROTICKS_PER_TICK, true);
       }
     } else {
       if (!sbd_jump) {
-        update(delta_time, true);
+        update(delta_time);
       } else {
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
-        update((C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK, true);
+        update((C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
       }
     }
 #ifdef DEBUG
