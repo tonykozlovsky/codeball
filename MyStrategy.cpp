@@ -109,10 +109,15 @@ void doStrategy() {
         }
         simulator.tick(sbd_jump);
         bool needs_rollback = false;
+        int rollback_tick = 0;
         for (auto& robot : simulator.robots) {
           if (robot.collide_with_ball_in_air) {
             needs_rollback = true;
             robot.action.jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
+            rollback_tick = floor(robot.collision_trigger.prev_distance / (robot.collision_trigger.prev_distance - robot.collision_trigger.cur_distance) * 98.);
+            if (iteration == 0 && id == 0) {
+              P::logn(rollback_tick);
+            }
           }
         }
         if (needs_rollback) {
@@ -123,7 +128,7 @@ void doStrategy() {
             cur_plan.additional_jump = sim_tick;
           }
           simulator.rollback();
-          simulator.tick(true);
+          simulator.tick(true, false, rollback_tick);
         }
         if (id == 0) {
           score += simulator.getScoreFighter() * multiplier;
@@ -162,7 +167,7 @@ void doStrategy() {
 #ifdef DEBUG
     Plan accurate_plan;
     if (id == 0) {
-      Simulator simulator(H::game.robots, H::game.ball);
+      Simulator simulator(H::game.robots, H::game.ball, true);
       for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
         for (auto& robot : simulator.robots) {
           if (robot.is_teammate) {
@@ -194,7 +199,7 @@ void doStrategy() {
       accurate_plan.ball_trace = simulator.ball.trace;
     }
     if (id == 1) {
-      for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
+      /*for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
         P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);
       }
       for (int i = 1; i < H::best_plan[id].ball_trace.size(); i++) {
@@ -205,7 +210,7 @@ void doStrategy() {
       }
       for (int i = 1; i < accurate_plan.ball_trace.size(); i++) {
         P::drawLine(accurate_plan.ball_trace[i - 1], accurate_plan.ball_trace[i], 0x000000);
-      }
+      }*/
     } else {
       for (int i = 1; i < H::best_plan[id].robot_trace.size(); i++) {
         P::drawLine(H::best_plan[id].robot_trace[i - 1], H::best_plan[id].robot_trace[i], 0xFF0000);

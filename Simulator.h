@@ -126,14 +126,24 @@ struct Simulator {
     return v.clamp(ub);
   }
 
+  int cur_microtick;
+
   bool collide_entities(Entity& a, Entity& b, bool check_with_ball = false) {
     const Point& delta_position = b.position - a.position;
     const double distance_sq = delta_position.length_sq();
     const double sum_r = a.radius + b.radius;
-    if (check_with_ball && (sum_r + 0.05) * (sum_r + 0.05) > distance_sq) {
-      a.collide_with_ball_in_air = true;
+    if (check_with_ball) {
+      if ((sum_r + 0.05) * (sum_r + 0.05) > distance_sq) { // TODO FIX RADIUS
+        a.collide_with_ball_in_air = true;
+        a.collision_trigger.cur_distance = sqrt(distance_sq) - (sum_r + 0.05);
+      } else {
+        a.collision_trigger.prev_distance = sqrt(distance_sq) - (sum_r + 0.05);
+      }
     }
     if (sum_r * sum_r > distance_sq) {
+      if (debug) {
+        P::logn("Cur mic: ", cur_microtick);
+      }
       const double penetration = sum_r - sqrt(distance_sq);
       const double k_a = 1. / (a.mass * ((1 / a.mass) + (1 / b.mass)));
       const double k_b = 1. / (b.mass * ((1 / a.mass) + (1 / b.mass)));
@@ -269,7 +279,7 @@ struct Simulator {
     ball.save();
   }
 
-  void tick(bool sbd_jump, bool micro = false) {
+  void tick(bool sbd_jump, bool micro = false, int rollback_tick = 0) {
     save();
     for (auto& robot : robots) {
       robot.collide_with_ball_in_air = false;
@@ -277,7 +287,7 @@ struct Simulator {
 
     double delta_time = 1. / C::rules.TICKS_PER_SECOND;
     if (micro) {
-      for (int i = 0; i < C::rules.MICROTICKS_PER_TICK; i++) {
+      for (cur_microtick = 0; cur_microtick < C::rules.MICROTICKS_PER_TICK; cur_microtick++) {
         update(delta_time / C::rules.MICROTICKS_PER_TICK, true);
       }
     } else {
@@ -286,7 +296,13 @@ struct Simulator {
       } else {
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
         update(delta_time / C::rules.MICROTICKS_PER_TICK);
-        update((C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
+        if (rollback_tick < 2) {
+          update((C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
+        } else {
+          update((rollback_tick - 1) * delta_time / C::rules.MICROTICKS_PER_TICK);
+          update(delta_time / C::rules.MICROTICKS_PER_TICK);
+          update((C::rules.MICROTICKS_PER_TICK - rollback_tick - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
+        }
       }
     }
 #ifdef DEBUG
