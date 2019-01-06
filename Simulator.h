@@ -132,18 +132,11 @@ struct Simulator {
     const Point& delta_position = b.position - a.position;
     const double distance_sq = delta_position.length_sq();
     const double sum_r = a.radius + b.radius;
-    if (check_with_ball) {
-      if ((sum_r + 0.05) * (sum_r + 0.05) > distance_sq) { // TODO FIX RADIUS
-        a.collide_with_ball_in_air = true;
-        a.collision_trigger.cur_distance = sqrt(distance_sq) - (sum_r + 0.05);
-      } else {
-        a.collision_trigger.prev_distance = sqrt(distance_sq) - (sum_r + 0.05);
-      }
+    if (check_with_ball && (3.05) * (3.05) > distance_sq) { // TODO FIX RADIUS
+      a.collide_with_ball_in_air = true;
     }
     if (sum_r * sum_r > distance_sq) {
-      if (debug) {
-        P::logn("Cur mic: ", cur_microtick);
-      }
+      any_triggers_fired = true;
       const double penetration = sum_r - sqrt(distance_sq);
       const double k_a = 1. / (a.mass * ((1 / a.mass) + (1 / b.mass)));
       const double k_b = 1. / (b.mass * ((1 / a.mass) + (1 / b.mass)));
@@ -153,7 +146,7 @@ struct Simulator {
       const double delta_velocity = dot(b.velocity - a.velocity, normal)
           - (b.radius_change_speed + a.radius_change_speed);
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
+        const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2.) * delta_velocity);
         a.velocity += impulse * k_a;
         b.velocity -= impulse * k_b;
         return true;
@@ -179,19 +172,22 @@ struct Simulator {
     return false;
   }
 
-  void move(Entity& e, const double delta_time, bool accurate = false) {
+  void move(Entity& e, const double delta_time, int number_of_microticks) {
     e.velocity = clamp(e.velocity, C::rules.MAX_ENTITY_SPEED);
     e.position += e.velocity * delta_time;
-    if (!accurate) {
-      e.position -= e.acceleration * 0.4950 * delta_time;
+
+    if (number_of_microticks > 1) {
+      const double coef = (1 - (number_of_microticks + 1) / 2. / number_of_microticks); // TODO check
+      e.position -= e.acceleration * (coef * delta_time);
     }
+
     e.position.y -= C::rules.GRAVITY * delta_time * delta_time / 2;
     e.velocity.y -= C::rules.GRAVITY * delta_time;
   }
 
   bool debug = false;
 
-  void update(const double delta_time, bool accurate = false) {
+  void update(const double delta_time, const int number_of_microticks) {
     for (auto& robot : robots) {
       robot.acceleration = {0, 0, 0};
       if (robot.touch) {
@@ -212,15 +208,13 @@ struct Simulator {
         }
       }
 
-      move(robot, delta_time, accurate);
+      move(robot, delta_time, number_of_microticks);
 
       robot.radius = C::rules.ROBOT_MIN_RADIUS + (C::rules.ROBOT_MAX_RADIUS - C::rules.ROBOT_MIN_RADIUS) * robot.action.jump_speed / C::rules.ROBOT_MAX_JUMP_SPEED;
       robot.radius_change_speed = robot.action.jump_speed;
     }
 
-    if (!my_goal && !enemy_goal) {
-      move(ball, delta_time, true);
-    }
+    move(ball, delta_time, number_of_microticks);
 
     Point collision_normal;
     for (int i = 0; i < 4; i++) {
@@ -232,14 +226,30 @@ struct Simulator {
     for (auto& robot : robots) {
       collide_entities(robot, ball, !robot.touch);
       if (!collide_with_arena(robot, collision_normal)) {
+        if (robot.touch) {
+          any_triggers_fired = true;
+        }
         robot.touch = false;
       } else {
+        if (!robot.touch) {
+          any_triggers_fired = true;
+        }
         robot.touch = true;
         robot.touch_normal = collision_normal;
       }
     }
 
-    collide_with_arena(ball, collision_normal);
+    if (!collide_with_arena(ball, collision_normal)) {
+      if (ball.touch) {
+        any_triggers_fired = true;
+      }
+      ball.touch = false;
+    } else {
+      if (!ball.touch) {
+        any_triggers_fired = true;
+      }
+      ball.touch = true;
+    }
 
     if (!my_goal && !enemy_goal) {
       if (ball.position.z > C::rules.arena.depth / 2 + ball.radius) {
@@ -248,6 +258,68 @@ struct Simulator {
         enemy_goal = true;
       }
     }
+  }
+
+  bool any_triggers_fired = false;
+
+  void clearTriggers() {
+    any_triggers_fired = false;
+  }
+
+  void clearCollideWithBallInAir() {
+    for (auto& robot : robots) {
+      robot.collide_with_ball_in_air = false;
+    }
+  }
+
+  void tick_microticks(int number_of_microticks) {
+    clearTriggers();
+    if (number_of_microticks == 0) {
+      return;
+    }
+    update((double) number_of_microticks / C::rules.TICKS_PER_SECOND / C::rules.MICROTICKS_PER_TICK, number_of_microticks);
+  }
+
+  bool somebodyJumpThisTick() {
+    for (auto& robot : robots) {
+      if (robot.action.jump_speed > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void tick_tick() {
+    clearCollideWithBallInAir();
+    int remaining_microticks = 100;
+    if (somebodyJumpThisTick()) {
+      tick_microticks(1);
+      tick_microticks(1);
+      remaining_microticks = 98;
+    }
+    save();
+    tick_microticks(remaining_microticks);
+    if (any_triggers_fired) {
+      int l = 0;
+      int r = remaining_microticks;
+      while (r - l > 1) {
+        int mid = (r + l) / 2;
+        rollback();
+        tick_microticks(mid);
+        if (any_triggers_fired) {
+          r = mid;
+        } else {
+          l = mid;
+        }
+      }
+      rollback();
+      tick_microticks(l);
+      tick_microticks(1);
+      tick_microticks(remaining_microticks - l - 1);
+    }
+#ifdef DEBUG
+    update_trace();
+#endif
   }
 
 #ifdef DEBUG
@@ -259,17 +331,20 @@ struct Simulator {
   }
 #endif
 
+#ifdef DEBUG
+  void rollback_trace() {
+    for (auto& robot : robots) {
+      robot.trace.pop_back();
+    }
+    ball.trace.pop_back();
+  }
+#endif
+
   void rollback() {
     for (auto& robot : robots) {
       robot.roll_back();
-#ifdef DEBUG
-      robot.trace.pop_back();
-#endif
     }
     ball.roll_back();
-#ifdef DEBUG
-    ball.trace.pop_back();
-#endif
   }
 
   void save() {
@@ -279,31 +354,14 @@ struct Simulator {
     ball.save();
   }
 
-  void tick(bool sbd_jump, bool micro = false, int rollback_tick = 0) {
+  void tick_micro() {
     save();
     for (auto& robot : robots) {
       robot.collide_with_ball_in_air = false;
     }
-
     double delta_time = 1. / C::rules.TICKS_PER_SECOND;
-    if (micro) {
-      for (cur_microtick = 0; cur_microtick < C::rules.MICROTICKS_PER_TICK; cur_microtick++) {
-        update(delta_time / C::rules.MICROTICKS_PER_TICK, true);
-      }
-    } else {
-      if (!sbd_jump) {
-        update(delta_time);
-      } else {
-        update(delta_time / C::rules.MICROTICKS_PER_TICK);
-        update(delta_time / C::rules.MICROTICKS_PER_TICK);
-        if (rollback_tick < 2) {
-          update((C::rules.MICROTICKS_PER_TICK - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
-        } else {
-          update((rollback_tick - 1) * delta_time / C::rules.MICROTICKS_PER_TICK);
-          update(delta_time / C::rules.MICROTICKS_PER_TICK);
-          update((C::rules.MICROTICKS_PER_TICK - rollback_tick - 2) * delta_time / C::rules.MICROTICKS_PER_TICK);
-        }
-      }
+    for (cur_microtick = 0; cur_microtick < C::rules.MICROTICKS_PER_TICK; cur_microtick++) {
+      update(delta_time / C::rules.MICROTICKS_PER_TICK, 1);
     }
 #ifdef DEBUG
     update_trace();

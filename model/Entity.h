@@ -68,6 +68,10 @@ struct Entity {
     arena_e = C::rules.BALL_ARENA_E;
     mass = C::rules.BALL_MASS;
     radius_change_speed = 0;
+    global_id = 0;
+    touch = false;
+
+    acceleration = {0, 0, 0};
   }
 
   Entity(const model::Robot& robot) {

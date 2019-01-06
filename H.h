@@ -27,6 +27,14 @@ struct H {
   static double sum_bushes_near_the_road;
   static double bushes_near_the_road_k;
 
+  static model::Robot getRobotById(int id) {
+    for (auto& robot : game.robots) {
+      if (robot.id % 2 == id) {
+        return robot;
+      }
+    }
+  }
+
   static bool tryInit(
       const model::Robot& _me,
       const model::Rules& _rules,

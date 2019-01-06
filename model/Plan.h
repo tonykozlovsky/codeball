@@ -93,7 +93,7 @@ struct Plan {
     }
   }
 
-  MyAction toMyAction(int simulation_tick) {
+  MyAction toMyAction(int simulation_tick, Point touch_normal = {0, 0, 0}) {
     double jump_speed = ((simulation_tick == time_jump || simulation_tick == additional_jump) ? C::rules.ROBOT_MAX_JUMP_SPEED : 0);
     if (simulation_tick < time_change) {
       return MyAction{{
