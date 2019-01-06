@@ -49,8 +49,12 @@ struct Point {
     return x * x + y * y + z * z;
   }
   Point normalize() const {
-    double norm = length();
-    return {x / norm, y / norm, z / norm};
+    const double norm = length();
+    if (norm > 0) {
+      return {x / norm, y / norm, z / norm};
+    } else {
+      return {x, y, z};
+    }
   }
   double dot(const Point& other) const {
     return x * other.x + y * other.y + z * other.z;

@@ -75,7 +75,7 @@ void doStrategy() {
         for (auto& robot : simulator.robots) {
           if (robot.is_teammate) {
             if (robot.global_id % 2 == id) {
-              robot.action = cur_plan.toMyAction(sim_tick);
+              robot.action = cur_plan.toMyAction(sim_tick, robot.touch_normal, robot.touch);
               if (!cur_plan.was_on_ground_after_in_air_after_jumping && cur_plan.was_in_air_after_jumping && robot.touch) {
                 cur_plan.was_on_ground_after_in_air_after_jumping = true;
                 if (!cur_plan.collide_with_ball_before_on_ground_after_jumping) {
@@ -94,7 +94,7 @@ void doStrategy() {
                 }
               }
             } else {
-              robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick);
+              robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick, robot.touch_normal, robot.touch);
               if (robot.action.jump_speed > 0) {
                 if (!robot.touch) {
                   robot.action.jump_speed = 0;
@@ -165,9 +165,9 @@ void doStrategy() {
         for (auto& robot : simulator.robots) {
           if (robot.is_teammate) {
             if (robot.global_id % 2 == id) {
-              robot.action = H::best_plan[id].toMyAction(sim_tick);
+              robot.action = H::best_plan[id].toMyAction(sim_tick, robot.touch_normal, robot.touch);
             } else {
-              robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick);
+              robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick, robot.touch_normal, robot.touch);
             }
           } else {
             robot.action.jump_speed = 0;
@@ -219,30 +219,45 @@ void doStrategy() {
       for (int i = 1; i < accurate_plan.ball_trace.size(); i++) {
         P::drawLine(accurate_plan.ball_trace[i - 1], accurate_plan.ball_trace[i], 0xFFFFFF);
       }
-      if (H::best_plan[id].robot_trace.size() != accurate_plan.robot_trace.size()) {
-         P::logn("Different sizes!");
-      }
-      for (int i = 0; i < std::min(H::best_plan[id].robot_trace.size(), accurate_plan.robot_trace.size()); ++i) {
-        P::log("robot: ", (H::best_plan[id].robot_trace[i] - accurate_plan.robot_trace[i]).length());
-        P::log(" ball: ", (H::best_plan[id].ball_trace[i] - accurate_plan.ball_trace[i]).length());
-        P::logn(" ");
-      }
+      //if (H::best_plan[id].robot_trace.size() != accurate_plan.robot_trace.size()) {
+      //   P::logn("Different sizes!");
+      //}
+      //for (int i = 0; i < std::min(H::best_plan[id].robot_trace.size(), accurate_plan.robot_trace.size()); ++i) {
+      //  P::log("robot: ", (H::best_plan[id].robot_trace[i] - accurate_plan.robot_trace[i]).length());
+      //  P::log(" ball: ", (H::best_plan[id].ball_trace[i] - accurate_plan.ball_trace[i]).length());
+      //  P::logn(" ");
+     // }
     }
 #endif
   }
   H::actions[0] = H::best_plan[0].toMyAction(0,
       {H::getRobotById(0).touch_normal_x,
           H::getRobotById(0).touch_normal_y,
-          H::getRobotById(0).touch_normal_z}).toAction();
+          H::getRobotById(0).touch_normal_z}, H::getRobotById(0).touch).toAction();
+
   H::actions[1] = H::best_plan[1].toMyAction(0,
       {H::getRobotById(1).touch_normal_x,
         H::getRobotById(1).touch_normal_y,
-        H::getRobotById(1).touch_normal_z}).toAction();
-
-  //P::logn(sumsim);
-  // P::logn(rlbcks);
+        H::getRobotById(1).touch_normal_z}, H::getRobotById(1).touch).toAction();
 
 #ifdef DEBUG
+  P::drawLine({H::getRobotById(0).x,
+                  H::getRobotById(0).y,
+                  H::getRobotById(0).z}, H::best_plan[0].toMyAction(0, {H::getRobotById(0).touch_normal_x,
+                                                                        H::getRobotById(0).touch_normal_y,
+                                                                        H::getRobotById(0).touch_normal_z}, H::getRobotById(0).touch).target_velocity * 10);
+  P::logn(H::getRobotById(0).touch_normal_x, " ", H::getRobotById(0).touch_normal_y, " ", H::getRobotById(0).touch_normal_z);
+  P::logn(H::getRobotById(1).touch_normal_x, " ", H::getRobotById(1).touch_normal_y, " ", H::getRobotById(1).touch_normal_z);
+  P::drawLine({H::getRobotById(1).x,
+                  H::getRobotById(1).y,
+                  H::getRobotById(1).z}, H::best_plan[1].toMyAction(1,
+                      {H::getRobotById(1).touch_normal_x,
+      H::getRobotById(1).touch_normal_y,
+      H::getRobotById(1).touch_normal_z}, H::getRobotById(1).touch).target_velocity * 10);
+#endif
+
+#ifdef DEBUG
+
   //P::logn("Score0: ", H::best_plan[0].score);
   //P::logn("Score1: ", H::best_plan[1].score);
   //P::logn("H::actions[0]: ", H::actions[0].jump_speed);

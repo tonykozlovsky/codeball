@@ -29,7 +29,7 @@ struct H {
 
   static model::Robot getRobotById(int id) {
     for (auto& robot : game.robots) {
-      if (robot.id % 2 == id) {
+      if (robot.is_teammate && robot.id % 2 == id) {
         return robot;
       }
     }

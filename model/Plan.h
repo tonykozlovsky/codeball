@@ -93,20 +93,60 @@ struct Plan {
     }
   }
 
-  MyAction toMyAction(int simulation_tick, Point touch_normal = {0, 0, 0}) {
+  double solve2(double k, double a, double b, double c, double v) {
+    return b * v / sqrt((a * k + c) * (a * k + c) + b * b * (k * k + 1));
+  }
+
+  Point solve(const Point& touch_normal, double cs, double sn, double v) {
+    Point res;
+    if (fabs(sn) > fabs(cs)) {
+      const double k = cs / sn;
+      res.z = solve2(k, touch_normal.x, touch_normal.y, touch_normal.z, v);
+      if (sn < 0) {
+        res.z = -res.z;
+      }
+      res.x = k * res.z;
+      const double yq = v * v - res.z * res.z * (k * k + 1);
+      res.y = yq > 0 ? sqrt(yq) : 0.;
+      if ((touch_normal.x * res.x + touch_normal.z * res.z) * touch_normal.y > 0) {
+        res.y = -res.y;
+      }
+      if (res.dot(touch_normal) > 1e-6) {
+        std::cout << res.dot(touch_normal) << std::endl;
+        std::cout << sn << " " << cs << " " << k << std::endl;
+        std::cout << touch_normal.x << " " << touch_normal.y << " " << touch_normal.z << " " << res.x << " " << res.y << " " << res.z << std::endl;
+      }
+      return res;
+    } else {
+      const double k = sn / cs;
+      res.x = solve2(k, touch_normal.z, touch_normal.y, touch_normal.x, v);
+      if (cs < 0) {
+        res.x = -res.x;
+      }
+      res.z = k * res.x;
+      const double yq = v * v - res.x * res.x * (k * k + 1);
+      res.y = yq > 0 ? sqrt(yq) : 0.;
+      if ((touch_normal.x * res.x + touch_normal.z * res.z) * touch_normal.y > 0) {
+        res.y = -res.y;
+      }
+      if (res.dot(touch_normal) > 1e-6) {
+        std::cout << res.dot(touch_normal) << std::endl;
+        std::cout << sn << " " << cs << " " << k << std::endl;
+        std::cout << touch_normal.x << " " << touch_normal.y << " " << touch_normal.z << " " << res.x << " " << res.y << " " << res.z << std::endl;
+      }
+      return res;
+    }
+  }
+
+  MyAction toMyAction(int simulation_tick, Point touch_normal, const bool robot_touch) {
+    if (!robot_touch) {
+      touch_normal = {0, 1, 0};
+    }
     double jump_speed = ((simulation_tick == time_jump || simulation_tick == additional_jump) ? C::rules.ROBOT_MAX_JUMP_SPEED : 0);
     if (simulation_tick < time_change) {
-      return MyAction{{
-          speed1 * cangle1,
-          0,
-          speed1 * sangle1},
-          jump_speed};
+      return MyAction{solve(touch_normal, cangle1, sangle1, speed1), jump_speed};
     } else {
-      return MyAction{{
-          speed2 * cangle2,
-                0,
-          speed2 * sangle2},
-                jump_speed};
+      return MyAction{solve(touch_normal, cangle2, sangle2, speed2), jump_speed};
     }
   }
   bool operator<(const Plan& other) const {
