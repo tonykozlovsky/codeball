@@ -13,7 +13,6 @@
 #include <model/Point.h>
 #include <model/Point2d.h>
 #include <model/MyAction.h>
-#include <model/CollisionTrigger.h>
 #else
 #include "Arena.h"
 #include "Action.h"
@@ -26,7 +25,6 @@
 #include "Point.h"
 #include "Point2d.h"
 #include "MyAction.h"
-#include "CollisionTrigger.h"
 #endif
 
 #include <math.h>

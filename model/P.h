@@ -87,9 +87,9 @@ struct P {
 #ifdef LOCAL
 #ifdef DRAWLR
     for (auto& e : entities) {
-      spheres_to_draw.push_back(Sphere{e.position, e.radius, color});
-      Point next_pos = e.position + e.velocity * delta_time;
-      lines_to_draw.push_back(Line{e.position, next_pos, color});
+      spheres_to_draw.push_back(Sphere{e.state.position, e.state.radius, color});
+      Point next_pos = e.state.position + e.state.velocity * delta_time;
+      lines_to_draw.push_back(Line{e.state.position, next_pos, color});
     }
 #else
     auto& draw = RewindClient::instance();

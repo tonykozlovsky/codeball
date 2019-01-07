@@ -13,7 +13,7 @@
 #include "H.h"
 #endif
 
-struct Simulator {
+/*struct Simulator {
 
   Entity robots[4];
   Entity ball;
@@ -362,9 +362,9 @@ struct Simulator {
 #endif
   }
 
-  
 
-  
+
+
 
   void test_random_points() {
     Point min_p{1e9, 1e9, 1e9}, max_p{-1e9, -1e9, -1e9};
@@ -392,6 +392,6 @@ struct Simulator {
     }
   }
 
-};
+};*/
 
 #endif //CODEBALL_SIMULATOR_H

@@ -240,8 +240,8 @@ struct Dan {
       );
       Point2d v = Point2d(point.x, point.z) - o;
       if (v.x < 0 && v.y < 0
-          && length(v) < C::rules.arena.goal_side_radius + C::rules.arena.bottom_radius) {
-        o = o + normalize(v) * (C::rules.arena.goal_side_radius + C::rules.arena.bottom_radius);
+          && v.length() < C::rules.arena.goal_side_radius + C::rules.arena.bottom_radius) {
+        o = o + v.normalize() * (C::rules.arena.goal_side_radius + C::rules.arena.bottom_radius);
         dan = std::min(dan, dan_to_sphere_inner(
             point,
             {o.x, C::rules.arena.bottom_radius, o.y},
@@ -464,8 +464,8 @@ struct Dan {
           (C::rules.arena.depth / 2) - C::rules.arena.corner_radius
       );
       Point2d dv = Point2d(point.x, point.z) - corner_o;
-      if (length(dv) > C::rules.arena.corner_radius - C::rules.arena.top_radius) {
-        Point2d n = normalize(dv);
+      if (dv.length() > C::rules.arena.corner_radius - C::rules.arena.top_radius) {
+        Point2d n = dv.normalize();
         Point2d o2 = corner_o + n * (C::rules.arena.corner_radius - C::rules.arena.top_radius);
         dan = std::min(dan, dan_to_sphere_inner(
             point,
@@ -520,7 +520,7 @@ struct Dan {
       );
       Point2d v = Point2d(point.x, point.y) - o;
       if (v.x > 0 && v.y > 0) {
-        o = o + normalize(v) * (C::rules.arena.goal_top_radius + C::rules.arena.goal_side_radius);
+        o = o + v.normalize() * (C::rules.arena.goal_top_radius + C::rules.arena.goal_side_radius);
         dan = std::min(dan, dan_to_sphere_outer(
             point,
             {o.x, o.y, (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius},
@@ -601,26 +601,6 @@ struct Dan {
     return dan;
   }
 
-  Dan dan_to_arena(Point& point, const double radius) {
-    const bool negate_x = point.x < 0;
-    const bool negate_z = point.z < 0;
-    if (negate_x) {
-      point.x = -point.x;
-    }
-    if (negate_z) {
-      point.z = -point.z;
-    }
-    Dan result = dan_to_arena_quarter(point, radius);
-    if (negate_x) {
-      result.normal.x = -result.normal.x;
-      point.x = -point.x;
-    }
-    if (negate_z) {
-      result.normal.z = -result.normal.z;
-      point.z = -point.z;
-    }
-    return result;
-  }
 };
 
 #endif //CODEBALL_DAN_H

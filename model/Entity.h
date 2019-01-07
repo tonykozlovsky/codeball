@@ -27,6 +27,7 @@ struct Entity {
 
   int id;
   bool is_teammate;
+  bool is_dynamic;
 
   std::vector<EntityState> states;
 
@@ -68,6 +69,10 @@ struct Entity {
 
   void saveState() {
     states.push_back(state);
+  }
+
+  void fromState(const int tick_number) {
+    state = states[tick_number];
   }
 
 };
