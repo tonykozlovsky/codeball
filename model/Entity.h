@@ -17,7 +17,14 @@ struct EntityState {
 };
 
 struct Entity {
+
+  struct Collision {
+    Entity* e;
+    int tick;
+  };
+
   EntityState state;
+  EntityState prev_state;
 
   MyAction action;
 
@@ -28,8 +35,11 @@ struct Entity {
   int id;
   bool is_teammate;
   bool is_dynamic;
+  bool want_to_become_dynamic;
+  int want_to_become_dynamic_on_tick;
 
   std::vector<EntityState> states;
+  std::vector<Collision> collisions;
 
   bool operator <(const Entity& other) const {
     return id < other.id;
@@ -71,8 +81,27 @@ struct Entity {
     states.push_back(state);
   }
 
+  void savePrevState() {
+    prev_state = state;
+  }
+
+  void fromPrevState() {
+    state = prev_state;
+  }
+
   void fromState(const int tick_number) {
     state = states[tick_number];
+  }
+
+  void wantToBecomeDynamic(int tick_number) {
+    want_to_become_dynamic = true; // todo min tick
+    want_to_become_dynamic_on_tick = tick_number;
+    return;
+    for (auto& collision : collisions) { // TODO do and test
+      if (collision.tick >= tick_number && !collision.e->want_to_become_dynamic) {
+        collision.e->wantToBecomeDynamic(collision.tick);
+      }
+    }
   }
 
 };
