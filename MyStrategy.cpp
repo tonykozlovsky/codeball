@@ -1,12 +1,14 @@
 #ifdef LOCAL
 #include <MyStrategy.h>
 #include <Simulator.h>
+#include <SmartSimulator.h>
 #include <model/C.h>
 #include <model/P.h>
 #include <H.h>
 #else
 #include "MyStrategy.h"
 #include "Simulator.h"
+#include "SmartSimulator.h"
 #include "model/C.h"
 #include "model/P.h"
 #include "H.h"
@@ -74,7 +76,7 @@ void doStrategy() {
       for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
         for (auto& robot : simulator.robots) {
           if (robot.is_teammate) {
-            if (robot.global_id % 2 == id) {
+            if (robot.id % 2 == id) {
               robot.action = cur_plan.toMyAction(sim_tick, robot.touch_normal, robot.touch);
               if (!cur_plan.was_on_ground_after_in_air_after_jumping && cur_plan.was_in_air_after_jumping && robot.touch) {
                 cur_plan.was_on_ground_after_in_air_after_jumping = true;
@@ -94,7 +96,7 @@ void doStrategy() {
                 }
               }
             } else {
-              robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick, robot.touch_normal, robot.touch);
+              robot.action = H::best_plan[robot.id % 2].toMyAction(sim_tick, robot.touch_normal, robot.touch);
               if (robot.action.jump_speed > 0) {
                 if (!robot.touch) {
                   robot.action.jump_speed = 0;
@@ -146,7 +148,7 @@ void doStrategy() {
 
 #ifdef DEBUG
       for (auto& robot : simulator.robots) {
-        if (robot.is_teammate && robot.global_id % 2 == id) {
+        if (robot.is_teammate && robot.id % 2 == id) {
           cur_plan.robot_trace = robot.trace;
         }
       }
@@ -164,10 +166,10 @@ void doStrategy() {
       for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
         for (auto& robot : simulator.robots) {
           if (robot.is_teammate) {
-            if (robot.global_id % 2 == id) {
+            if (robot.id % 2 == id) {
               robot.action = H::best_plan[id].toMyAction(sim_tick, robot.touch_normal, robot.touch);
             } else {
-              robot.action = H::best_plan[robot.global_id % 2].toMyAction(sim_tick, robot.touch_normal, robot.touch);
+              robot.action = H::best_plan[robot.id % 2].toMyAction(sim_tick, robot.touch_normal, robot.touch);
             }
           } else {
             robot.action.jump_speed = 0;
@@ -187,7 +189,7 @@ void doStrategy() {
         }
       }
       for (auto& robot : simulator.robots) {
-        if (robot.is_teammate && robot.global_id % 2 == id) {
+        if (robot.is_teammate && robot.id % 2 == id) {
           accurate_plan.robot_trace = robot.trace;
         }
       }
