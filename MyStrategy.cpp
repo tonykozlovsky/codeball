@@ -18,6 +18,7 @@ MyStrategy::MyStrategy() {}
 
 void doStrategy() {
 
+  H::t[0].start();
   SmartSimulator simulator(3, H::game.robots, H::game.ball);
   for (int iteration = 0; iteration < 400; iteration++) {
     simulator.initIteration();
@@ -29,7 +30,8 @@ void doStrategy() {
       simulator.tick_dynamic(sim_tick);
     }
   }
-
+  H::t[0].cur(true, true);
+  P::logn("avg: ", H::t[0].avg());
 }
 
 void MyStrategy::act(

@@ -2,50 +2,59 @@
 #define CODEBALL_SMARTSIMULATOR_H
 
 struct SmartSimulator {
-  std::vector<Entity*> initial_static_entities;
-  std::vector<Entity*> initial_dynamic_entities;
-  std::vector<Entity*> initial_static_robots;
-  std::vector<Entity*> initial_dynamic_robots;
-  std::vector<Entity*> static_entities;
-  std::vector<Entity*> dynamic_entities;
-  std::vector<Entity*> static_robots;
-  std::vector<Entity*> dynamic_robots;
+
+  Entity initial_static_entities[7];
+  int initial_static_entities_size = 0;
+
+  Entity initial_dynamic_entities[7];
+  int initial_dynamic_entities_size = 0;
+
+  Entity* initial_static_robots[7];
+  int initial_static_robots_size = 0;
+
+  Entity* initial_dynamic_robots[7];
+  int initial_dynamic_robots_size = 0;
+
+  Entity* static_entities[7];
+  int static_entities_size = 0;
+
+  Entity* dynamic_entities[7];
+  int dynamic_entities_size = 0;
+
+  Entity* static_robots[7];
+  int static_robots_size = 0;
+
+  Entity* dynamic_robots[7];
+  int dynamic_robots_size = 0;
+
   Entity* main_robot;
   Entity* ball;
-
-  ~SmartSimulator() {
-    for (auto e : initial_static_entities) {
-      delete e;
-    }
-    for (auto e : initial_dynamic_entities) {
-      delete e;
-    }
-  }
 
   // maybe we can have 4x-5x performance boost, and more when 3x3
   SmartSimulator(const int main_robot_id, const std::vector<model::Robot>& _robots, const model::Ball& _ball) {
 
-    ball = new Entity(_ball);
+    initial_static_entities[initial_dynamic_entities_size].fromBall(_ball);
+    ball = &initial_static_entities[initial_dynamic_entities_size++];
     ball->is_dynamic = false;
-    initial_static_entities.emplace_back(ball);
 
     for (auto& robot : _robots) {
-      auto new_robot = new Entity(robot);
-      if (new_robot->id == main_robot_id) {
+      if (robot.id == main_robot_id) {
+        initial_dynamic_entities[initial_dynamic_entities_size].fromRobot(robot);
+        auto new_robot = &initial_dynamic_entities[initial_dynamic_entities_size++];
         new_robot->is_dynamic = true;
         main_robot = new_robot;
-        initial_dynamic_robots.push_back(new_robot);
-        initial_dynamic_entities.push_back(new_robot);
-        new_robot->saveState();
+        initial_dynamic_robots[initial_dynamic_robots_size++] = new_robot;
+        new_robot->saveState(0);
       } else {
+        initial_static_entities[initial_static_entities_size].fromRobot(robot);
+        auto new_robot = &initial_static_entities[initial_static_entities_size++];
         new_robot->is_dynamic = false;
-        initial_static_entities.emplace_back(new_robot);
-        initial_static_robots.emplace_back(new_robot);
+        initial_static_robots[initial_static_robots_size++] = new_robot;
       }
     }
 
     for (int i = 0; i < C::MAX_SIMULATION_DEPTH + 1; ++i) {
-      tick_static();
+      tick_static(i);
     }
 
     // for (auto e : initial_static_entities) {
@@ -67,9 +76,10 @@ struct SmartSimulator {
     //
   }
 
-  void tick_static() {
-    for (auto e : initial_static_entities) {
-      e->saveState();
+  void tick_static(const int tick_number) {
+    for (int i = 0; i < initial_static_entities_size; ++i) {
+      auto& e = initial_static_entities[i];
+      e.saveState(tick_number);
     }
     update_static(1. / C::rules.TICKS_PER_SECOND);
   }
@@ -122,7 +132,8 @@ struct SmartSimulator {
   }
 
   void update_static(const double delta_time) {
-    for (auto& robot : initial_static_robots) {
+    for (int i = 0; i < initial_static_robots_size; ++i) {
+      auto& robot = initial_static_robots[i];
       if (robot->state.touch) {
         const Point& target_velocity = robot->action.target_velocity - robot->state.touch_normal * robot->state.touch_normal.dot(robot->action.target_velocity);
         const Point& target_velocity_change = target_velocity - robot->state.velocity;
@@ -146,14 +157,15 @@ struct SmartSimulator {
 
     move_static(ball, delta_time);
 
-    for (int i = 0; i < initial_static_robots.size(); i++) {
+    for (int i = 0; i < initial_static_robots_size; i++) {
       for (int j = 0; j < i; j++) {
         collide_entities_static(initial_static_robots[i], initial_static_robots[j]);
       }
     }
 
     Point collision_normal;
-    for (auto& robot : initial_static_robots) {
+    for (int i = 0; i < initial_static_robots_size; i++) {
+      auto& robot = initial_static_robots[i];
       collide_entities_static(robot, ball);
       if (!collide_with_arena_static(robot, collision_normal)) {
         robot->state.touch = false;
@@ -168,45 +180,62 @@ struct SmartSimulator {
   }
 
   void initIteration() {
-    static_entities = initial_static_entities;
-    dynamic_entities = initial_dynamic_entities;
-    static_robots = initial_static_robots;
-    dynamic_robots = initial_dynamic_robots;
-    for (auto e : static_entities) {
+    static_entities_size = 0;
+    for (int i = 0; i < initial_static_entities_size; ++i) {
+      static_entities[static_entities_size++] = &initial_static_entities[i];
+    }
+
+    dynamic_entities_size = 0;
+    for (int i = 0; i < initial_dynamic_entities_size; ++i) {
+      dynamic_entities[dynamic_entities_size++] = &initial_dynamic_entities[i];
+    }
+
+    static_robots_size = 0;
+    for (int i = 0; i < initial_static_robots_size; ++i) {
+      static_robots[static_robots_size++] = initial_static_robots[i];
+    }
+
+    dynamic_robots_size = 0;
+    for (int i = 0; i < initial_dynamic_robots_size; ++i) {
+      dynamic_robots[dynamic_robots_size++] = initial_dynamic_robots[i];
+    }
+
+    for (int i = 0; i < static_entities_size; ++i) {
+      auto& e = static_entities[i];
       e->is_dynamic = false;
       e->want_to_become_dynamic = false;
     }
-    for (auto e : dynamic_entities) {
+    for (int i = 0; i < dynamic_entities_size; ++i) {
+      auto& e = dynamic_entities[i];
       e->is_dynamic = true;
     }
     main_robot->fromState(0);
   }
 
   void wantedStaticGoToDynamic(const int tick_number) {
-    std::vector<Entity*> new_static_entities; // todo optimise
-    std::vector<Entity*> new_static_robots;
-    for (auto& e : static_entities) {
+    static_robots_size = 0;
+    for (int i = 0, j = 0; i < static_entities_size; ++i) {
+      auto& e = static_entities[i];
       if (e->want_to_become_dynamic && e->want_to_become_dynamic_on_tick == tick_number) {
         e->fromState(tick_number);
         e->is_dynamic = true;
-        dynamic_entities.push_back(e);
+        dynamic_entities[dynamic_entities_size++] = e;
         if (e != ball) {
-          dynamic_robots.push_back(e);
+          dynamic_robots[dynamic_entities_size++] = e;
         }
       } else {
-        new_static_entities.push_back(e);
+        static_entities[j++] = e;
         if (e != ball) {
-          new_static_robots.push_back(e);
+          static_robots[static_robots_size++] = e;
         }
       }
     }
-    static_entities = new_static_entities;
-    static_robots = new_static_robots;
   }
 
   void tick_dynamic(const int tick_number) {
     // wantedStaticGoToDynamic(tick_number);
-    for (auto& e : static_entities) {
+    for (int i = 0; i < static_entities_size; ++i) {
+      auto& e = static_entities[i];
       e->fromState(tick_number + 1);
     }
     /* for (auto& e : dynamic_entities) {
@@ -293,8 +322,8 @@ struct SmartSimulator {
 
     bool has_collision_with_static = false;
 
-    /*for (auto& robot : dynamic_robots) {
-      if (robot->state.touch) {
+    /*for (int i = 0; i < dynamic_robots_size; ++i) {
+        auto& robot = dynamic_robots[i];
         const Point& target_velocity = robot->action.target_velocity - robot->state.touch_normal * robot->state.touch_normal.dot(robot->action.target_velocity);
         const Point& target_velocity_change = target_velocity - robot->state.velocity;
         double length = target_velocity_change.length_sq();
@@ -319,14 +348,14 @@ struct SmartSimulator {
       move_dynamic(ball, delta_time);
     }
 
-    for (int i = 0; i < dynamic_robots.size(); i++) {
+    for (int i = 0; i < dynamic_robots_size; i++) {
       for (int j = 0; j < i; j++) {
         collide_entities_dynamic(dynamic_robots[i], dynamic_robots[j]);
       }
     }
 
-    for (int i = 0; i < static_robots.size(); i++) {
-      for (int j = 0; j < dynamic_robots.size(); j++) {
+    for (int i = 0; i < static_robots_size; i++) {
+      for (int j = 0; j < dynamic_robots_size; j++) {
         if (collide_entities_check(static_robots[i], dynamic_robots[j])) {
           static_robots[i]->wantToBecomeDynamic(tick_number);
           has_collision_with_static = true;
@@ -335,7 +364,8 @@ struct SmartSimulator {
     }
 
     Point collision_normal;
-    for (auto& robot : dynamic_robots) {
+    for (int i = 0; i < dynamic_robots_size; ++i) {
+      auto& robot = dynamic_robots[i];
       if (ball->is_dynamic) {
         collide_entities_dynamic(robot, ball);
       } else {
@@ -358,7 +388,8 @@ struct SmartSimulator {
     }
 
     if (ball->is_dynamic) {
-      for (auto& robot : static_robots) {
+      for (int i = 0; i < static_robots_size; ++i) {
+        auto& robot = static_robots[i];
         if (collide_entities_check(robot, ball)) {
           robot->wantToBecomeDynamic(tick_number);
           has_collision_with_static = true;
