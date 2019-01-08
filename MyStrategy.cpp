@@ -17,9 +17,10 @@
 MyStrategy::MyStrategy() {}
 
 void doStrategy() {
-
   H::t[0].start();
   SmartSimulator simulator(3, H::game.robots, H::game.ball);
+  // double clocest_dist = 1e9;
+  // MyAction best_action;
   for (int iteration = 0; iteration < 400; iteration++) {
     simulator.initIteration();
     double angle = C::rand_double(0, 2 * M_PI);
@@ -28,10 +29,15 @@ void doStrategy() {
     for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; ++sim_tick) {
       simulator.main_robot->action = MyAction{{vx, 0, vy}, 0};
       simulator.tick_dynamic(sim_tick);
+      /*if (clocest_dist > (simulator.main_robot->state.position - simulator.ball->state.position).length()) {
+        clocest_dist = (simulator.main_robot->state.position - simulator.ball->state.position).length();
+        best_action = MyAction{{vx, 0, vy}, 0};
+      }*/
     }
   }
-  H::t[0].cur(true, true);
-  for (int i = 0; i < 10; ++i) {
+  H::t[0].cur(true);
+  // H::actions[1] = best_action.toAction();
+  for (int i = 0; i < 35; ++i) {
     H::t[i].cur(false, true);
     P::logn("t" + std::to_string(i) + ": ", H::t[i].avg() * 1000);
   }

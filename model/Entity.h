@@ -1,7 +1,6 @@
 #ifndef CODEBALL_ENTITY_H
 #define CODEBALL_ENTITY_H
 
-
 #ifdef LOCAL
 #include <model/C.h>
 #else
@@ -38,11 +37,11 @@ struct Entity {
   int want_to_become_dynamic_on_tick;
 
   EntityState prev_state;
-  EntityState* states = nullptr;
+  EntityState states[101];
   Collision* collisions = nullptr;
   int collisions_size = 0;
 
-  bool operator <(const Entity& other) const {
+  bool operator<(const Entity& other) const {
     return id < other.id;
   }
 
@@ -62,7 +61,6 @@ struct Entity {
     id = 0;
     is_teammate = false;
 
-    states = new EntityState[C::MAX_SIMULATION_DEPTH + 1];
     collisions = new Collision[7];
 
   }
@@ -81,17 +79,26 @@ struct Entity {
     id = robot.id;
     is_teammate = robot.is_teammate;
 
-    states = new EntityState[C::MAX_SIMULATION_DEPTH + 1];
     collisions = new Collision[7];
+
+    action = {state.velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0};
+
   }
 
   ~Entity() {
-    delete[] states;
     delete[] collisions;
   }
 
   void saveState(const int tick_number) {
     states[tick_number] = state;
+  }
+
+  void savePrevState() {
+    prev_state = state;
+  }
+
+  void fromPrevState() {
+    state = prev_state;
   }
 
   void fromState(const int tick_number) {
