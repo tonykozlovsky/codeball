@@ -234,10 +234,12 @@ struct SmartSimulator {
 
   void tick_dynamic(const int tick_number) {
     // wantedStaticGoToDynamic(tick_number);
+    //H::t[0].start();
     for (int i = 0; i < static_entities_size; ++i) {
       auto& e = static_entities[i];
       e->fromState(tick_number + 1);
     }
+    //H::t[0].cur(true);
     /* for (auto& e : dynamic_entities) {
       e->savePrevState();
     }*/
@@ -293,7 +295,6 @@ struct SmartSimulator {
     return (a->state.radius + b->state.radius) * (a->state.radius + b->state.radius) > distance_sq;
   }
 
-
   bool collide_with_arena_dynamic(Entity* e, Point& result) {
     const Dan& dan = Dan::dan_to_arena(e->state.position, e->state.radius);
     const double distance = dan.distance;
@@ -322,10 +323,11 @@ struct SmartSimulator {
 
     bool has_collision_with_static = false;
 
-    /*for (int i = 0; i < dynamic_robots_size; ++i) {
-        auto& robot = dynamic_robots[i];
-        const Point& target_velocity = robot->action.target_velocity - robot->state.touch_normal * robot->state.touch_normal.dot(robot->action.target_velocity);
-        const Point& target_velocity_change = target_velocity - robot->state.velocity;
+    //H::t[7].start();
+    for (int i = 0; i < dynamic_robots_size; ++i) {
+      auto& robot = dynamic_robots[i];
+      if (robot->state.touch) {
+        const Point& target_velocity_change = robot->action.target_velocity - robot->state.velocity;
         double length = target_velocity_change.length_sq();
         if (length > 0) {
           const double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot->state.touch_normal.y);
@@ -342,18 +344,23 @@ struct SmartSimulator {
 
       robot->state.radius = C::rules.ROBOT_MIN_RADIUS + (C::rules.ROBOT_MAX_RADIUS - C::rules.ROBOT_MIN_RADIUS) * robot->action.jump_speed / C::rules.ROBOT_MAX_JUMP_SPEED;
       robot->radius_change_speed = robot->action.jump_speed;
-    }*/
+    }
+    //H::t[7].cur(true);
 
+    //H::t[1].start();
     if (ball->is_dynamic) {
       move_dynamic(ball, delta_time);
     }
-
+    //H::t[1].cur(true);
+    //H::t[2].start();
     for (int i = 0; i < dynamic_robots_size; i++) {
       for (int j = 0; j < i; j++) {
         collide_entities_dynamic(dynamic_robots[i], dynamic_robots[j]);
       }
     }
 
+    //H::t[2].cur(true);
+    //H::t[3].start();
     for (int i = 0; i < static_robots_size; i++) {
       for (int j = 0; j < dynamic_robots_size; j++) {
         if (collide_entities_check(static_robots[i], dynamic_robots[j])) {
@@ -362,7 +369,9 @@ struct SmartSimulator {
         }
       }
     }
+    //H::t[3].cur(true);
 
+    //H::t[4].start();
     Point collision_normal;
     for (int i = 0; i < dynamic_robots_size; ++i) {
       auto& robot = dynamic_robots[i];
@@ -386,7 +395,9 @@ struct SmartSimulator {
         robot->state.touch_normal = collision_normal;
       }
     }
+    //H::t[4].cur(true);
 
+    //H::t[5].start();
     if (ball->is_dynamic) {
       for (int i = 0; i < static_robots_size; ++i) {
         auto& robot = static_robots[i];
@@ -396,14 +407,16 @@ struct SmartSimulator {
         }
       }
     }
-
+    //H::t[5].cur(true);
     if (has_collision_with_static) {
       return true;
     }
 
+    //H::t[6].start();
     if (ball->is_dynamic) {
       collide_with_arena_dynamic(ball, collision_normal);
     }
+    //H::t[6].cur(true);
 
     return false;
   }

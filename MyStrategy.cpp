@@ -31,7 +31,10 @@ void doStrategy() {
     }
   }
   H::t[0].cur(true, true);
-  P::logn("avg: ", H::t[0].avg());
+  for (int i = 0; i < 10; ++i) {
+    H::t[i].cur(false, true);
+    P::logn("t" + std::to_string(i) + ": ", H::t[i].avg() * 1000);
+  }
 }
 
 void MyStrategy::act(

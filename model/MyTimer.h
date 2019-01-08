@@ -63,6 +63,7 @@ struct MyTimer {
     cumulative -= 640e-10;
 #else
     double res = CPUTime::getCPUTime() - _start;
+    cumulative -= 0.0000008715;
 #endif
     if (counter) {
       k++;
