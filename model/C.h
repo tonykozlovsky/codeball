@@ -38,6 +38,7 @@
 struct C {
   static model::Rules rules;
   static constexpr int MAX_SIMULATION_DEPTH = 100;
+  static constexpr double ball_antiflap = 1e-2;
 #ifdef LOCAL
   static constexpr double time_limit = 355. * 1.5;
 #else

@@ -165,7 +165,7 @@ struct SmartSimulator {
       remaining_microticks = 98;
     }
     bool need_more_iterations = true;
-    int max_iterations = 2;
+    int max_iterations = 1203;
     while (need_more_iterations) {
       max_iterations--;
       need_more_iterations = false;
@@ -216,7 +216,7 @@ struct SmartSimulator {
       a->collide_with_ball_in_air = true;
     }
     if (sum_r * sum_r > distance_sq) {
-      any_triggers_fired = true;
+      // any_triggers_fired = true;
       const double penetration = sum_r - sqrt(distance_sq);
       trigger_fired_causes.push_back("collide_entities " + std::to_string(a->id) + " " + std::to_string(b->id) + " " + std::to_string(penetration));
       const double k_a = 1. / (a->mass * ((1 / a->mass) + (1 / b->mass)));
@@ -238,7 +238,7 @@ struct SmartSimulator {
   bool collide_with_arena_static(Entity* e, Point& result, int& collision_surface_id) {
     const Dan& dan = Dan::dan_to_arena(e->state.position, e->state.radius);
     const double distance = dan.distance;
-    if (e->state.radius + (e->state.touch ? C::collide_with_arena_antiflap : 0) > distance) {
+    if (e->state.radius > distance) {
       const Point& normal = dan.normal.normalize();
       const double penetration = e->state.radius - distance;
       e->state.position += normal * penetration;
@@ -269,33 +269,22 @@ struct SmartSimulator {
         double length = target_velocity_change.length_sq();
         if (length > 0) {
           const double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot->state.touch_normal.y);
-
-          const double delta = length - acceleration * delta_time * acceleration * delta_time;
+          length = sqrt(length);
+          const double delta = length - acceleration * delta_time;
           if (delta > 0) {
             if (!is_fair) {
               // P::log("y", robot->id, "|", number_of_tick * 100 + number_of_microticks, " ");
             }
-            length = sqrt(length);
             const auto& robot_acceleration = target_velocity_change * (acceleration * delta_time / length);
             robot->state.velocity += robot_acceleration;
             const double coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / 2. / number_of_microticks) : 0.;
             robot->state.position -= robot_acceleration * (coef * delta_time);
           } else {
-            if (!is_fair) {
-              // P::log("n", robot->id, "|", number_of_tick * 100 + number_of_microticks, " ");
-            }
-            // if (delta > C::max_speed_antiflap) {
+            if (robot->state.touch_surface_id == 1) {
               any_triggers_fired = true;
-              trigger_fired_causes.push_back("reached max speed " + std::to_string(robot->id));
-            // }
+              trigger_fired_causes.push_back("reached max speed " + std::to_string(robot->id) + std::to_string(length));
+            }
             robot->state.velocity += target_velocity_change;
-            //if (robot->id == 2 && number_of_tick < 20) {
-            //  P::logn("reached max speed ", number_of_tick);
-            //  P::logn(acceleration * delta_time, " ", length);
-            //}
-            /*if (robot->id == 2) {
-              P::logn("reached max speed ", robot->state.velocity.length());
-            }*/
           }
         }
       }
@@ -321,7 +310,7 @@ struct SmartSimulator {
       collide_entities_static(robot, ball, true);
       if (!collide_with_arena_static(robot, collision_normal, touch_surface_id)) {
         if (robot->state.touch) {
-          any_triggers_fired = true;
+          // any_triggers_fired = true;
           trigger_fired_causes.push_back("robot->state.touch true " + std::to_string(robot->id));
         }
         robot->state.touch = false;
@@ -332,7 +321,7 @@ struct SmartSimulator {
           } else {
             trigger_fired_causes.push_back("robot touch_surface_id " + std::to_string(robot->id) + " " + std::to_string(robot->state.touch_surface_id) + " " + std::to_string(touch_surface_id));
           }
-          any_triggers_fired = true;
+          // any_triggers_fired = true;
         }
         robot->state.touch_surface_id = touch_surface_id;
         robot->state.touch = true;
@@ -340,19 +329,19 @@ struct SmartSimulator {
       }
     }
     if (!collide_with_arena_static(ball, collision_normal, touch_surface_id)) {
-      if (ball->state.touch) {
+      if (ball->state.touch && (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap)) {
         trigger_fired_causes.push_back("ball->state.touch true");
-        any_triggers_fired = true;
+        // any_triggers_fired = true;
       }
       ball->state.touch = false;
     } else {
-      if (!ball->state.touch || ball->state.touch_surface_id != touch_surface_id) {
+      if ((!ball->state.touch && (ball->state.touch_surface_id != 1 || ball->state.velocity.y < -C::ball_antiflap)) || ball->state.touch_surface_id != touch_surface_id) {
         if (!ball->state.touch) {
           trigger_fired_causes.push_back("ball->state.touch false");
         } else {
           trigger_fired_causes.push_back("ball touch_surface_id " + std::to_string(ball->state.touch_surface_id) + " " + std::to_string(touch_surface_id));
         }
-        any_triggers_fired = true;
+        // any_triggers_fired = true;
       }
       ball->state.touch_surface_id = touch_surface_id;
       ball->state.touch = true;

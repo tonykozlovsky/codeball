@@ -75,6 +75,7 @@ struct Entity {
     state.radius = robot.radius;
     state.touch = robot.touch;
     state.touch_normal = {robot.touch_normal_x, robot.touch_normal_y, robot.touch_normal_z};
+    state.touch_surface_id = 1; //TODO set right surface ids
 
     arena_e = C::rules.ROBOT_ARENA_E;
     mass = C::rules.ROBOT_MASS;
