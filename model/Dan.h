@@ -10,6 +10,7 @@
 struct Dan {
   double distance;
   Point normal;
+  int collision_surface_id;
   bool operator<(const Dan& other) const {
     return distance < other.distance;
   }
@@ -17,32 +18,35 @@ struct Dan {
   static Dan dan_to_plane(
       const Point& point,
       const Point& point_on_plane,
-      const Point& plane_normal) {
-    return {(point - point_on_plane).dot(plane_normal), plane_normal};
+      const Point& plane_normal,
+      const int collision_surface_id) {
+    return {(point - point_on_plane).dot(plane_normal), plane_normal, collision_surface_id};
   }
 
   static Dan dan_to_sphere_inner(
       const double radius,
       const Point& point,
       const Point& sphere_center,
-      const double sphere_radius) {
+      const double sphere_radius,
+      const int collision_surface_id) {
     const double length_sq = (point - sphere_center).length_sq();
     if ((sphere_radius - radius) * (sphere_radius - radius) > length_sq) {
-      return {1e9, {0, 0, 0}};
+      return {1e9, {0, 0, 0}, 0};
     }
-    return {sphere_radius - sqrt(length_sq), sphere_center - point};
+    return {sphere_radius - sqrt(length_sq), sphere_center - point, collision_surface_id};
   }
 
   static Dan dan_to_sphere_outer(
       const double radius,
       const Point& point,
       const Point& sphere_center,
-      const double sphere_radius) {
+      const double sphere_radius,
+      const int collision_surface_id) {
     const double length_sq = (point - sphere_center).length_sq();
     if (length_sq > (radius + sphere_radius) * (radius + sphere_radius)) {
-      return {1e9, {0, 0, 0}};
+      return {1e9, {0, 0, 0}, 0};
     }
-    return {sqrt(length_sq) - sphere_radius, point - sphere_center};
+    return {sqrt(length_sq) - sphere_radius, point - sphere_center, collision_surface_id};
   }
 
   static Dan dan_to_arena(Point& point, const double radius) {
@@ -79,6 +83,7 @@ struct Dan {
     if (point.y < radius) {
       dan.distance = point.y;
       dan.normal.y = 1;
+      dan.collision_surface_id = 1;
       if (point.x < 24 && point.z < 34) {
         //H::t[12].cur(true);
         return dan;
@@ -95,7 +100,7 @@ struct Dan {
     // 2.05669e-06 50
     //H::t[17].start(); // 14
     if (point.x > 28) {
-      dan = std::min(dan, dan_to_plane(point, {C::rules.arena.width / 2, 0, 0}, {-1, 0, 0}));
+      dan = std::min(dan, dan_to_plane(point, {C::rules.arena.width / 2, 0, 0}, {-1, 0, 0}, 2));
     }
     //H::t[17].cur(true);
 
@@ -120,7 +125,7 @@ struct Dan {
                   C::rules.arena.goal_height - C::rules.arena.goal_top_radius
               ),
               (C::rules.arena.depth / 2) + C::rules.arena.goal_depth - C::rules.arena.bottom_radius},
-          C::rules.arena.bottom_radius));
+          C::rules.arena.bottom_radius, 3));
     }
     //H::t[13].cur(true);
 
@@ -139,7 +144,7 @@ struct Dan {
               C::rules.arena.bottom_radius,
               point.z
           },
-          C::rules.arena.bottom_radius));
+          C::rules.arena.bottom_radius, 4));
     }
     //H::t[14].cur(true);
 
@@ -157,7 +162,7 @@ struct Dan {
               point.y,
               (C::rules.arena.depth / 2) - C::rules.arena.corner_radius
           },
-          C::rules.arena.corner_radius));
+          C::rules.arena.corner_radius, 5));
     }
     //H::t[15].cur(true);
 
@@ -177,7 +182,7 @@ struct Dan {
               C::rules.arena.bottom_radius,
               point.z
           },
-          C::rules.arena.bottom_radius));
+          C::rules.arena.bottom_radius, 6));
     }
     //H::t[16].cur(true);
 
@@ -201,7 +206,7 @@ struct Dan {
         dan = std::min(dan, dan_to_sphere_inner(radius,
             point,
             {o2.x, C::rules.arena.bottom_radius, o2.y},
-            C::rules.arena.bottom_radius));
+            C::rules.arena.bottom_radius, 7));
       }
 
     }
@@ -229,7 +234,7 @@ struct Dan {
         dan = std::min(dan, dan_to_sphere_inner(radius,
             point,
             {o.x, C::rules.arena.bottom_radius, o.y},
-            C::rules.arena.bottom_radius));
+            C::rules.arena.bottom_radius, 8));
       }
     }
     //H::t[18].cur(true);
@@ -245,7 +250,7 @@ struct Dan {
       dan = std::min(dan, dan_to_plane(
           point,
           {C::rules.arena.goal_width / 2, 0, 0},
-          {-1, 0, 0}));
+          {-1, 0, 0}, 9));
     }
     //H::t[19].cur(true);
 
@@ -264,7 +269,7 @@ struct Dan {
               C::rules.arena.bottom_radius,
               (C::rules.arena.depth / 2) - C::rules.arena.bottom_radius
           },
-          C::rules.arena.bottom_radius));
+          C::rules.arena.bottom_radius, 10));
     }
     //H::t[20].cur(true);
 
@@ -283,7 +288,7 @@ struct Dan {
               C::rules.arena.goal_height - C::rules.arena.goal_top_radius,
               point.z
           },
-          C::rules.arena.goal_top_radius));
+          C::rules.arena.goal_top_radius, 11));
 
     }
     //H::t[21].cur(true);
@@ -304,7 +309,7 @@ struct Dan {
           || (v.x > 0
               && v.y > 0
               && v.length_sq() >= (C::rules.arena.goal_top_radius + C::rules.arena.goal_side_radius) * (C::rules.arena.goal_top_radius + C::rules.arena.goal_side_radius))) {
-        dan = std::min(dan, dan_to_plane(point, {0, 0, C::rules.arena.depth / 2}, {0, 0, -1}));
+        dan = std::min(dan, dan_to_plane(point, {0, 0, C::rules.arena.depth / 2}, {0, 0, -1}, 12));
       }
     }
     //H::t[22].cur(true);
@@ -324,7 +329,7 @@ struct Dan {
               point.y,
               (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius
           },
-          C::rules.arena.goal_side_radius));
+          C::rules.arena.goal_side_radius, 13));
 
     }
     //H::t[23].cur(true);
@@ -337,7 +342,7 @@ struct Dan {
     //H::t[24].start(); // 18
     if (point.z >= 41 && point.y > 8) {
       // y
-      dan = std::min(dan, dan_to_plane(point, {0, C::rules.arena.goal_height, 0}, {0, -1, 0}));
+      dan = std::min(dan, dan_to_plane(point, {0, C::rules.arena.goal_height, 0}, {0, -1, 0}, 14));
     }
     //H::t[24].cur(true);
 
@@ -356,7 +361,7 @@ struct Dan {
               C::rules.arena.height - C::rules.arena.top_radius,
               point.z
           },
-          C::rules.arena.top_radius));
+          C::rules.arena.top_radius, 12));
     }
     //H::t[25].cur(true);
 
@@ -367,7 +372,7 @@ struct Dan {
     // 3.01327e-06 50
     //H::t[26].start(); // 13
     if (point.y > 18) {
-      dan = std::min(dan, dan_to_plane(point, {0, C::rules.arena.height, 0}, {0, -1, 0}));
+      dan = std::min(dan, dan_to_plane(point, {0, C::rules.arena.height, 0}, {0, -1, 0}, 15));
     }
     //H::t[26].cur(true);
 
@@ -388,7 +393,7 @@ struct Dan {
               C::rules.arena.height - C::rules.arena.top_radius,
               (C::rules.arena.depth / 2) - C::rules.arena.top_radius
           },
-          C::rules.arena.top_radius));
+          C::rules.arena.top_radius, 16));
 
     }
     //H::t[27].cur(true);
@@ -413,7 +418,7 @@ struct Dan {
         dan = std::min(dan, dan_to_sphere_inner(radius,
             point,
             {o2.x, C::rules.arena.height - C::rules.arena.top_radius, o2.y},
-            C::rules.arena.top_radius));
+            C::rules.arena.top_radius, 17));
       }
 
     }
@@ -435,7 +440,7 @@ struct Dan {
               C::rules.arena.goal_height + C::rules.arena.goal_side_radius,
               (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius
           },
-          C::rules.arena.goal_side_radius));
+          C::rules.arena.goal_side_radius, 18));
     }
     //H::t[28].cur(true);
 
@@ -458,7 +463,7 @@ struct Dan {
         dan = std::min(dan, dan_to_sphere_outer(radius,
             point,
             {o.x, o.y, (C::rules.arena.depth / 2) + C::rules.arena.goal_side_radius},
-            C::rules.arena.goal_side_radius));
+            C::rules.arena.goal_side_radius, 19));
       }
     }
     //H::t[34].cur(true);
@@ -478,7 +483,7 @@ struct Dan {
               C::rules.arena.bottom_radius,
               (C::rules.arena.depth / 2) + C::rules.arena.goal_depth - C::rules.arena.bottom_radius
           },
-          C::rules.arena.bottom_radius));
+          C::rules.arena.bottom_radius, 20));
     }
     //H::t[29].cur(true);
 
@@ -492,7 +497,7 @@ struct Dan {
       dan = std::min(dan, dan_to_plane(
           point,
           {0, 0, (C::rules.arena.depth / 2) + C::rules.arena.goal_depth},
-          {0, 0, -1}));
+          {0, 0, -1}, 21));
     }
     //H::t[30].cur(true);
 
@@ -511,7 +516,7 @@ struct Dan {
               C::rules.arena.goal_height - C::rules.arena.goal_top_radius,
               (C::rules.arena.depth / 2) + C::rules.arena.goal_depth - C::rules.arena.goal_top_radius
           },
-          C::rules.arena.goal_top_radius));
+          C::rules.arena.goal_top_radius, 22));
     }
     //H::t[31].cur(true);
     return dan;

@@ -13,6 +13,7 @@ struct EntityState {
   double radius;
   bool touch;
   Point touch_normal;
+  int touch_surface_id;
 };
 
 struct Entity {
@@ -37,9 +38,12 @@ struct Entity {
   int want_to_become_dynamic_on_tick;
 
   EntityState prev_state;
+  EntityState prev_micro_state;
   EntityState states[101];
   Collision* collisions = nullptr;
   int collisions_size = 0;
+
+  bool collide_with_ball_in_air;
 
   bool operator<(const Entity& other) const {
     return id < other.id;
@@ -99,6 +103,14 @@ struct Entity {
 
   void fromPrevState() {
     state = prev_state;
+  }
+
+  void savePrevMicroState() {
+    prev_micro_state = state;
+  }
+
+  void fromPrevMicroState() {
+    state = prev_micro_state;
   }
 
   void fromState(const int tick_number) {
