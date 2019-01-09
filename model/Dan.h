@@ -91,7 +91,6 @@ struct Dan {
     }
 
 
-
     //H::t[12].cur(true);
 
     // Side x
@@ -103,7 +102,6 @@ struct Dan {
       dan = std::min(dan, dan_to_plane(point, {C::rules.arena.width / 2, 0, 0}, {-1, 0, 0}, 2));
     }
     //H::t[17].cur(true);
-
 
     // Goal back corners
     // 1.48532e-05 30
@@ -148,14 +146,14 @@ struct Dan {
     }
     //H::t[14].cur(true);
 
-
     // Corner
     // 17 30
     // 1.59766e-06 20
     // 27 50
     //H::t[15].start(); // 20
-    if (point.z < 27 && point.x < 17) {
-      dan = std::min(dan, dan_to_sphere_inner(radius,
+    if (!(point.z < 27 || point.x < 17)) {
+      dan = std::min(dan, dan_to_sphere_inner(
+          radius,
           point,
           {
               (C::rules.arena.width / 2) - C::rules.arena.corner_radius,
@@ -165,8 +163,6 @@ struct Dan {
           C::rules.arena.corner_radius, 5));
     }
     //H::t[15].cur(true);
-
-
 
     // Bottom corners 2 part
     // 12 30
