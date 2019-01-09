@@ -17,8 +17,30 @@
 MyStrategy::MyStrategy() {}
 
 void doStrategy() {
+  std::cout << H::tick << " ===============================================================================" << std::endl;
+  P::logn(H::tick);
   H::t[0].start();
   SmartSimulator simulator(3, H::game.robots, H::game.ball);
+  P::logn(" ");
+  SmartSimulator simulator2(3, H::game.robots, H::game.ball, true);
+  for (int i = 0; i < 50; ++i) {
+    EntityState s1;
+    for (int j = 0; j < simulator.initial_static_entities_size; j++) {
+      if (simulator.initial_static_entities[j].id == 2) {
+        s1 = simulator.initial_static_entities[j].states[i];
+      }
+    }
+    EntityState s2;
+    for (int j = 0; j < simulator2.initial_static_entities_size; j++) {
+      if (simulator2.initial_static_entities[j].id == 2) {
+        s2 = simulator2.initial_static_entities[j].states[i];
+      }
+    }
+    P::logn(" ");
+    P::log("pos: ", (s1.position - s2.position).length(), " vel: ", (s1.velocity - s2.velocity).length(), " ", s1.touch, " ", s2.touch);
+    P::log("ball pos: ", (simulator.ball->states[i].position - simulator2.ball->states[i].position).length(),
+        " ball vel: ", (simulator.ball->states[i].velocity - simulator2.ball->states[i].velocity).length());
+  }
   // double clocest_dist = 1e9;
   // MyAction best_action;
   // for (int iteration = 0; iteration < 400; iteration++) {
@@ -39,8 +61,9 @@ void doStrategy() {
   // H::actions[1] = best_action.toAction();
   for (int i = 0; i < 35; ++i) {
     H::t[i].cur(false, true);
-    P::logn("t" + std::to_string(i) + ": ", H::t[i].avg() * 1000);
+    // P::logn("t" + std::to_string(i) + ": ", H::t[i].avg() * 1000);
   }
+  std::cout.flush();
 }
 
 void MyStrategy::act(
