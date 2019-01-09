@@ -108,6 +108,7 @@ struct SmartSimulator {
     if (is_fair) {
       std::cout << "fair: ";
     } else {
+      H::t[44].cur(false, true);
       std::cout << "not fair: ";
     }
     std::cout << number_of_tick << " " << number_of_microticks << "\n";
@@ -163,9 +164,12 @@ struct SmartSimulator {
       tickMicroticksStatic(tick_number, 1);
       tickMicroticksStatic(tick_number, 1);
       remaining_microticks = 98;
+    } else if (tick_number == 0) {
+      tickMicroticksStatic(tick_number, 1);
+      remaining_microticks = 99;
     }
     bool need_more_iterations = true;
-    int max_iterations = 1203;
+    int max_iterations = 2;
     while (need_more_iterations) {
       max_iterations--;
       need_more_iterations = false;
@@ -216,7 +220,7 @@ struct SmartSimulator {
       a->collide_with_ball_in_air = true;
     }
     if (sum_r * sum_r > distance_sq) {
-      // any_triggers_fired = true;
+      any_triggers_fired = true;
       const double penetration = sum_r - sqrt(distance_sq);
       trigger_fired_causes.push_back("collide_entities " + std::to_string(a->id) + " " + std::to_string(b->id) + " " + std::to_string(penetration));
       const double k_a = 1. / (a->mass * ((1 / a->mass) + (1 / b->mass)));
@@ -310,18 +314,21 @@ struct SmartSimulator {
       collide_entities_static(robot, ball, true);
       if (!collide_with_arena_static(robot, collision_normal, touch_surface_id)) {
         if (robot->state.touch) {
-          // any_triggers_fired = true;
-          trigger_fired_causes.push_back("robot->state.touch true " + std::to_string(robot->id));
+          any_triggers_fired = true;
+          trigger_fired_causes.push_back("robot->state.touch become false " + std::to_string(robot->id));
         }
         robot->state.touch = false;
       } else {
         if (!robot->state.touch || robot->state.touch_surface_id != touch_surface_id) {
           if (!robot->state.touch) {
-            trigger_fired_causes.push_back("robot->state.touch false " + std::to_string(robot->id));
+            trigger_fired_causes.push_back("robot->state.touch become true " + std::to_string(robot->id));
           } else {
             trigger_fired_causes.push_back("robot touch_surface_id " + std::to_string(robot->id) + " " + std::to_string(robot->state.touch_surface_id) + " " + std::to_string(touch_surface_id));
           }
-          // any_triggers_fired = true;
+          if (touch_surface_id != 1) {
+            robot->collide_with_ball_in_air = true;
+          }
+          any_triggers_fired = true;
         }
         robot->state.touch_surface_id = touch_surface_id;
         robot->state.touch = true;
@@ -329,19 +336,21 @@ struct SmartSimulator {
       }
     }
     if (!collide_with_arena_static(ball, collision_normal, touch_surface_id)) {
-      if (ball->state.touch && (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap)) {
-        trigger_fired_causes.push_back("ball->state.touch true");
-        // any_triggers_fired = true;
+      if (ball->state.touch) {
+        if (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap) {
+          trigger_fired_causes.push_back("ball->state.touch become false");
+          any_triggers_fired = true;
+          ball->state.touch = false;
+        }
       }
-      ball->state.touch = false;
     } else {
-      if ((!ball->state.touch && (ball->state.touch_surface_id != 1 || ball->state.velocity.y < -C::ball_antiflap)) || ball->state.touch_surface_id != touch_surface_id) {
+      if (!ball->state.touch || ball->state.touch_surface_id != touch_surface_id) {
         if (!ball->state.touch) {
-          trigger_fired_causes.push_back("ball->state.touch false");
+          trigger_fired_causes.push_back("ball->state.touch become true");
         } else {
           trigger_fired_causes.push_back("ball touch_surface_id " + std::to_string(ball->state.touch_surface_id) + " " + std::to_string(touch_surface_id));
         }
-        // any_triggers_fired = true;
+        any_triggers_fired = true;
       }
       ball->state.touch_surface_id = touch_surface_id;
       ball->state.touch = true;

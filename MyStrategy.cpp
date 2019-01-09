@@ -36,10 +36,10 @@ void doStrategy() {
         s2 = simulator2.initial_static_entities[j].states[i];
       }
     }
-    P::logn(" ");
-    P::log("pos: ", (s1.position - s2.position).length(), " vel: ", (s1.velocity - s2.velocity).length(), " ", s1.touch, " ", s2.touch);
-    P::log("ball pos: ", (simulator.ball->states[i].position - simulator2.ball->states[i].position).length(),
-        " ball vel: ", (simulator.ball->states[i].velocity - simulator2.ball->states[i].velocity).length());
+    //P::logn(" ");
+    //P::log("pos: ", (s1.position - s2.position).length(), " vel: ", (s1.velocity - s2.velocity).length(), " ", s1.touch, " ", s2.touch);
+    //P::log("ball pos: ", (simulator.ball->states[i].position - simulator2.ball->states[i].position).length(),
+    //    " ball vel: ", (simulator.ball->states[i].velocity - simulator2.ball->states[i].velocity).length());
   }
   // double clocest_dist = 1e9;
   // MyAction best_action;
@@ -64,6 +64,8 @@ void doStrategy() {
     // P::logn("t" + std::to_string(i) + ": ", H::t[i].avg() * 1000);
   }
   std::cout.flush();
+  H::t[45].cur(false, true);
+  P::logn("avg it: ", H::t[44].k * 1. / (H::t[45].k));
 }
 
 void MyStrategy::act(
