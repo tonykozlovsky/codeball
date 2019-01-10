@@ -21,6 +21,17 @@ void doStrategy() {
   //P::logn(H::tick);
   H::t[0].start();
   SmartSimulator simulator(3, H::game.robots, H::game.ball);
+  for (int iteration = 0; iteration < 400; iteration++) {
+    simulator.initIteration();
+    double angle = 2 * M_PI / 10. * iteration;
+    double vx = cos(angle) * C::rules.ROBOT_MAX_GROUND_SPEED;
+    double vy = sin(angle) * C::rules.ROBOT_MAX_GROUND_SPEED;
+    for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; ++sim_tick) {
+      simulator.main_robot->action = MyAction{{vx, 0, vy}, 0};
+      simulator.tickDynamic(sim_tick);
+      P::logn(sim_tick);
+    }
+  }
   //P::logn(" ");
   /*SmartSimulator simulator2(3, H::game.robots, H::game.ball, true);
   for (int i = 0; i < 50; ++i) {
@@ -28,6 +39,7 @@ void doStrategy() {
     for (int j = 0; j < simulator.initial_static_entities_size; j++) {
       if (simulator.initial_static_entities[j].id == 2) {
         s1 = simulator.initial_static_entities[j].states[i];
+
       }
     }
     EntityState s2;
