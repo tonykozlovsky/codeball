@@ -6,7 +6,6 @@
 #include <SmartSimulator.h>
 #else
 #include "MyStrategy.h"
-#include "Simulator.h"
 #include "SmartSimulator.h"
 #include "model/C.h"
 #include "model/P.h"
@@ -51,7 +50,7 @@ void doStrategy() {
     /*for (;iteration < 401; iteration++) {*/
 
       Plan cur_plan;
-      if (iteration == 0 || iteration == 400) {
+      if (iteration == 0) {
         cur_plan = H::best_plan[id];
       } else if (C::rand_double(0, 1) < 0.5) {
         cur_plan = H::best_plan[id];
@@ -104,7 +103,7 @@ void doStrategy() {
           }
         }
         if (id == 0) {
-          score += simulator.getScoreFighter(sim_tick, iteration == 400) * multiplier;
+          score += simulator.getScoreFighter(sim_tick, false) * multiplier;
           score1 = std::max(simulator.getScoreFighter1(), score1);
         } else {
           score += simulator.getScoreDefender(sim_tick) * multiplier;
