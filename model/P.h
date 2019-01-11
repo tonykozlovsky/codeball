@@ -59,7 +59,7 @@ struct P {
 #endif
   }
 
-  static void drawEntities(std::vector<Entity> entities, const Entity& e, const double delta_time = 0,
+  static void drawEntities(std::vector<EntityState> entities, const EntityState& e, const double delta_time = 0,
                            const uint32_t color = 0) {
 #ifdef LOCAL
     entities.push_back(e);
@@ -67,7 +67,7 @@ struct P {
 #endif
   }
 
-  static void drawEntities(const Entity& e, std::vector<Entity>& entities, const double delta_time = 0,
+  static void drawEntities(const EntityState& e, std::vector<EntityState>& entities, const double delta_time = 0,
                            const uint32_t color = 0) {
 #ifdef LOCAL
     entities.push_back(e);
@@ -75,14 +75,14 @@ struct P {
 #endif
   }
 
-  static void drawEntities(const Entity& e, const double delta_time = 0,
+  static void drawEntities(const EntityState& e, const double delta_time = 0,
                            const uint32_t color = 0) {
 #ifdef LOCAL
-    drawEntities(std::vector<Entity>{e}, delta_time, color);
+    drawEntities(std::vector<EntityState>{e}, delta_time, color);
 #endif
   }
 
-  static void drawEntities(const std::vector<Entity>& entities, const double delta_time = 0,
+  static void drawEntities(const std::vector<EntityState>& entities, const double delta_time = 0,
                            const uint32_t color = 0) {
 #ifdef LOCAL
 #ifdef DRAWLR

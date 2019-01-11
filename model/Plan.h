@@ -91,6 +91,8 @@ struct Plan {
     if (time_jump > C::MAX_SIMULATION_DEPTH) {
       time_jump = C::MAX_SIMULATION_DEPTH;
     }
+
+    score = -1e18;
   }
 
   MyAction toMyAction(int simulation_tick) {

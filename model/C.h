@@ -13,7 +13,6 @@
 #include <model/Point.h>
 #include <model/Point2d.h>
 #include <model/MyAction.h>
-#include <model/CollisionTrigger.h>
 #else
 #include "Arena.h"
 #include "Action.h"
@@ -26,7 +25,6 @@
 #include "Point.h"
 #include "Point2d.h"
 #include "MyAction.h"
-#include "CollisionTrigger.h"
 #endif
 
 #include <math.h>
@@ -40,6 +38,7 @@
 struct C {
   static model::Rules rules;
   static constexpr int MAX_SIMULATION_DEPTH = 100;
+  static constexpr double ball_antiflap = 0.1; // todo check
 #ifdef LOCAL
   static constexpr double time_limit = 355. * 1.5;
 #else

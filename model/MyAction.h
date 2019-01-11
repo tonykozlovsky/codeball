@@ -10,8 +10,8 @@
 #endif
 
 struct MyAction {
-  Point target_velocity;
-  double jump_speed;
+  Point target_velocity = {0, 0, 0};
+  double jump_speed = 0;
   model::Action toAction() {
     model::Action result;
     result.target_velocity_x = target_velocity.x;

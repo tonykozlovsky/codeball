@@ -81,6 +81,15 @@ struct H {
     return actions[id];
   }
 
+  static int getMyRobotGlobalIdByLocal(int id) {
+    for (auto& robot : game.robots) {
+      if (robot.is_teammate && robot.id % 2 == id) {
+        return robot.id;
+      }
+    }
+    return -1;
+  }
+
   static MyTimer t[100];
   static MyTimer global_timer;
 };
