@@ -24,6 +24,9 @@ struct H {
   static double time_limit;
   static double half_time;
 
+  static double sum_asserts_failed;
+  static double asserts_failed_k;
+
   static bool tryInit(
       const model::Robot& _me,
       const model::Rules& _rules,
@@ -52,7 +55,7 @@ struct H {
       if (player_score[player.id - 1] != player.score) {
         player_score[player.id - 1] = player.score;
         waiting_ticks = 119;
-        std::cout << "Rain probability: " << global_timer.avg() << std::endl;
+        std::cout << int(sum_asserts_failed / asserts_failed_k) << " asserts failed" << std::endl;
       }
     }
     if (waiting_ticks > 0) {

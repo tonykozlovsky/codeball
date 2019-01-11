@@ -24,3 +24,5 @@ int H::player_score[2];
 int H::waiting_ticks;
 double H::time_limit;
 double H::half_time;
+double H::sum_asserts_failed = 0;
+double H::asserts_failed_k = 0;

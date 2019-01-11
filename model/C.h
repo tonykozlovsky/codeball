@@ -40,9 +40,9 @@ struct C {
   static constexpr int MAX_SIMULATION_DEPTH = 100;
   static constexpr double ball_antiflap = 0.1; // todo check
 #ifdef LOCAL
-  static constexpr double time_limit = 355. * 1.5;
+  static constexpr double time_limit = 340. * 1.5;
 #else
-  static constexpr double time_limit = 355.;
+  static constexpr double time_limit = 340.;
 #endif
 
   static std::mt19937_64 rd;

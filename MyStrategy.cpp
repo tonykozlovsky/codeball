@@ -35,7 +35,8 @@ void doStrategy() {
 
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-/*    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
+    SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots, H::game.ball);
+    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
         if (H::game.ball.z < -0.01) {
           if (H::global_timer.getCumulative(true) > H::half_time) {
@@ -46,9 +47,8 @@ void doStrategy() {
             break;
           }
         }
-      }*/
-    SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots, H::game.ball);
-    for (;iteration < 401; iteration++) {
+      }
+    /*for (;iteration < 401; iteration++) {*/
 
       Plan cur_plan;
       if (iteration == 0 || iteration == 400) {
@@ -118,6 +118,8 @@ void doStrategy() {
 
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
+
+    H::sum_asserts_failed += iteration;
   }
   // P::logn("score: ", H::best_plan[0].score);
   // P::logn("time_jump: ", H::best_plan[0].time_jump);
@@ -131,8 +133,12 @@ void doStrategy() {
   // P::logn("was_in_air_after_jumping: ", H::best_plan[0].was_in_air_after_jumping);
   // P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[0].collide_with_ball_before_on_ground_after_jumping);
   // P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[0].was_on_ground_after_in_air_after_jumping);
+
+  H::asserts_failed_k += 1;
+
   H::actions[0] = H::best_plan[0].toMyAction(0).toAction();
   H::actions[1] = H::best_plan[1].toMyAction(0).toAction();
+
 }
 
 void MyStrategy::act(
