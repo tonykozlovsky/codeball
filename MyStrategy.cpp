@@ -23,13 +23,12 @@ void doStrategy() {
   SmartSimulator simulator(3, H::game.robots, H::game.ball);
   for (int iteration = 0; iteration < 400; iteration++) {
     simulator.initIteration();
-    double angle = 2 * M_PI / 10. * iteration;
+    double angle = 2 * M_PI / 400. * iteration;
     double vx = cos(angle) * C::rules.ROBOT_MAX_GROUND_SPEED;
     double vy = sin(angle) * C::rules.ROBOT_MAX_GROUND_SPEED;
     for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; ++sim_tick) {
       simulator.main_robot->action = MyAction{{vx, 0, vy}, 0};
       simulator.tickDynamic(sim_tick);
-      P::logn(sim_tick);
     }
   }
   //P::logn(" ");

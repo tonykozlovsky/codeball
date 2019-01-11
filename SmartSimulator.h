@@ -62,12 +62,13 @@ struct SmartSimulator {
       tickWithJumpsStatic(i, true);
     }
 
-    for (int i = 0; i < initial_static_entities_size; ++i) {
+    /*for (int i = 0; i < initial_static_entities_size; ++i) {
       auto& e = initial_static_entities[i];
        for (int j = 1; j < 100; ++j) {
          P::drawLine(e.states[j - 1].position, e.states[j].position, is_fair ? 0xFFFFFF : 0xAA0000);
        }
     }
+     */
 
     // init
     // calculate static trajectories and build collision-time dependencies tree
@@ -301,10 +302,11 @@ struct SmartSimulator {
     moveDynamic(ball, delta_time);
 
     for (int i = 0; i < static_robots_size; i++) {
-      for (int j = 0; j < i; j++) {
+      for (int j = 0; j < dynamic_robots_size; j++) {
         if (collideEntitiesCheckDynamic(static_robots[i], dynamic_robots[j])) {
           static_robots[i]->wantToBecomeDynamic(number_of_tick);
           has_collision_with_static = true;
+          break;
         }
       }
     }
@@ -320,7 +322,14 @@ struct SmartSimulator {
 
     for (int i = 0; i < dynamic_robots_size; i++) {
       auto& robot = dynamic_robots[i];
-      collideEntitiesDynamic(robot, ball, true);
+      if (ball->is_dynamic) {
+        collideEntitiesDynamic(robot, ball, true);
+      } else {
+        if (collideEntitiesCheckDynamic(robot, ball)) {
+          ball->wantToBecomeDynamic(number_of_tick);
+          has_collision_with_static = true;
+        }
+      }
       if (!collideWithArenaDynamic(robot, collision_normal, touch_surface_id)) {
         if (robot->state.touch) {
           any_triggers_fired = true;
@@ -338,6 +347,18 @@ struct SmartSimulator {
         robot->state.touch_normal = collision_normal;
       }
     }
+    if (ball->is_dynamic) {
+      for (int i = 0; i < static_robots_size; i++) {
+        if (collideEntitiesCheckDynamic(static_robots[i], ball)) {
+          static_robots[i]->wantToBecomeDynamic(number_of_tick);
+          has_collision_with_static = true;
+        }
+      }
+    }
+    if (has_collision_with_static) {
+      return true;
+    }
+
     if (!collideWithArenaDynamic(ball, collision_normal, touch_surface_id)) {
       if (ball->state.touch) {
         if (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap) {
@@ -352,7 +373,8 @@ struct SmartSimulator {
       ball->state.touch_surface_id = touch_surface_id;
       ball->state.touch = true;
     }
-    return has_collision_with_static;
+
+    return false;
   }
 
   void initIteration() {
@@ -458,7 +480,7 @@ struct SmartSimulator {
 
   bool tickMicroticksDynamic(const int number_of_tick, const int number_of_microticks) {
     any_triggers_fired = false;
-    trigger_fired_causes.clear();
+    // trigger_fired_causes.clear();
     if (number_of_microticks == 0) {
       return false;
     }
@@ -561,10 +583,10 @@ struct SmartSimulator {
       }
       tryDoTickWithoutAnybodyBecomingDynamic(tick_number);
     }
-    for (int i = 0; i < dynamic_entities_size; ++i) {
+    /*for (int i = 0; i < dynamic_entities_size; ++i) {
       auto& e = dynamic_entities[i];
       P::drawLine(e->state.position, e->prev_state.position, 0xFFFFFF);
-    }
+    }*/
   }
 
   bool collideEntitiesDynamic(Entity* a, Entity* b, bool check_with_ball) {
