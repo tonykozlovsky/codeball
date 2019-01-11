@@ -118,21 +118,19 @@ void doStrategy() {
 
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
-
-    H::sum_bushes_near_the_road += iteration;
   }
-  P::logn("score: ", H::best_plan[0].score);
-  P::logn("time_jump: ", H::best_plan[0].time_jump);
-  P::logn("additional_jump: ", H::best_plan[0].additional_jump);
-  P::logn("angle1: ", H::best_plan[0].angle1);
-  P::logn("speed1: ", H::best_plan[0].speed1);
-  P::logn("time_change: ", H::best_plan[0].time_change);
-  P::logn("angle2: ", H::best_plan[0].angle2);
-  P::logn("speed2: ", H::best_plan[0].speed2);
-  P::logn("was_jumping: ", H::best_plan[0].was_jumping);
-  P::logn("was_in_air_after_jumping: ", H::best_plan[0].was_in_air_after_jumping);
-  P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[0].collide_with_ball_before_on_ground_after_jumping);
-  P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[0].was_on_ground_after_in_air_after_jumping);
+  // P::logn("score: ", H::best_plan[0].score);
+  // P::logn("time_jump: ", H::best_plan[0].time_jump);
+  // P::logn("additional_jump: ", H::best_plan[0].additional_jump);
+  // P::logn("angle1: ", H::best_plan[0].angle1);
+  // P::logn("speed1: ", H::best_plan[0].speed1);
+  // P::logn("time_change: ", H::best_plan[0].time_change);
+  // P::logn("angle2: ", H::best_plan[0].angle2);
+  // P::logn("speed2: ", H::best_plan[0].speed2);
+  // P::logn("was_jumping: ", H::best_plan[0].was_jumping);
+  // P::logn("was_in_air_after_jumping: ", H::best_plan[0].was_in_air_after_jumping);
+  // P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[0].collide_with_ball_before_on_ground_after_jumping);
+  // P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[0].was_on_ground_after_in_air_after_jumping);
   H::actions[0] = H::best_plan[0].toMyAction(0).toAction();
   H::actions[1] = H::best_plan[1].toMyAction(0).toAction();
 }

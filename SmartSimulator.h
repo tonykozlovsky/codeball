@@ -83,7 +83,7 @@ struct SmartSimulator {
       }
       tickWithJumpsStatic(i, true);
     }
-
+    /*
     if (main_robot_id == 4) {
       for (int i = 0; i < initial_static_entities_size; ++i) {
         auto& e = initial_static_entities[i];
@@ -91,7 +91,7 @@ struct SmartSimulator {
           P::drawLine(e.states[j - 1].position, e.states[j].position, 0xAA0000);
         }
       }
-    }
+    }*/
 
 
     // init
@@ -244,7 +244,7 @@ struct SmartSimulator {
       b->state.position += normal * (penetration * k_b);
       const double delta_velocity = (b->state.velocity - a->state.velocity).dot(normal) - (b->radius_change_speed + a->radius_change_speed);
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
+        const Point& impulse = normal * ((1. + (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2.) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
@@ -634,12 +634,13 @@ struct SmartSimulator {
         goal_tick = tick_number;
       }
     }
+    /*
     if (main_robot->id == 4 && viz) {
       for (int i = 0; i < dynamic_entities_size; ++i) {
         auto& e = dynamic_entities[i];
         P::drawLine(e->state.position, e->prev_state.position, 0xFFFFFF);
       }
-    }
+    }*/
     return is_main_robot_collide_with_ball_in_air;
   }
 
@@ -648,9 +649,10 @@ struct SmartSimulator {
     const double distance_sq = delta_position.length_sq();
     const double sum_r = a->state.radius + b->state.radius;
     if (check_with_ball && (3.05) * (3.05) > distance_sq) {
+      /*
       if (cur_iteration == 400 && a->id == 4) {
         P::drawEntities({a->state, b->state});
-      }
+      }*/
       a->collide_with_ball_in_air = true;
     }
     if (sum_r * sum_r > distance_sq) {
@@ -664,7 +666,7 @@ struct SmartSimulator {
       b->state.position += normal * (penetration * k_b);
       const double delta_velocity = (b->state.velocity - a->state.velocity).dot(normal) - (b->radius_change_speed + a->radius_change_speed);
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
+        const Point& impulse = normal * ((1. + (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2.) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
@@ -832,6 +834,21 @@ struct SmartSimulator {
     if (!main_robot->state.touch) {
       score -= 20;
     }
+    double closest_enemy_dist = 1e9;
+    for (int i = 0; i < dynamic_robots_size; ++i) {
+      auto& robot = dynamic_robots[i];
+      if (!robot->is_teammate) {
+        closest_enemy_dist = std::min(closest_enemy_dist, (ball->state.position - robot->state.position).length());
+      }
+    }
+    for (int i = 0; i < static_robots_size; ++i) {
+      auto& robot = static_robots[i];
+      if (!robot->is_teammate) {
+        robot->fromState(tick_number);
+        closest_enemy_dist = std::min(closest_enemy_dist, (ball->state.position - robot->state.position).length());
+      }
+    }
+    score += closest_enemy_dist;
     double dist = (ball->state.position - Point{0, 0, C::rules.arena.depth / 2 + C::rules.arena.goal_depth}).length();
     score += -dist * dist;
     return score;

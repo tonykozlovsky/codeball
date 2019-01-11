@@ -24,9 +24,6 @@ struct H {
   static double time_limit;
   static double half_time;
 
-  static double sum_bushes_near_the_road;
-  static double bushes_near_the_road_k;
-
   static bool tryInit(
       const model::Robot& _me,
       const model::Rules& _rules,
