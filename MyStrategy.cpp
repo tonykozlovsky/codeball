@@ -57,7 +57,7 @@ void doStrategy() {
       Plan cur_plan;
       if (iteration == 0 || iteration == 400) {
         cur_plan = H::best_plan[id];
-      } else if (C::rand_double(0, 1) < 0.5) {
+      } else if (iteration % 2 == 1) {
         cur_plan = H::best_plan[id];
         cur_plan.mutate();
       }
@@ -89,10 +89,10 @@ void doStrategy() {
           cur_plan.was_jumping = true;
         }
 
-        bool is_main_robot_collide_with_ball_in_air = simulator.tickDynamic(sim_tick, iteration == 400);
+        int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, iteration == 400);
 
-        if (is_main_robot_collide_with_ball_in_air) {
-          if (cur_plan.was_in_air_after_jumping) {
+        if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - additional
+          if (main_robot_additional_jump_type == 1 && cur_plan.was_in_air_after_jumping) {
             cur_plan.collide_with_ball_before_on_ground_after_jumping = true;
           }
           if (cur_plan.oncoming_jump == -1) {

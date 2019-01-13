@@ -11,6 +11,7 @@ struct EntityState {
   Point position;
   Point velocity;
   double radius;
+  double nitro;
   bool touch;
   Point touch_normal;
   int touch_surface_id;
@@ -44,6 +45,7 @@ struct Entity {
   int collisions_size = 0;
 
   bool collide_with_ball_in_air;
+  bool additional_jump;
 
   bool operator<(const Entity& other) const {
     return id < other.id;
@@ -55,6 +57,7 @@ struct Entity {
     state.position = {ball.x, ball.y, ball.z};
     state.velocity = {ball.velocity_x, ball.velocity_y, ball.velocity_z};
     state.radius = ball.radius;
+    state.nitro = 0;
     state.touch = false;
     state.touch_normal = {0, 0, 0};
 
@@ -73,6 +76,7 @@ struct Entity {
     state.position = {robot.x, robot.y, robot.z};
     state.velocity = {robot.velocity_x, robot.velocity_y, robot.velocity_z};
     state.radius = robot.radius;
+    state.nitro = robot.nitro_amount;
     state.touch = robot.touch;
     state.touch_normal = {robot.touch_normal_x, robot.touch_normal_y, robot.touch_normal_z};
     state.touch_surface_id = 1; //TODO set right surface ids

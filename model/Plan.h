@@ -47,8 +47,8 @@ struct Plan {
     score = -1e18;
   }
 
-  static constexpr double angle_mutation = M_PI / 50;
-  static constexpr int time_mutation = 1;
+  static constexpr double angle_mutation = M_PI / 10;
+  static constexpr int time_mutation = 5;
 
   void mutate() {
 
@@ -106,13 +106,13 @@ struct Plan {
           speed1 * cangle1,
           0,
           speed1 * sangle1},
-          jump_speed};
+          jump_speed, true};
     } else {
       return MyAction{{
           speed2 * cangle2,
                 0,
           speed2 * sangle2},
-                jump_speed};
+                jump_speed, true};
     }
   }
   bool operator<(const Plan& other) const {
