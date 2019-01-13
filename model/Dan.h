@@ -151,7 +151,7 @@ struct Dan {
     // 1.59766e-06 20
     // 27 50
     //H::t[15].start(); // 20
-    if (!(point.z < 27 || point.x < 17)) {
+    if (point.z > 27 && point.x > 17) {
       dan = std::min(dan, dan_to_sphere_inner(
           radius,
           point,
@@ -241,7 +241,7 @@ struct Dan {
     // 4.90724e-07 20
     // 41 50
     //H::t[19].start(); // 17
-    if (point.z >= 41 && point.x > 13) {
+    if (point.z > 41 && point.x > 13) {
       // x
       dan = std::min(dan, dan_to_plane(
           point,
@@ -275,7 +275,7 @@ struct Dan {
     // 7 20
     // 41 50
     //H::t[21].start(); // 24
-    if (point.z > 41 && point.y > 3 && point.x > 12) {
+    if (point.z > 41 && point.y > 7 && point.x > 12) {
       // Side x
       dan = std::min(dan, dan_to_sphere_inner(radius,
           point,
@@ -316,7 +316,7 @@ struct Dan {
     // 0.000182224 19.9999
     // 38.0002 41
     //H::t[23].start(); // 21
-    if (!(point.z < 38 || point.x < 13 || point.x > 16 || point.z > 41)) {
+    if (point.x > 13 && point.x < 16 && point.z > 38 && point.z < 41) {
       // Side x
       dan = std::min(dan, dan_to_sphere_outer(radius,
           point,
@@ -336,7 +336,7 @@ struct Dan {
     // 8 20
     // 41 50
     //H::t[24].start(); // 18
-    if (point.z >= 41 && point.y > 8) {
+    if (point.z > 41 && point.y > 8) {
       // y
       dan = std::min(dan, dan_to_plane(point, {0, C::rules.arena.goal_height, 0}, {0, -1, 0}, 14));
     }
@@ -427,7 +427,7 @@ struct Dan {
     // 8.00095 11
     // 38.0001 41
     //H::t[28].start(); // 22
-    if (!(point.z < 38 || point.y < 8 || point.y > 11 || point.z > 41)) {
+    if (point.z > 38 && point.y > 8 && point.y < 11 && point.z < 41) {
       // Ceiling
       dan = std::min(dan, dan_to_sphere_outer(radius,
           point,

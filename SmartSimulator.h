@@ -42,14 +42,34 @@ struct SmartSimulator {
   Entity* main_robot;
   Entity* ball;
 
-  bool any_triggers_fired;
-  std::vector<std::string> trigger_fired_causes;
+  bool acceleration_trigger;
+  int acceleration_trigger_fires;
+  const int acceleration_trigger_limit = 2;
+
+  bool entity_entity_collision_trigger;
+  int entity_entity_collision_trigger_fires;
+  const int entity_entity_collision_limit = 2;
+
+  bool entity_ball_collision_trigger;
+  int entity_ball_collision_trigger_fires;
+  const int entity_ball_collision_limit = 2;
+
+  bool entity_arena_collision_trigger;
+  int entity_arena_collision_trigger_fires;
+  const int entity_arena_collision_limit = 2;
+
+  bool ball_arena_collision_trigger;
+  int ball_arena_collision_trigger_fires;
+  const int ball_arena_collision_limit = 2;
+
 
   bool goal_to_me, goal_to_enemy;
   int goal_tick;
 
+  bool accurate;
+
   // maybe we can have 4x-5x performance boost, and more when 3x3
-  SmartSimulator(const int main_robot_id, const std::vector<model::Robot>& _robots, const model::Ball& _ball) {
+  SmartSimulator(const int main_robot_id, const std::vector<model::Robot>& _robots, const model::Ball& _ball, bool accurate = false) : accurate(accurate) {
 
     initial_static_entities[initial_static_entities_size].fromBall(_ball);
     ball = &initial_static_entities[initial_static_entities_size++];
@@ -83,15 +103,15 @@ struct SmartSimulator {
       }
       tickWithJumpsStatic(i, true);
     }
-    /*
-    if (main_robot_id == 4) {
+
+    if (main_robot_id == 3) {
       for (int i = 0; i < initial_static_entities_size; ++i) {
         auto& e = initial_static_entities[i];
         for (int j = 1; j < 100; ++j) {
-          P::drawLine(e.states[j - 1].position, e.states[j].position, 0xAA0000);
+          P::drawLine(e.states[j - 1].position, e.states[j].position, accurate ? 0xFFFFFF : 0x000000);
         }
       }
-    }*/
+    }
 
 
     // init
@@ -122,25 +142,28 @@ struct SmartSimulator {
     return false;
   }
 
+  void clearTriggers() {
+    acceleration_trigger = false;
+    entity_entity_collision_trigger = false;
+    entity_ball_collision_trigger = false;
+    entity_arena_collision_trigger = false;
+    ball_arena_collision_trigger = false;
+  }
+
+  void clearTriggerFires() {
+    acceleration_trigger_fires = 0;
+    entity_entity_collision_trigger_fires = 0;
+    entity_ball_collision_trigger_fires = 0;
+    entity_arena_collision_trigger_fires = 0;
+    ball_arena_collision_trigger_fires = 0;
+  }
+
   void tickMicroticksStatic(const int number_of_tick, const int number_of_microticks) {
-    any_triggers_fired = false;
-    trigger_fired_causes.clear();
+    clearTriggers();
     if (number_of_microticks == 0) {
       return;
     }
     updateStatic((double) number_of_microticks / C::rules.TICKS_PER_SECOND / C::rules.MICROTICKS_PER_TICK, number_of_tick, number_of_microticks);
-
-    /*if (is_fair) {
-      std::cout << "fair: ";
-    } else {
-      //H::t[44].cur(false, true);
-      std::cout << "not fair: ";
-    }
-    std::cout << number_of_tick << " " << number_of_microticks << "\n";
-    for (auto& cause : trigger_fired_causes) {
-      std::cout << cause << std::endl;
-    }
-    std::cout << std::endl;*/
   }
 
   void tickWithJumpsStatic(const int tick_number, bool with_jumps) {
@@ -172,7 +195,41 @@ struct SmartSimulator {
     }
   }
 
+  bool anyTriggersActive() {
+    return
+    (acceleration_trigger && acceleration_trigger_fires < acceleration_trigger_limit) ||
+        (entity_arena_collision_trigger && entity_arena_collision_trigger_fires < entity_arena_collision_limit) ||
+        (ball_arena_collision_trigger && ball_arena_collision_trigger_fires < ball_arena_collision_limit) ||
+        (entity_ball_collision_trigger && entity_ball_collision_trigger_fires < entity_ball_collision_limit) ||
+        (entity_entity_collision_trigger && entity_entity_collision_trigger_fires < entity_entity_collision_limit);
+  }
+
+  void setTriggersFired() {
+    if (acceleration_trigger) {
+      acceleration_trigger_fires++;
+    }
+    if (entity_arena_collision_trigger) {
+      entity_arena_collision_trigger_fires++;
+    }
+
+    if (ball_arena_collision_trigger) {
+      ball_arena_collision_trigger_fires++;
+    }
+    if (entity_entity_collision_trigger) {
+      entity_entity_collision_trigger_fires++;
+    }
+    if (entity_ball_collision_trigger) {
+      entity_ball_collision_trigger_fires++;
+    }
+  }
+
   void tickStatic(const int tick_number) {
+    if (accurate) {
+      for (int i = 0; i < 100; ++i) {
+        tickMicroticksStatic(tick_number, 1);
+      }
+      return;
+    }
     int remaining_microticks = 100;
     if (somebodyJumpThisTickStatic()) {
       tickMicroticksStatic(tick_number, 1);
@@ -182,11 +239,10 @@ struct SmartSimulator {
       tickMicroticksStatic(tick_number, 1);
       remaining_microticks = 99;
     }
-    bool need_more_iterations = true;
-    int max_iterations = 0;
-    while (need_more_iterations) {
-      max_iterations--;
-      need_more_iterations = false;
+
+    clearTriggerFires();
+
+    while (true) {
 
       for (int i = 0; i < initial_static_entities_size; ++i) {
         auto& e = initial_static_entities[i];
@@ -195,7 +251,7 @@ struct SmartSimulator {
 
       tickMicroticksStatic(tick_number, remaining_microticks);
 
-      if (any_triggers_fired && remaining_microticks > 1 && max_iterations >= 0) {
+      if (anyTriggersActive() && remaining_microticks > 1) { // todo as dynamic
         int l = 0;
         int r = remaining_microticks;
         while (r - l > 1) {
@@ -205,7 +261,7 @@ struct SmartSimulator {
             e.fromPrevMicroState();
           }
           tickMicroticksStatic(tick_number, mid);
-          if (any_triggers_fired) {
+          if (anyTriggersActive()) {
             r = mid;
           } else {
             l = mid;
@@ -220,8 +276,10 @@ struct SmartSimulator {
           remaining_microticks -= l;
         }
         tickMicroticksStatic(tick_number, 1);
+        setTriggersFired();
         remaining_microticks--;
-        need_more_iterations = true;
+      } else {
+        break;
       }
     }
   }
@@ -235,8 +293,11 @@ struct SmartSimulator {
     }
     if (sum_r * sum_r > distance_sq) {
       const double penetration = sum_r - sqrt(distance_sq);
-      any_triggers_fired = true;
-      //trigger_fired_causes.push_back("collide_entities " + std::to_string(a->id) + " " + std::to_string(b->id) + " " + std::to_string(penetration));
+      if (check_with_ball) {
+        entity_ball_collision_trigger = true;
+      } else {
+        entity_entity_collision_trigger = true;
+      }
       const double k_a = 1. / (a->mass * ((1 / a->mass) + (1 / b->mass)));
       const double k_b = 1. / (b->mass * ((1 / a->mass) + (1 / b->mass)));
       const Point& normal = delta_position.normalize();
@@ -244,7 +305,7 @@ struct SmartSimulator {
       b->state.position += normal * (penetration * k_b);
       const double delta_velocity = (b->state.velocity - a->state.velocity).dot(normal) - (b->radius_change_speed + a->radius_change_speed);
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2.) * delta_velocity);
+        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
@@ -280,7 +341,9 @@ struct SmartSimulator {
 
   bool updateDynamic(const double delta_time, const int number_of_tick, const int number_of_microticks) {
 
-    //H::t[7].cumulative += 1e-3;
+    if (!accurate && main_robot->id == 3) {
+      H::t[25].call();
+    }
     bool has_collision_with_static = false;
 
     for (int i = 0; i < dynamic_robots_size; ++i) {
@@ -300,8 +363,10 @@ struct SmartSimulator {
             robot->state.position -= robot_acceleration * (coef * delta_time);
           } else {
             if (robot->state.touch_surface_id == 1) {
-              //H::t[14].cumulative += 1e-3;
-              any_triggers_fired = true;
+              acceleration_trigger = true;
+              if (!accurate && main_robot->id == 3) {
+                H::t[12].call();
+              }
             }
             robot->state.velocity += target_velocity_change;
           }
@@ -328,7 +393,7 @@ struct SmartSimulator {
 
     for (int i = 0; i < dynamic_robots_size; i++) {
       for (int j = 0; j < i; j++) {
-        collideEntitiesDynamic(dynamic_robots[i], dynamic_robots[j], false);
+        collideEntitiesDynamic(number_of_tick, number_of_microticks, dynamic_robots[i], dynamic_robots[j], false);
       }
     }
 
@@ -338,7 +403,7 @@ struct SmartSimulator {
     for (int i = 0; i < dynamic_robots_size; i++) {
       auto& robot = dynamic_robots[i];
       if (ball->is_dynamic) {
-        collideEntitiesDynamic(robot, ball, true);
+        collideEntitiesDynamic(number_of_tick, number_of_microticks, robot, ball, true);
       } else {
         if (collideEntitiesCheckDynamic(robot, ball)) {
           ball->wantToBecomeDynamic(number_of_tick);
@@ -347,17 +412,24 @@ struct SmartSimulator {
       }
       if (!collideWithArenaDynamic(robot, collision_normal, touch_surface_id)) {
         if (robot->state.touch) {
-          any_triggers_fired = true;
-          //H::t[16].cumulative += 1e-3;
+          entity_arena_collision_trigger = true;
+          if (!accurate && main_robot->id == 3) {
+            H::t[13].call();
+          }
         }
         robot->state.touch = false;
       } else {
-        if (!robot->state.touch || robot->state.touch_surface_id != touch_surface_id) {
-          //if (robot->is_teammate && touch_surface_id != 1) {
-          //  robot->collide_with_ball_in_air = true;
-          //}
-          //H::t[17].cumulative += 1e-3;
-          any_triggers_fired = true;
+        if (!robot->state.touch) {
+          if (!accurate && main_robot->id == 3) {
+            H::t[17].call();
+          }
+          entity_arena_collision_trigger = true;
+        }
+        if (robot->state.touch && robot->state.touch_surface_id != touch_surface_id) {
+          if (!accurate && main_robot->id == 3) {
+            H::t[14].call();
+          }
+          entity_arena_collision_trigger = true;
         }
         robot->state.touch_surface_id = touch_surface_id;
         robot->state.touch = true;
@@ -378,15 +450,19 @@ struct SmartSimulator {
       if (!collideWithArenaDynamic(ball, collision_normal, touch_surface_id)) {
         if (ball->state.touch) {
           if (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap) {
-            //H::t[18].cumulative += 1e-3;
-            any_triggers_fired = true;
+            if (!accurate && main_robot->id == 3) {
+              H::t[15].call();
+            }
+            ball_arena_collision_trigger = true;
             ball->state.touch = false;
           }
         }
       } else {
         if (!ball->state.touch || ball->state.touch_surface_id != touch_surface_id) {
-          //H::t[19].cumulative += 1e-3;
-          any_triggers_fired = true;
+          if (!accurate && main_robot->id == 3) {
+            H::t[16].call();
+          }
+          ball_arena_collision_trigger = true;
         }
         ball->state.touch_surface_id = touch_surface_id;
         ball->state.touch = true;
@@ -465,7 +541,9 @@ struct SmartSimulator {
   }
 
   bool tryTickWithJumpsDynamic(const int tick_number, bool with_jumps, bool& is_main_robot_collide_with_ball_in_air) {
-    //H::t[5].cumulative += 1e-3;
+    if (!accurate && main_robot->id == 3) {
+      H::t[2].call();
+    }
     if (with_jumps) {
       clearCollideWithBallInAirDynamic();
       is_main_robot_collide_with_ball_in_air = false;
@@ -488,6 +566,9 @@ struct SmartSimulator {
           auto& e = dynamic_entities[i];
           e->fromPrevState();
         }
+        if (!accurate && main_robot->id == 3) {
+          H::t[3].call();
+        }
         sbd_become_dynamic = tickDihaDynamic(tick_number);
       }
     }
@@ -508,75 +589,97 @@ struct SmartSimulator {
   }
 
   bool tickMicroticksDynamic(const int number_of_tick, const int number_of_microticks) {
-    any_triggers_fired = false;
-    // trigger_fired_causes.clear();
+    clearTriggers();
     if (number_of_microticks == 0) {
       return false;
     }
     return updateDynamic((double) number_of_microticks / C::rules.TICKS_PER_SECOND / C::rules.MICROTICKS_PER_TICK, number_of_tick, number_of_microticks);
-    /*if (is_fair) {
-      std::cout << "fair: ";
-    } else {
-      //H::t[44].cur(false, true);
-      std::cout << "not fair: ";
-    }
-    std::cout << number_of_tick << " " << number_of_microticks << "\n";
-    for (auto& cause : trigger_fired_causes) {
-      std::cout << cause << std::endl;
-    }
-    std::cout << std::endl;*/
   }
 
   bool tickDihaDynamic(const int tick_number) {
-    //H::t[6].cumulative += 1e-3;
     bool sbd_wants_to_become_dynamic = false;
+    if (!accurate && main_robot->id == 3) {
+      H::t[4].call();
+    }
+    if (accurate) {
+      for (int i = 0; i < 100; ++i) {
+        sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1);
+      }
+      return sbd_wants_to_become_dynamic;
+    }
+
     int remaining_microticks = 100;
     if (somebodyJumpThisTickDynamic()) {
-      //H::t[8].cumulative += 1e-3;
+      if (!accurate && main_robot->id == 3) {
+        H::t[5].call();
+      }
       sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1);
       sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1);
       remaining_microticks = 98;
     } else if (tick_number == 0) {
-      //H::t[9].cumulative += 1e-3;
+      if (!accurate && main_robot->id == 3) {
+        H::t[6].call();
+      }
       sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1); //todo do single initialisation (low prior)
       remaining_microticks = 99;
     }
     if (sbd_wants_to_become_dynamic) {
       return true;
     }
-    bool need_more_iterations = true;
+
+
+    clearTriggerFires();
     int iteration = 0;
-    int max_iterations = 1;
-    while (need_more_iterations) {
+    while (true) {
       iteration++;
-      need_more_iterations = false;
 
       for (int i = 0; i < dynamic_entities_size; ++i) {
         auto& e = dynamic_entities[i];
         e->savePrevMicroState();
       }
-
+      if (!accurate && main_robot->id == 3) {
+        H::t[7].call();
+      }
       sbd_wants_to_become_dynamic = tickMicroticksDynamic(tick_number, remaining_microticks);
-      //H::t[10].cumulative += 1e-3;
+
       if (iteration == 1 && sbd_wants_to_become_dynamic) {
         return true;
       }
 
-      if (any_triggers_fired && remaining_microticks > 1 && iteration <= max_iterations) {
-        int l = 0;
-        int r = remaining_microticks;
-        while (r - l > 1) {
-          int mid = (r + l) / 2;
-          for (int i = 0; i < dynamic_entities_size; ++i) {
-            auto& e = dynamic_entities[i];
-            e->fromPrevMicroState();
+      if (anyTriggersActive() && remaining_microticks > 1) {
+        if (!accurate && main_robot->id == 3) {
+          H::t[8].call();
+        }
+        for (int i = 0; i < dynamic_entities_size; ++i) {
+          auto& e = dynamic_entities[i];
+          e->fromPrevMicroState();
+        }
+        tickMicroticksDynamic(tick_number, 1);
+        int l;
+        int r;
+        if (anyTriggersActive()) {
+          if (!accurate && main_robot->id == 3) {
+            H::t[11].call();
           }
-          //H::t[11].cumulative += 1e-3;
-          tickMicroticksDynamic(tick_number, mid);
-          if (any_triggers_fired) {
-            r = mid;
-          } else {
-            l = mid;
+          l = 0;
+        } else {
+          l = 1;
+          r = remaining_microticks;
+          while (r - l > 1) {
+            int mid = (r + l) / 2;
+            for (int i = 0; i < dynamic_entities_size; ++i) {
+              auto& e = dynamic_entities[i];
+              e->fromPrevMicroState();
+            }
+            if (!accurate && main_robot->id == 3) {
+              H::t[9].call();
+            }
+            tickMicroticksDynamic(tick_number, mid);
+            if (anyTriggersActive()) {
+              r = mid;
+            } else {
+              l = mid;
+            }
           }
         }
         for (int i = 0; i < dynamic_entities_size; ++i) {
@@ -584,25 +687,30 @@ struct SmartSimulator {
           e->fromPrevMicroState();
         }
         if (l > 0) {
-          //H::t[12].cumulative += 1e-3;
+          if (!accurate && main_robot->id == 3) {
+            H::t[10].call();
+          }
           tickMicroticksDynamic(tick_number, l);
           remaining_microticks -= l;
         }
-        //H::t[13].cumulative += 1e-3;
         tickMicroticksDynamic(tick_number, 1);
+        setTriggersFired();
         remaining_microticks--;
-        need_more_iterations = true;
+      } else {
+        break;
       }
     }
     return false;
   }
 
   bool tickDynamic(const int tick_number, bool viz) {
+    if (!accurate && main_robot->id == 3) {
+      H::t[0].call();
+    }
     if (goal_to_me || goal_to_enemy) {
       return false;
     }
     bool is_main_robot_collide_with_ball_in_air = false;
-    //H::t[1].cumulative += 1e-3;
     wantedStaticGoToDynamic(tick_number);
     for (int i = 0; i < static_entities_size; ++i) {
       auto& e = static_entities[i];
@@ -613,7 +721,9 @@ struct SmartSimulator {
       e->savePrevState();
     }
     if (tryDoTickWithoutAnybodyBecomingDynamic(tick_number, is_main_robot_collide_with_ball_in_air)) {
-      //H::t[2].cumulative += 1e-3;
+      if (!accurate && main_robot->id == 3) {
+        H::t[1].call();
+      }
       for (int i = 0; i < dynamic_entities_size; ++i) {
         auto& e = dynamic_entities[i];
         e->fromPrevState();
@@ -634,39 +744,44 @@ struct SmartSimulator {
         goal_tick = tick_number;
       }
     }
-    /*
-    if (main_robot->id == 4 && viz) {
+
+    if (main_robot->id == 3 && viz) {
       for (int i = 0; i < dynamic_entities_size; ++i) {
         auto& e = dynamic_entities[i];
-        P::drawLine(e->state.position, e->prev_state.position, 0xFFFFFF);
+        P::drawLine(e->state.position, e->prev_state.position, accurate ? 0x00FF00 : 0x0000FF);
       }
-    }*/
+    }
     return is_main_robot_collide_with_ball_in_air;
   }
 
-  bool collideEntitiesDynamic(Entity* a, Entity* b, bool check_with_ball) {
+  bool collideEntitiesDynamic(const int number_of_tick, const int number_of_microticks, Entity* a, Entity* b, bool check_with_ball) {
     const Point& delta_position = b->state.position - a->state.position;
     const double distance_sq = delta_position.length_sq();
     const double sum_r = a->state.radius + b->state.radius;
     if (check_with_ball && (3.05) * (3.05) > distance_sq) {
-      /*
-      if (cur_iteration == 400 && a->id == 4) {
-        P::drawEntities({a->state, b->state});
-      }*/
       a->collide_with_ball_in_air = true;
     }
     if (sum_r * sum_r > distance_sq) {
       const double penetration = sum_r - sqrt(distance_sq);
-      //H::t[15].cumulative += 1e-3;
-      any_triggers_fired = true;
       const double k_a = 1. / (a->mass * ((1 / a->mass) + (1 / b->mass)));
       const double k_b = 1. / (b->mass * ((1 / a->mass) + (1 / b->mass)));
       const Point& normal = delta_position.normalize();
       a->state.position -= normal * (penetration * k_a);
       b->state.position += normal * (penetration * k_b);
       const double delta_velocity = (b->state.velocity - a->state.velocity).dot(normal) - (b->radius_change_speed + a->radius_change_speed);
+      if (check_with_ball) {
+        if (!accurate && main_robot->id == 3) {
+          H::t[18].call();
+        }
+        entity_ball_collision_trigger = true;
+      } else {
+        if (!accurate && main_robot->id == 3) {
+          H::t[19].call();
+        }
+        entity_entity_collision_trigger = true;
+      }
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2.) * delta_velocity);
+        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
@@ -716,17 +831,13 @@ struct SmartSimulator {
           length = sqrt(length);
           const double delta = length - acceleration * delta_time;
           if (delta > 0) {
-            //if (!is_fair) {
-            // P::log("y", robot->id, "|", number_of_tick * 100 + number_of_microticks, " ");
-            //}
             const auto& robot_acceleration = target_velocity_change * (acceleration * delta_time / length);
             robot->state.velocity += robot_acceleration;
             const double coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / 2. / number_of_microticks) : 0.;
             robot->state.position -= robot_acceleration * (coef * delta_time);
           } else {
             if (robot->state.touch_surface_id == 1) {
-              any_triggers_fired = true;
-              //trigger_fired_causes.push_back("reached max speed " + std::to_string(robot->id) + std::to_string(length));
+              acceleration_trigger = true;
             }
             robot->state.velocity += target_velocity_change;
           }
@@ -754,21 +865,12 @@ struct SmartSimulator {
       collideEntitiesStatic(robot, ball, true);
       if (!collideWithArenaStatic(robot, collision_normal, touch_surface_id)) {
         if (robot->state.touch) {
-          any_triggers_fired = true;
-          //trigger_fired_causes.push_back("robot->state.touch become false " + std::to_string(robot->id));
+          entity_arena_collision_trigger = true;
         }
         robot->state.touch = false;
       } else {
         if (!robot->state.touch || robot->state.touch_surface_id != touch_surface_id) {
-          //if (!robot->state.touch) {
-          //trigger_fired_causes.push_back("robot->state.touch become true " + std::to_string(robot->id));
-          //} else {
-          //trigger_fired_causes.push_back("robot touch_surface_id " + std::to_string(robot->id) + " " + std::to_string(robot->state.touch_surface_id) + " " + std::to_string(touch_surface_id));
-          //}
-          //if (robot->is_teammate && touch_surface_id != 1) {
-          //  robot->collide_with_ball_in_air = true;
-          //}
-          any_triggers_fired = true;
+          entity_arena_collision_trigger = true;
         }
         robot->state.touch_surface_id = touch_surface_id;
         robot->state.touch = true;
@@ -778,19 +880,13 @@ struct SmartSimulator {
     if (!collideWithArenaStatic(ball, collision_normal, touch_surface_id)) {
       if (ball->state.touch) {
         if (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap) {
-          //trigger_fired_causes.push_back("ball->state.touch become false");
-          any_triggers_fired = true;
+          ball_arena_collision_trigger = true;
           ball->state.touch = false;
         }
       }
     } else {
       if (!ball->state.touch || ball->state.touch_surface_id != touch_surface_id) {
-        //if (!ball->state.touch) {
-        //  trigger_fired_causes.push_back("ball->state.touch become true");
-        //} else {
-        //  trigger_fired_causes.push_back("ball touch_surface_id " + std::to_string(ball->state.touch_surface_id) + " " + std::to_string(touch_surface_id));
-        //}
-        any_triggers_fired = true;
+        ball_arena_collision_trigger = true;
       }
       ball->state.touch_surface_id = touch_surface_id;
       ball->state.touch = true;

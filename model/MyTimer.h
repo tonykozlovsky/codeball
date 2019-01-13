@@ -27,6 +27,9 @@ struct MyTimer {
   double cumulative = 0;
   int k = 0;
   double max_ = 0;
+  int64_t sum_calls = 0;
+  int64_t captures = 0;
+  int64_t last_calls = 0;
 
   void start() {
 #ifdef CHRONO
@@ -96,6 +99,27 @@ struct MyTimer {
       return cumulative;
     }
     return cumulative + cur();
+  }
+
+  void call() {
+    sum_calls++;
+    last_calls++;
+  }
+
+  void capture() {
+    captures++;
+  }
+
+  void init_calls() {
+    last_calls = 0;
+  }
+
+  int64_t avg_() {
+    return captures == 0 ? 0 : sum_calls / captures;
+  }
+
+  int64_t last_() {
+    return last_calls;
   }
 
 };
