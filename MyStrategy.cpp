@@ -40,7 +40,7 @@ void doStrategy() {
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
     SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots, H::game.ball, {});
-    for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
+    /*for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
         if (H::game.ball.z < -0.01) {
           if (H::global_timer.getCumulative(true) > H::half_time) {
@@ -51,8 +51,29 @@ void doStrategy() {
             break;
           }
         }
+      }*/
+    for (; ; iteration++) {
+      if (id == 1) {
+        if (H::game.ball.z < -0.01) {
+          if (iteration > 300) {
+            break;
+          }
+        } else {
+          if (iteration > 50) {
+            break;
+          }
+        }
+      } else {
+        if (H::game.ball.z < -0.01) {
+          if (iteration > 300) {
+            break;
+          }
+        } else {
+          if (iteration > 550) {
+            break;
+          }
+        }
       }
-    /*for (; iteration < 401; iteration++) {*/
 
       Plan cur_plan;
       if (iteration == 0) {

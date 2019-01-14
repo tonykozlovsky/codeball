@@ -1131,7 +1131,7 @@ struct SmartSimulator {
         closest_enemy_dist = std::min(closest_enemy_dist, (ball->state.position - robot->state.position).length());
       }
     }
-    score += closest_enemy_dist;
+    // score += closest_enemy_dist;
     double dist = (ball->state.position - Point{0, 0, C::rules.arena.depth / 2 + C::rules.arena.goal_depth}).length();
     score += -dist * dist;
     return score;
