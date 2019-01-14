@@ -41,7 +41,7 @@ struct P {
       return color % 256 / 255.;
     }
     double getA() {
-      return 0.5;
+      return 1;
     }
   };
 
@@ -88,8 +88,8 @@ struct P {
 #ifdef DRAWLR
     for (auto& e : entities) {
       spheres_to_draw.push_back(Sphere{e.position, e.radius, color});
-      Point next_pos = e.position + e.velocity * delta_time;
-      lines_to_draw.push_back(Line{e.position, next_pos, color});
+      //Point next_pos = e.position + e.velocity * delta_time;
+      //lines_to_draw.push_back(Line{e.position, next_pos, color});
     }
 #else
     auto& draw = RewindClient::instance();

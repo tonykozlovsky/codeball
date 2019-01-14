@@ -82,7 +82,7 @@ struct SmartSimulator {
       const std::vector<model::Robot>& _robots,
       const model::Ball& _ball,
       const std::vector<model::NitroPack>& _packs,
-      bool accurate = false) : accurate(accurate) {
+      bool accurate = false, int viz_id = -1) : accurate(accurate) {
 
     initial_static_entities[initial_static_entities_size].fromBall(_ball);
     ball = &initial_static_entities[initial_static_entities_size++];
@@ -121,15 +121,16 @@ struct SmartSimulator {
       tickWithJumpsStatic(i, true);
     }
 
-    /*if (main_robot_id == 4) {
+#ifdef FROM_LOG
+    if (main_robot_id == viz_id) {
       for (int i = 0; i < initial_static_entities_size; ++i) {
         auto& e = initial_static_entities[i];
         for (int j = 1; j < 100; ++j) {
           P::drawLine(e.states[j - 1].position, e.states[j].position, accurate ? 0xFFFFFF : 0x000000);
         }
       }
-    }*/
-
+    }
+#endif
 
     // init
     // calculate static trajectories and build collision-time dependencies tree
@@ -823,7 +824,7 @@ struct SmartSimulator {
     return false;
   }
 
-  int tickDynamic(const int tick_number, bool viz) {
+  int tickDynamic(const int tick_number, int viz_id, bool viz) {
     //if (!accurate && main_robot->id == 4) {
     //  H::t[0].call();
     //}
@@ -867,13 +868,14 @@ struct SmartSimulator {
         goal_tick = tick_number;
       }
     }
-
-    /*if (main_robot->id == 4 && viz) {
+#ifdef FROM_LOG
+    if (main_robot->id == viz_id && viz) {
       for (int i = 0; i < dynamic_entities_size; ++i) {
         auto& e = dynamic_entities[i];
         P::drawLine(e->state.position, e->prev_state.position, accurate ? 0x00FF00 : 0x0000FF);
       }
-    }*/
+    }
+#endif
     return main_robot_additional_jump_type;
   }
 

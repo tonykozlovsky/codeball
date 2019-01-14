@@ -40,6 +40,11 @@ void RemoteProcessClient::writeline(string line) {
 }
 
 RemoteProcessClient::RemoteProcessClient(string host, int port) {
+#ifdef FROM_LOG
+    fin = ifstream("logs/197392.log", std::ifstream::in);
+    std::string wat;
+    std::getline(fin, wat);
+#endif
     socket.Initialize();
     socket.DisableNagleAlgoritm();
 
@@ -60,6 +65,7 @@ unique_ptr<Rules> RemoteProcessClient::read_rules() {
     d.Parse(line.c_str());
     unique_ptr<Rules> result(new Rules());
     result->read(d);
+
     return result;
 }
 
@@ -72,6 +78,19 @@ unique_ptr<Game> RemoteProcessClient::read_game() {
     d.Parse(line.c_str());
     unique_ptr<Game> result(new Game());
     result->read(d);
+#ifdef FROM_LOG
+    string line2;
+    std::getline(fin, line2);
+    if (line2.empty()) {
+        return unique_ptr<Game>();
+    }
+    Document d2;
+    d2.Parse(line2.c_str());
+    unique_ptr<Game> result2(new Game());
+    result2->read2(d2);
+
+    return result2;
+#endif
     return result;
 }
 

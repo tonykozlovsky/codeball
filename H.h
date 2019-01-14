@@ -50,6 +50,7 @@ struct H {
       }
       player_score[0] = player_score[1] = 0;
       waiting_ticks = 0;
+      C::rd.seed(229);
     }
     for (auto& player : game.players) {
       if (player_score[player.id - 1] != player.score) {

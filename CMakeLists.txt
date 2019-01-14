@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(CodeBall)
 
+ADD_DEFINITIONS(-DFROM_LOG=1)
 ADD_DEFINITIONS(-DLOCAL=1)
 ADD_DEFINITIONS(-DDRAWLR=1)
 #ADD_DEFINITIONS(-DDEBUG=1)
@@ -16,7 +17,8 @@ add_executable(CodeBall
         Runner.cpp
         Strategy.cpp
         model/C.cpp
-        model/P.cpp)
+        model/P.cpp
+        model/Game.cpp)
 
 add_subdirectory(RewindClient/csimplesocket)
 target_link_libraries(CodeBall csimplesocket)

@@ -15,10 +15,20 @@
 MyStrategy::MyStrategy() {}
 
 void doStrategy() {
-
+#ifdef FROM_LOG
+  for (auto& robot: H::game.robots) {
+    Entity e;
+    e.fromRobot(robot);
+    P::drawEntities({e.state}, 0, e.is_teammate ? 0x00FF00 : 0xFF0000);
+  }
+  Entity e;
+  e.fromBall(H::game.ball);
+  P::drawEntities({e.state}, 0, 0x333333);
+#endif
   /*for (int i = 0; i < 50; ++i) {
     H::t[i].init_calls();
   }*/
+
   H::t[0].start();
   for (int id = 0; id < 2; id++) {
     H::best_plan[id].score = -1e18;
@@ -39,7 +49,7 @@ void doStrategy() {
 
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-    SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots, H::game.ball, {});
+    SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots, H::game.ball, {}, false, H::getMyRobotGlobalIdByLocal(0));
     /*for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
         if (H::game.ball.z < -0.01) {
@@ -52,31 +62,21 @@ void doStrategy() {
           }
         }
       }*/
+    int iterations[2] = {301, 301};
+    int additional_iteration[2] = {300, 300};
+    if (H::game.ball.z < -0.01) {
+      iterations[0] = 551;
+      iterations[1] = 51;
+      additional_iteration[0] = 550;
+      additional_iteration[1] = 50;
+    }
     for (; ; iteration++) {
-      if (id == 1) {
-        if (H::game.ball.z < -0.01) {
-          if (iteration > 300) {
-            break;
-          }
-        } else {
-          if (iteration > 50) {
-            break;
-          }
-        }
-      } else {
-        if (H::game.ball.z < -0.01) {
-          if (iteration > 300) {
-            break;
-          }
-        } else {
-          if (iteration > 550) {
-            break;
-          }
-        }
+      if (iteration > iterations[id]) {
+        break;
       }
 
       Plan cur_plan;
-      if (iteration == 0) {
+      if (iteration == 0 || iteration == additional_iteration[id]) {
         cur_plan = H::best_plan[id];
       } else if (iteration % 2 == 1) {
         cur_plan = H::best_plan[id];
@@ -110,7 +110,7 @@ void doStrategy() {
           cur_plan.was_jumping = true;
         }
 
-        int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, false);
+        int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getMyRobotGlobalIdByLocal(0), iteration == additional_iteration[id]);
 
         if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - additional
           if (main_robot_additional_jump_type == 1 && cur_plan.was_in_air_after_jumping) {

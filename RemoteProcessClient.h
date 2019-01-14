@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <fstream>
 
 #include "csimplesocket/ActiveSocket.h"
 
@@ -19,6 +20,7 @@ class RemoteProcessClient {
     CActiveSocket socket;
     std::string buffer;
     std::string readline();
+    std::ifstream fin;
     void writeline(std::string line);
 public:
     RemoteProcessClient(std::string host, int port);
