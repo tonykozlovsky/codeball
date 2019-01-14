@@ -47,7 +47,7 @@ struct Game {
 
     ball.read(json["ball"]);
   }
-
+#ifdef FROM_LOG
   void read2(const rapidjson::Value& json) {
     current_tick = json["current_tick"].GetInt();
     if (current_tick == 0) {
@@ -72,6 +72,7 @@ struct Game {
     ball.read2(json["ball"], my_id);
     //todo nitro from log
   }
+#endif
 };
 }
 
