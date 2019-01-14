@@ -31,7 +31,7 @@ void doStrategy() {
 
   H::t[0].start();
   for (int id = 0; id < 2; id++) {
-    H::best_plan[id].score = -1e18;
+    H::best_plan[id].score.minimal();
     H::best_plan[id].time_jump--;
     if (H::best_plan[id].time_jump < -1) {
       H::best_plan[id].time_jump = -1;
@@ -49,7 +49,8 @@ void doStrategy() {
 
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-    SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots, H::game.ball, {}, false, H::getMyRobotGlobalIdByLocal(1));
+    SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots,
+        H::game.ball, {}, false, H::getMyRobotGlobalIdByLocal(1));
     /*for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
         if (H::game.ball.z < -0.01) {
@@ -62,12 +63,12 @@ void doStrategy() {
           }
         }
       }*/
-    int iterations[2] = {301, 301};
-    int additional_iteration[2] = {300, 300};
+    int iterations[2] = {201, 201};
+    int additional_iteration[2] = {200, 200};
     if (H::game.ball.z < -0.01) {
-      iterations[0] = 551;
+      iterations[0] = 351;
       iterations[1] = 51;
-      additional_iteration[0] = 550;
+      additional_iteration[0] = 350;
       additional_iteration[1] = 50;
     }
     for (; ; iteration++) {
@@ -84,9 +85,11 @@ void doStrategy() {
       }
 
       simulator.initIteration(iteration);
-
-      double score = 0;
-      double score1 = 0;
+      if (id == 0) {
+        cur_plan.score.start_fighter();
+      }  else {
+        cur_plan.score.start_defender();
+      }
       double multiplier = 1.;
 
       for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
@@ -121,12 +124,22 @@ void doStrategy() {
           }
         }
         if (id == 0) {
-          score += simulator.getScoreFighter(sim_tick, false) * multiplier;
-          score1 = std::max(simulator.getScoreFighter1(), score1);
+          cur_plan.score.sum_score += simulator.getScoreFighter(sim_tick, false) * multiplier;
+          cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getScoreFighter2(sim_tick) * multiplier, cur_plan.score.fighter_min_dist_to_ball);
+          cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getScoreFighter1(sim_tick) * multiplier, cur_plan.score.fighter_min_dist_to_goal);
+          if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+            cur_plan.score.fighter_closest_enemy_dist = simulator.getScoreFighter3(sim_tick);
+            cur_plan.score.fighter_last_dist_to_goal = simulator.getScoreFighter1(sim_tick);
+          }
         } else {
-          score += simulator.getScoreDefender(sim_tick) * multiplier;
+          cur_plan.score.sum_score += simulator.getScoreDefender(sim_tick) * multiplier;
+          cur_plan.score.defender_min_dist_to_ball = std::min(simulator.getScoreDefender2(sim_tick) * multiplier, cur_plan.score.defender_min_dist_to_ball);
+          cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getScoreDefender1(sim_tick) * multiplier, cur_plan.score.defender_min_dist_from_goal);
+          if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+            cur_plan.score.defender_last_dist_from_goal = simulator.getScoreDefender1(sim_tick);
+          }
         }
-        multiplier *= 0.9;
+        multiplier *= 0.999;
       }
       if (cur_plan.was_in_air_after_jumping && !cur_plan.collide_with_ball_before_on_ground_after_jumping) {
         cur_plan.time_jump = -1;
@@ -136,28 +149,30 @@ void doStrategy() {
       } else if (cur_plan.time_jump != -1) {
         cur_plan.oncoming_jump = std::min(cur_plan.oncoming_jump, cur_plan.time_jump);
       }
-
-      cur_plan.score = score + 100 * score1;
-
       H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
     }
 
     H::sum_asserts_failed += iteration;
 #ifdef DEBUG
-    if (id == 1) {
+    if (id == 0) {
 
-      P::logn("score: ", H::best_plan[1].score);
-      P::logn("time_jump: ", H::best_plan[1].time_jump);
-      P::logn("oncoming_jump: ", H::best_plan[1].oncoming_jump);
-      P::logn("angle1: ", H::best_plan[1].angle1);
-      P::logn("speed1: ", H::best_plan[1].speed1);
-      P::logn("time_change: ", H::best_plan[1].time_change);
-      P::logn("angle2: ", H::best_plan[1].angle2);
-      P::logn("speed2: ", H::best_plan[1].speed2);
-      P::logn("was_jumping: ", H::best_plan[1].was_jumping);
-      P::logn("was_in_air_after_jumping: ", H::best_plan[1].was_in_air_after_jumping);
-      P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[1].collide_with_ball_before_on_ground_after_jumping);
-      P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[1].was_on_ground_after_in_air_after_jumping);
+      P::logn("fighter score: ", H::best_plan[0].score.score());
+      P::logn("sum_score: ", H::best_plan[0].score.sum_score);
+      P::logn("fighter_min_dist_to_ball: ", -H::best_plan[0].score.fighter_min_dist_to_ball);
+      P::logn("fighter_min_dist_to_goal: ", -H::best_plan[0].score.fighter_min_dist_to_goal);
+      P::logn("fighter_last_dist_to_goal: ", -H::best_plan[0].score.fighter_last_dist_to_goal);
+      P::logn("fighter_closest_enemy_dist: ", H::best_plan[0].score.fighter_closest_enemy_dist);
+      P::logn("time_jump: ", H::best_plan[0].time_jump);
+      P::logn("oncoming_jump: ", H::best_plan[0].oncoming_jump);
+      P::logn("angle1: ", H::best_plan[0].angle1);
+      P::logn("speed1: ", H::best_plan[0].speed1);
+      P::logn("time_change: ", H::best_plan[0].time_change);
+      P::logn("angle2: ", H::best_plan[0].angle2);
+      P::logn("speed2: ", H::best_plan[0].speed2);
+      P::logn("was_jumping: ", H::best_plan[0].was_jumping);
+      P::logn("was_in_air_after_jumping: ", H::best_plan[0].was_in_air_after_jumping);
+      P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[0].collide_with_ball_before_on_ground_after_jumping);
+      P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[0].was_on_ground_after_in_air_after_jumping);
 
       /*SmartSimulator accurate_simulator(H::getMyRobotGlobalIdByLocal(0), H::game.robots, H::game.ball, H::game.nitro_packs, true);
       accurate_simulator.initIteration(400);
@@ -175,6 +190,12 @@ void doStrategy() {
         bool is_main_robot_collide_with_ball_in_air = accurate_simulator.tickDynamic(sim_tick, true);
 
       }*/
+    } else {
+      P::logn("defender score: ", H::best_plan[1].score.score());
+      P::logn("sum_score: ", H::best_plan[1].score.sum_score);
+      P::logn("defender_min_dist_from_goal: ", H::best_plan[1].score.defender_min_dist_from_goal);
+      P::logn("defender_last_dist_from_goal: ", H::best_plan[1].score.defender_last_dist_from_goal);
+      P::logn("defender_min_dist_to_ball: ", -H::best_plan[1].score.defender_min_dist_to_ball);
     }
 #endif
   }

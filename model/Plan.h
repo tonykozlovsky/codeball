@@ -10,7 +10,66 @@ struct Plan {
   double cangle2;
   int time_change;
   int time_jump;
-  double score;
+  struct Score {
+    double sum_score;
+    double fighter_min_dist_to_ball;
+    double fighter_min_dist_to_goal;
+    double fighter_last_dist_to_goal;
+    double fighter_closest_enemy_dist;
+    double defender_min_dist_to_ball;
+    double defender_min_dist_from_goal;
+    double defender_last_dist_from_goal;
+
+    bool operator < (const Score& other) const {
+      return score() < other.score();
+    }
+
+    double score() const {
+      return
+      sum_score
+      - fighter_min_dist_to_ball
+      - fighter_min_dist_to_goal
+      - fighter_last_dist_to_goal
+      - defender_min_dist_to_ball
+      + fighter_closest_enemy_dist
+      + defender_min_dist_from_goal
+      + defender_last_dist_from_goal;
+    }
+
+    void minimal() {
+      sum_score = -1e18;
+      fighter_min_dist_to_ball = 1e9;
+      fighter_min_dist_to_goal = 1e9;
+      fighter_last_dist_to_goal = 1e9;
+      fighter_closest_enemy_dist = 1e9;
+      defender_min_dist_to_ball = 1e9;
+      defender_min_dist_from_goal = 1e9;
+      defender_last_dist_from_goal = 1e9;
+    }
+
+    void start_fighter() {
+      sum_score = 0;
+      fighter_min_dist_to_ball = 1e9;
+      fighter_min_dist_to_goal = 1e9;
+      fighter_last_dist_to_goal = 1e9;
+      fighter_closest_enemy_dist = 1e9;
+      defender_min_dist_to_ball = 0;
+      defender_min_dist_from_goal = 0;
+      defender_last_dist_from_goal = 0;
+    }
+
+    void start_defender() {
+      sum_score = 0;
+      fighter_min_dist_to_ball = 0;
+      fighter_min_dist_to_goal = 0;
+      fighter_last_dist_to_goal = 0;
+      fighter_closest_enemy_dist = 0;
+      defender_min_dist_to_ball = 1e9;
+      defender_min_dist_from_goal = 1e9;
+      defender_last_dist_from_goal = 0;
+    }
+
+  } score;
   double speed1, speed2;
 
   int oncoming_jump;
@@ -32,23 +91,24 @@ struct Plan {
     angle2 = C::rand_double(0, 2 * M_PI);
     cangle2 = cos(angle2);
     sangle2 = sin(angle2);
-    time_change = C::rand_int(0, C::MAX_SIMULATION_DEPTH);
+    time_change = -1;//C::rand_int(0, C::MAX_SIMULATION_DEPTH);
     time_jump = C::rand_int(0, C::MAX_SIMULATION_DEPTH);
 
-    speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
+    speed1 = speed2 = C::rand_double(0, C::rules.ROBOT_MAX_GROUND_SPEED);
 
-    if (C::rand_double(0, 1) < 0.01) {
-      speed1 = 0;
-    }
-    if (C::rand_double(0, 1) < 0.01) {
-      speed2 = 0;
-    }
+    //if (C::rand_double(0, 1) < 0.01) {
+    //  speed1 = 0;
+    //}
+    //if (C::rand_double(0, 1) < 0.01) {
+    //  speed2 = 0;
+    //}
 
-    score = -1e18;
+    score.minimal();
   }
 
-  static constexpr double angle_mutation = M_PI / 10;
-  static constexpr int time_mutation = 5;
+  static constexpr double angle_mutation = M_PI / 100;
+  static constexpr double speed_mutation = 2;
+  static constexpr int time_mutation = 1;
 
   void mutate() {
 
@@ -76,7 +136,7 @@ struct Plan {
     }
     cangle2 = cos(angle2);
     sangle2 = sin(angle2);
-    time_change = time_change + C::rand_int(-time_mutation, time_mutation);
+    time_change = time_change;// + C::rand_int(-time_mutation, time_mutation);
     if (time_change < 0) {
       time_change = 0;
     }
@@ -91,7 +151,15 @@ struct Plan {
       time_jump = C::MAX_SIMULATION_DEPTH;
     }
 
-    score = -1e18;
+    speed1 += C::rand_double(-speed_mutation, speed_mutation);
+    if (speed1 < 0) {
+      speed1 = 0;
+    }
+    if (speed1 > C::rules.ROBOT_MAX_GROUND_SPEED) {
+      speed1 = C::rules.ROBOT_MAX_GROUND_SPEED;
+    }
+
+    score.minimal();
   }
 
   MyAction toMyAction(int simulation_tick, bool simulation) {
