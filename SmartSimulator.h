@@ -386,6 +386,7 @@ struct SmartSimulator {
     //  H::t[25].call();
     //}
     bool has_collision_with_static = false;
+    cur_goal_info = {false, false, -1};
 
     for (int i = 0; i < dynamic_robots_size; ++i) {
       auto& robot = dynamic_robots[i];
@@ -585,10 +586,17 @@ struct SmartSimulator {
     }
 
 
-    if (ball->state.position.z > C::rules.arena.depth / 2 + 2) {
-      cur_goal_info.goal_to_enemy = true;
-    } else if (ball->state.position.z < -C::rules.arena.depth / 2 - 2) {
-      cur_goal_info.goal_to_me = true;
+    if (ball->is_dynamic) {
+      if (ball->state.position.z > C::rules.arena.depth / 2 + 2) {
+        cur_goal_info.goal_to_enemy = true;
+      } else if (ball->state.position.z < -C::rules.arena.depth / 2 - 2) {
+        cur_goal_info.goal_to_me = true;
+      }
+    } else {
+      if (ball->state.position.z > C::rules.arena.depth / 2 + 2 || ball->state.position.z < -C::rules.arena.depth / 2 - 2) {
+        has_collision_with_static = true;
+        ball->wantToBecomeDynamic(number_of_tick);
+      }
     }
 
     return has_collision_with_static;
@@ -854,7 +862,7 @@ struct SmartSimulator {
     //  H::t[0].call();
     //}
     if (goal_info.goal_to_me || goal_info.goal_to_enemy) {
-      return false;
+      return 0;
     }
     int main_robot_additional_jump_type = false;
     wantedStaticGoToDynamic(tick_number);
@@ -867,7 +875,7 @@ struct SmartSimulator {
       e->savePrevState();
     }
 
-    GoalInfo cur_goal_info = {false, false, -1};
+    GoalInfo cur_goal_info;
 
     if (tryDoTickWithoutAnybodyBecomingDynamic(tick_number, main_robot_additional_jump_type, cur_goal_info)) {
       //if (!accurate && main_robot->id == 4) {
@@ -1128,15 +1136,15 @@ struct SmartSimulator {
 
 
   double getScoreFighter(const int tick_number, bool viz) {
+    double score = 0;
     if (goal_info.goal_to_me) {
-      return tick_number == goal_info.goal_tick ? -1e9 : 0;
+      score += tick_number == goal_info.goal_tick ? -1e9 : 0;
     } else if (goal_info.goal_to_enemy) {
-      return tick_number == goal_info.goal_tick ? 1e9 : 0;
+      //score += tick_number == goal_info.goal_tick ? 1e9 : 0;
     }
     if (!ball->is_dynamic) {
       ball->fromState(tick_number);
     }
-    double score = 0;
     score += -0.01 * (main_robot->state.position - ball->state.position).length();
     if (!main_robot->state.touch) {
       score -= 20;
@@ -1162,22 +1170,31 @@ struct SmartSimulator {
   }
 
   double getScoreFighter1() {
-    double d1 = (Point{-C::rules.arena.goal_width / 2 + 2, C::rules.arena.goal_height - 2, C::rules.arena.depth / 2 + 2} - ball->state.position).length();
-    double d2 = (Point{0, C::rules.arena.goal_height - 2, C::rules.arena.depth / 2 + 2} - ball->state.position).length();
-    double d3 = (Point{C::rules.arena.goal_width / 2 - 2, C::rules.arena.goal_height - 2, C::rules.arena.depth / 2 + 2} - ball->state.position).length();
+    double d1 = (Point{
+      -C::rules.arena.goal_width / 2 + 2,
+      C::rules.arena.goal_height - 2,
+      C::rules.arena.depth / 2 + 2} - ball->state.position).length();
+    double d2 = (Point{
+      0,
+      C::rules.arena.goal_height - 2,
+      C::rules.arena.depth / 2 + 2} - ball->state.position).length();
+    double d3 = (Point{
+      C::rules.arena.goal_width / 2 - 2,
+      C::rules.arena.goal_height - 2,
+      C::rules.arena.depth / 2 + 2} - ball->state.position).length();
     return C::rules.arena.depth + C::rules.arena.width + C::rules.arena.height - std::min(d1, std::min(d2, d3));
   }
 
   double getScoreDefender(const int tick_number) {
+    double score = 0;
     if (goal_info.goal_to_me) {
-      return tick_number == goal_info.goal_tick ? -1e9 : 0;
+      score += tick_number == goal_info.goal_tick ? -1e9 : 0;
     } else if (goal_info.goal_to_enemy) {
-      return tick_number == goal_info.goal_tick ? 1e9 : 0;
+      score += tick_number == goal_info.goal_tick ? 1e9 : 0;
     }
     if (!ball->is_dynamic) {
       ball->fromState(tick_number);
     }
-    double score = 0;
     double x = 0;
     score += -0.1 * (main_robot->state.position - Point{x, 0, -C::rules.arena.depth / 2 - 2}).length();
     if (!main_robot->state.touch) {
