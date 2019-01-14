@@ -39,7 +39,7 @@ void doStrategy() {
 
   for (int id = 1; id >= 0; id--) {
     int iteration = 0;
-    SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots, H::game.ball);
+    SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots, H::game.ball, H::game.nitro_packs);
     /*for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
       if (id == 1) {
         if (H::game.ball.z < -0.01) {
@@ -124,7 +124,7 @@ void doStrategy() {
     H::sum_asserts_failed += iteration;
     if (id == 0) {
 
-      P::logn("score: ", H::best_plan[0].score);
+      /*P::logn("score: ", H::best_plan[0].score);
       P::logn("time_jump: ", H::best_plan[0].time_jump);
       P::logn("oncoming_jump: ", H::best_plan[0].oncoming_jump);
       P::logn("angle1: ", H::best_plan[0].angle1);
@@ -136,8 +136,8 @@ void doStrategy() {
       P::logn("was_in_air_after_jumping: ", H::best_plan[0].was_in_air_after_jumping);
       P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[0].collide_with_ball_before_on_ground_after_jumping);
       P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[0].was_on_ground_after_in_air_after_jumping);
-
-      SmartSimulator accurate_simulator(H::getMyRobotGlobalIdByLocal(0), H::game.robots, H::game.ball, true);
+      */
+      SmartSimulator accurate_simulator(H::getMyRobotGlobalIdByLocal(0), H::game.robots, H::game.ball, H::game.nitro_packs, true);
       accurate_simulator.initIteration(400);
 
       Plan cur_plan = H::best_plan[0];

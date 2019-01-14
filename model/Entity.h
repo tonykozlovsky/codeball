@@ -15,6 +15,8 @@ struct EntityState {
   bool touch;
   Point touch_normal;
   int touch_surface_id;
+  int respawn_ticks;
+  bool alive;
 };
 
 struct Entity {
@@ -47,13 +49,27 @@ struct Entity {
   bool collide_with_ball_in_air;
   bool additional_jump;
 
+  bool is_robot, is_ball, is_pack;
+
   bool operator<(const Entity& other) const {
     return id < other.id;
   }
 
   Entity() {}
 
+  void fromPack(const model::NitroPack& _pack) {
+    is_pack = true;
+    is_ball = is_robot = false;
+    state.respawn_ticks = _pack.respawn_ticks;
+    state.alive = _pack.alive;
+    id = _pack.id;
+    state.radius = _pack.radius;
+    state.position = {_pack.x, _pack.y, _pack.z};
+  }
+
   void fromBall(const model::Ball& ball) {
+    is_ball = true;
+    is_pack = is_robot = false;
     state.position = {ball.x, ball.y, ball.z};
     state.velocity = {ball.velocity_x, ball.velocity_y, ball.velocity_z};
     state.radius = ball.radius;
@@ -73,6 +89,8 @@ struct Entity {
   }
 
   void fromRobot(const model::Robot& robot) {
+    is_robot = true;
+    is_pack = is_ball = false;
     state.position = {robot.x, robot.y, robot.z};
     state.velocity = {robot.velocity_x, robot.velocity_y, robot.velocity_z};
     state.radius = robot.radius;

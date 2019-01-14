@@ -106,13 +106,13 @@ struct Plan {
           speed1 * cangle1,
           0,
           speed1 * sangle1},
-          jump_speed, true};
+          jump_speed, false};
     } else {
       return MyAction{{
           speed2 * cangle2,
                 0,
           speed2 * sangle2},
-                jump_speed, true};
+                jump_speed, false};
     }
   }
   bool operator<(const Plan& other) const {

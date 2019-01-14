@@ -15,32 +15,38 @@
 
 struct SmartSimulator {
 
-  Pack initial_packs[4];
-  int initial_packs_size = 0;
-
-  Entity initial_static_entities[7];
+  Entity initial_static_entities[11];
   int initial_static_entities_size = 0;
 
-  Entity initial_dynamic_entities[7];
+  Entity initial_dynamic_entities[11];
   int initial_dynamic_entities_size = 0;
 
-  Entity* initial_static_robots[7];
+  Entity* initial_static_robots[6];
   int initial_static_robots_size = 0;
 
-  Entity* initial_dynamic_robots[7];
+  Entity* initial_dynamic_robots[6];
   int initial_dynamic_robots_size = 0;
 
-  Entity* static_entities[7];
+  Entity* initial_static_packs[4];
+  int initial_static_packs_size = 0;
+
+  Entity* static_entities[11];
   int static_entities_size = 0;
 
-  Entity* dynamic_entities[7];
+  Entity* dynamic_entities[11];
   int dynamic_entities_size = 0;
 
-  Entity* static_robots[7];
+  Entity* static_robots[6];
   int static_robots_size = 0;
 
-  Entity* dynamic_robots[7];
+  Entity* dynamic_robots[6];
   int dynamic_robots_size = 0;
+
+  Entity* static_packs[4];
+  int static_packs_size = 0;
+
+  Entity* dynamic_packs[4];
+  int dynamic_packs_size = 0;
 
   Entity* main_robot;
   Entity* ball;
@@ -71,7 +77,12 @@ struct SmartSimulator {
   bool accurate;
 
   // maybe we can have 4x-5x performance boost, and more when 3x3
-  SmartSimulator(const int main_robot_id, const std::vector<model::Robot>& _robots, const model::Ball& _ball, bool accurate = false) : accurate(accurate) {
+  SmartSimulator(
+      const int main_robot_id,
+      const std::vector<model::Robot>& _robots,
+      const model::Ball& _ball,
+      const std::vector<model::NitroPack>& _packs,
+      bool accurate = false) : accurate(accurate) {
 
     initial_static_entities[initial_static_entities_size].fromBall(_ball);
     ball = &initial_static_entities[initial_static_entities_size++];
@@ -91,6 +102,13 @@ struct SmartSimulator {
         new_robot->is_dynamic = false;
         initial_static_robots[initial_static_robots_size++] = new_robot;
       }
+    }
+
+    for (auto& pack : _packs) {
+      initial_static_entities[initial_static_entities_size].fromPack(pack);
+      auto new_pack = &initial_static_entities[initial_static_entities_size++];
+      new_pack->is_dynamic = false;
+      initial_static_packs[initial_static_packs_size++] = new_pack;
     }
 
     for (int i = 0; i < C::MAX_SIMULATION_DEPTH + 1; ++i) {
@@ -185,8 +203,7 @@ struct SmartSimulator {
         }
       }
       if (needs_rollback) {
-        //P::logn("needs rollback on tick: ", tick_number);
-        for (int i = 0; i < initial_static_entities_size; ++i) { // from state
+        for (int i = 0; i < initial_static_entities_size; ++i) {
           auto& e = initial_static_entities[i];
           e.fromState(tick_number);
         }
@@ -223,6 +240,22 @@ struct SmartSimulator {
     }
   }
 
+  void saveMicrostatesStatic() {
+    for (int i = 0; i < initial_static_robots_size; ++i) {
+      auto& e = initial_static_robots[i];
+      e->savePrevMicroState();
+    }
+    ball->savePrevMicroState();
+  }
+
+  void fromMictostatesStatic() {
+    for (int i = 0; i < initial_static_robots_size; ++i) {
+      auto& e = initial_static_robots[i];
+      e->fromPrevMicroState();
+    }
+    ball->fromPrevMicroState();
+  }
+
   void tickStatic(const int tick_number) {
     if (accurate) {
       for (int i = 0; i < 100; ++i) {
@@ -244,11 +277,7 @@ struct SmartSimulator {
 
     while (true) {
 
-      for (int i = 0; i < initial_static_entities_size; ++i) {
-        auto& e = initial_static_entities[i];
-        e.savePrevMicroState();
-      }
-
+      saveMicrostatesStatic();
       tickMicroticksStatic(tick_number, remaining_microticks);
 
       if (anyTriggersActive() && remaining_microticks > 1) { // todo as dynamic
@@ -256,10 +285,7 @@ struct SmartSimulator {
         int r = remaining_microticks;
         while (r - l > 1) {
           int mid = (r + l) / 2;
-          for (int i = 0; i < initial_static_entities_size; ++i) {
-            auto& e = initial_static_entities[i];
-            e.fromPrevMicroState();
-          }
+          fromMictostatesStatic();
           tickMicroticksStatic(tick_number, mid);
           if (anyTriggersActive()) {
             r = mid;
@@ -267,10 +293,7 @@ struct SmartSimulator {
             l = mid;
           }
         }
-        for (int i = 0; i < initial_static_entities_size; ++i) {
-          auto& e = initial_static_entities[i];
-          e.fromPrevMicroState();
-        }
+        fromMictostatesStatic();
         if (l > 0) {
           tickMicroticksStatic(tick_number, l);
           remaining_microticks -= l;
@@ -379,18 +402,52 @@ struct SmartSimulator {
             robot->state.velocity += target_velocity_change;
           }
         }
+      } else {
+        /*if (robot->is_teammate && robot->action.use_nitro && robot->state.nitro > 0) {
+          const auto& target_velocity_change = (robot->action.target_velocity - robot->state.velocity);
+          const auto& tvc_length_sq = target_velocity_change.length_sq();
+          if (tvc_length_sq > 0) {
+            const auto& max_nitro_change = robot->state.nitro * C::rules.NITRO_POINT_VELOCITY_CHANGE;
+            const auto& ac_per_dt = C::rules.ROBOT_NITRO_ACCELERATION * delta_time;
+            if (tvc_length_sq > max_nitro_change * max_nitro_change) {
+              if (ac_per_dt * ac_per_dt > max_nitro_change * max_nitro_change) {
+                acceleration_trigger = true;
+                if (!accurate && main_robot->id == 4) {
+                  H::t[23].call();
+                }
+                robot->state.velocity += target_velocity_change * (max_nitro_change / sqrt(tvc_length_sq));
+                robot->state.nitro -= max_nitro_change / C::rules.NITRO_POINT_VELOCITY_CHANGE;
+              } else {
+                const auto& robot_acceleration = target_velocity_change * (ac_per_dt / max_nitro_change);
+                robot->state.velocity += robot_acceleration;
+                robot->state.nitro -= ac_per_dt / C::rules.NITRO_POINT_VELOCITY_CHANGE;
+                const double coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / 2. / number_of_microticks) : 0.;
+                robot->state.position -= robot_acceleration * (coef * delta_time);
+              }
+            } else {
+              if (ac_per_dt * ac_per_dt > tvc_length_sq) {
+                acceleration_trigger = true;
+                if (!accurate && main_robot->id == 4 && robot == main_robot) {
+                  if (H::tick == 3) {
+                    std::cout << acceleration_trigger_fires << " " << acceleration_trigger_limit << std::endl;
+                    std::cout << cur_iteration << " " << robot->state.velocity.x << " " << robot->state.velocity.y << " " << robot->state.velocity.z << " " << std::endl;
+                    std::cout << number_of_tick << " " << number_of_microticks << " " << ac_per_dt << " " << sqrt(tvc_length_sq) << std::endl;
+                  }
+                  H::t[22].call();
+                }
+                robot->state.velocity += target_velocity_change;
+                robot->state.nitro -= sqrt(tvc_length_sq) / C::rules.NITRO_POINT_VELOCITY_CHANGE;
+              } else {
+                const auto& robot_acceleration = target_velocity_change * (ac_per_dt / sqrt(tvc_length_sq));
+                robot->state.velocity += robot_acceleration;
+                robot->state.nitro -= ac_per_dt / C::rules.NITRO_POINT_VELOCITY_CHANGE;
+                const double coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / 2. / number_of_microticks) : 0.;
+                robot->state.position -= robot_acceleration * (coef * delta_time);
+              }
+            }
+          }
+        }*/
       }
-
-      /*if (robot->is_teammate && robot->action.use_nitro) { // todo optimise
-        const auto& target_velocity_change = (robot->action.target_velocity - robot->state.velocity).clamp(
-            robot->state.nitro * C::rules.NITRO_POINT_VELOCITY_CHANGE);
-        if (target_velocity_change.length() > 0) {
-          const auto& acceleration = target_velocity_change.normalize() * C::rules.ROBOT_NITRO_ACCELERATION;
-          const auto& velocity_change = (acceleration * delta_time).clamp(target_velocity_change.length());
-          robot->state.velocity += velocity_change;
-          robot->state.nitro -= velocity_change.length() / C::rules.NITRO_POINT_VELOCITY_CHANGE;
-        }
-      }*/
 
       moveDynamic(robot, delta_time);
 
@@ -459,10 +516,23 @@ struct SmartSimulator {
           has_collision_with_static = true;
         }
       }
-      if (has_collision_with_static) {
-        return true;
-      }
+    }
 
+    for (int i = 0; i < static_packs_size; ++i) {
+      const auto& pack = static_packs[i];
+      for (int j = 0; j < dynamic_robots_size; ++j) {
+        const auto& robot = dynamic_robots[j];
+        if (collideEntitiesCheckDynamic(pack, robot) && (!robot->is_teammate || robot->state.nitro < C::rules.MAX_NITRO_AMOUNT)) {
+          pack->wantToBecomeDynamic(number_of_tick);
+          has_collision_with_static = true;
+        }
+      }
+    }
+
+    if (has_collision_with_static) {
+      return true;
+    }
+    if (ball->is_dynamic) {
       if (!collideWithArenaDynamic(ball, collision_normal, touch_surface_id)) {
         if (ball->state.touch) {
           if (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap) {
@@ -485,24 +555,24 @@ struct SmartSimulator {
       }
     }
 
-    /*for (int i = 0; i < dynamic_robots_size; ++i) {
+    for (int i = 0; i < dynamic_robots_size; i++) {
       auto& robot = dynamic_robots[i];
       if (robot->state.nitro == C::rules.MAX_NITRO_AMOUNT) {
         continue;
       }
-      for (int j = 0; j < dynamic_nitro_packs_size; ++j) {
-        auto& pack = dynamic_nitro_packs[j];
-        if (!pack->alive) {
+      for (int j = 0; j < dynamic_packs_size; ++j) {
+        auto& pack = dynamic_packs[j];
+        if (!pack->state.alive) {
           continue;
         }
-
-        if ((robot->state.position - pack->position).length() <= robot->state.radius + pack->radius) {
+        const double& sum_r = robot->state.radius + pack->state.radius;
+        if ((robot->state.position - pack->state.position).length_sq() <= sum_r * sum_r) {
           robot->state.nitro = C::rules.MAX_NITRO_AMOUNT;
-          pack->alive = false
-          pack->respawn_ticks = C::rules.NITRO_PACK_RESPAWN_TICKS;
+          pack->state.alive = false;
+          pack->state.respawn_ticks = C::rules.NITRO_PACK_RESPAWN_TICKS;
         }
       }
-    }*/
+    }
 
     return has_collision_with_static;
   }
@@ -534,6 +604,13 @@ struct SmartSimulator {
       dynamic_robots[dynamic_robots_size++] = initial_dynamic_robots[i];
     }
 
+    static_packs_size = 0;
+    for (int i = 0; i < initial_static_packs_size; ++i) {
+      static_packs[static_packs_size++] = initial_static_packs[i];
+    }
+
+    dynamic_packs_size = 0;
+
     for (int i = 0; i < static_entities_size; ++i) {
       auto& e = static_entities[i];
       e->is_dynamic = false;
@@ -547,7 +624,7 @@ struct SmartSimulator {
   }
 
   void wantedStaticGoToDynamic(const int tick_number) {
-    //H::t[3].cumulative += 1e-3;
+    static_packs_size = 0;
     static_robots_size = 0;
     int new_static_entities_size = 0;
     for (int i = 0; i < static_entities_size; ++i) {
@@ -556,13 +633,17 @@ struct SmartSimulator {
         e->fromState(tick_number);
         e->is_dynamic = true;
         dynamic_entities[dynamic_entities_size++] = e;
-        if (e != ball) {
+        if (e->is_robot) {
           dynamic_robots[dynamic_robots_size++] = e;
+        } else if (e->is_pack) {
+          dynamic_packs[dynamic_packs_size++] = e;
         }
       } else {
         static_entities[new_static_entities_size++] = e;
-        if (e != ball) {
+        if (e->is_robot) {
           static_robots[static_robots_size++] = e;
+        } else if (e->is_pack) {
+          static_packs[static_packs_size++] = e;
         }
       }
     }
@@ -872,18 +953,18 @@ struct SmartSimulator {
   void updateStatic(const double delta_time, const int number_of_tick, const int number_of_microticks) {
     for (int i = 0; i < initial_static_robots_size; ++i) {
       auto& robot = initial_static_robots[i];
-      if (robot->state.touch) {
+      if (robot->state.touch) { //todo nitro max speed clamp
         const Point& target_velocity = robot->action.target_velocity - robot->state.touch_normal * robot->state.touch_normal.dot(robot->action.target_velocity);
         const Point& target_velocity_change = target_velocity - robot->state.velocity;
         double length = target_velocity_change.length_sq();
         if (length > 0) {
-          const double acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot->state.touch_normal.y);
+          const double& acceleration = C::rules.ROBOT_ACCELERATION * fmax(0., robot->state.touch_normal.y);
           length = sqrt(length);
-          const double delta = length - acceleration * delta_time;
+          const double& delta = length - acceleration * delta_time;
           if (delta > 0) {
             const auto& robot_acceleration = target_velocity_change * (acceleration * delta_time / length);
             robot->state.velocity += robot_acceleration;
-            const double coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / 2. / number_of_microticks) : 0.;
+            const double& coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / 2. / number_of_microticks) : 0.;
             robot->state.position -= robot_acceleration * (coef * delta_time);
           } else {
             if (robot->state.touch_surface_id == 1) {
@@ -894,16 +975,37 @@ struct SmartSimulator {
         }
       }
 
-      if (robot->is_teammate && robot->action.use_nitro) { // todo optimise
-        const auto& target_velocity_change = (robot->action.target_velocity - robot->state.velocity).clamp(
-            robot->state.nitro * C::rules.NITRO_POINT_VELOCITY_CHANGE);
-        if (target_velocity_change.length() > 0) {
-          const auto& acceleration = target_velocity_change.normalize() * C::rules.ROBOT_NITRO_ACCELERATION;
-          const auto& velocity_change = (acceleration * delta_time).clamp(target_velocity_change.length());
-          robot->state.velocity += velocity_change;
-          robot->state.nitro -= velocity_change.length() / C::rules.NITRO_POINT_VELOCITY_CHANGE;
+      /*if (robot->is_teammate && robot->action.use_nitro) {
+        const auto& target_velocity_change = (robot->action.target_velocity - robot->state.velocity);
+        const auto& tvc_length_sq = target_velocity_change.length_sq();
+        if (target_velocity_change.length_sq() > 0) {
+          const auto& max_nitro_change = robot->state.nitro * C::rules.NITRO_POINT_VELOCITY_CHANGE;
+          const auto& ac_per_dt = C::rules.ROBOT_NITRO_ACCELERATION * delta_time;
+          if (tvc_length_sq > max_nitro_change * max_nitro_change) {
+            acceleration_trigger = true;
+            if (ac_per_dt * ac_per_dt > max_nitro_change * max_nitro_change) {
+              robot->state.velocity += target_velocity_change * (max_nitro_change / sqrt(tvc_length_sq));
+              robot->state.nitro -= max_nitro_change / C::rules.NITRO_POINT_VELOCITY_CHANGE;
+            } else {
+              robot->state.velocity += target_velocity_change * (ac_per_dt / max_nitro_change);
+              robot->state.nitro -= ac_per_dt / C::rules.NITRO_POINT_VELOCITY_CHANGE;
+            }
+          } else {
+            if (ac_per_dt * ac_per_dt > tvc_length_sq) {
+              acceleration_trigger = true;
+              robot->state.velocity += target_velocity_change;
+              robot->state.nitro -= sqrt(tvc_length_sq) / C::rules.NITRO_POINT_VELOCITY_CHANGE;
+            } else {
+              const auto& robot_acceleration = target_velocity_change * (ac_per_dt / sqrt(tvc_length_sq));
+              robot->state.velocity += robot_acceleration;
+              robot->state.nitro -= ac_per_dt / C::rules.NITRO_POINT_VELOCITY_CHANGE;
+              const double& coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / 2. / number_of_microticks) : 0.;
+              robot->state.position -= robot_acceleration * (coef * delta_time);
+            }
+          }
         }
-      }
+      }*/
+
 
       moveStatic(robot, delta_time);
 
@@ -955,6 +1057,27 @@ struct SmartSimulator {
       ball->state.touch_surface_id = touch_surface_id;
       ball->state.touch = true;
     }
+
+    for (int i = 0; i < initial_static_robots_size; i++) {
+      auto& robot = initial_static_robots[i];
+      if (robot->state.nitro == C::rules.MAX_NITRO_AMOUNT) {
+        continue;
+      }
+      for (int j = 0; j < initial_static_packs_size; ++j) {
+        auto& pack = initial_static_packs[j];
+        if (!pack->state.alive) {
+          continue;
+        }
+        const double& sum_r = robot->state.radius + pack->state.radius;
+        if ((robot->state.position - pack->state.position).length_sq() <= sum_r * sum_r) {
+          robot->state.nitro = C::rules.MAX_NITRO_AMOUNT;
+          pack->state.alive = false;
+          pack->state.respawn_ticks = C::rules.NITRO_PACK_RESPAWN_TICKS;
+        }
+      }
+    }
+
+
   }
 
 
