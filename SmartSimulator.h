@@ -325,13 +325,13 @@ struct SmartSimulator {
       if ((3.05) * (3.05) > distance_sq) {
         a->collide_with_ball_in_air = true;
       }
-    } /*else if ((2.05) * (2.05) > distance_sq) {
-      if (a->is_teammate) {
-        a->additional_jump = true;
-      } else if (b->is_teammate) {
-        b->additional_jump = true;
+    } else if ((2.05) * (2.05) > distance_sq) {
+      if (a->is_teammate && !b->state.touch) {
+        a->collide_with_ball_in_air = true;
+      } else if (b->is_teammate && !a->state.touch) {
+        a->collide_with_ball_in_air = true;
       }
-    }*/
+    }
     if (sum_r * sum_r > distance_sq) {
       const double penetration = sum_r - sqrt(distance_sq);
       if (check_with_ball) {
@@ -916,13 +916,13 @@ struct SmartSimulator {
       if ((3.05) * (3.05) > distance_sq) {
         a->collide_with_ball_in_air = true;
       }
-    }/* else if ((2.05) * (2.05) > distance_sq) {
-      if (a->is_teammate) {
-        a->additional_jump = true;
-      } else if (b->is_teammate) {
-        b->additional_jump = true;
+    } else if ((2.05) * (2.05) > distance_sq) {
+      if (a->is_teammate && !b->state.touch) {
+        a->collide_with_ball_in_air = true;
+      } else if (b->is_teammate && !a->state.touch) {
+        b->collide_with_ball_in_air = true;
       }
-    }*/
+    }
     if (sum_r * sum_r > distance_sq) {
       const double penetration = sum_r - sqrt(distance_sq);
       const double k_a = 1. / (a->mass * ((1 / a->mass) + (1 / b->mass)));
@@ -1143,7 +1143,7 @@ struct SmartSimulator {
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
       if (!main_robot->state.touch) {
-        score -= 1;
+        score -= 0.5;
       }
       if (!ball->is_dynamic) {
         ball->fromState(tick_number);

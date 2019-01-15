@@ -154,25 +154,25 @@ void doStrategy() {
 
     H::sum_asserts_failed += iteration;
 #ifdef DEBUG
-    if (id == 0) {
+    if (id == 1) {
 
-      P::logn("fighter score: ", H::best_plan[0].score.score());
-      P::logn("sum_score: ", H::best_plan[0].score.sum_score);
-      P::logn("fighter_min_dist_to_ball: ", -H::best_plan[0].score.fighter_min_dist_to_ball);
-      P::logn("fighter_min_dist_to_goal: ", -H::best_plan[0].score.fighter_min_dist_to_goal);
-      P::logn("fighter_last_dist_to_goal: ", -H::best_plan[0].score.fighter_last_dist_to_goal);
-      P::logn("fighter_closest_enemy_dist: ", H::best_plan[0].score.fighter_closest_enemy_dist);
-      P::logn("time_jump: ", H::best_plan[0].time_jump);
-      P::logn("oncoming_jump: ", H::best_plan[0].oncoming_jump);
-      P::logn("angle1: ", H::best_plan[0].angle1);
-      P::logn("speed1: ", H::best_plan[0].speed1);
-      P::logn("time_change: ", H::best_plan[0].time_change);
-      P::logn("angle2: ", H::best_plan[0].angle2);
-      P::logn("speed2: ", H::best_plan[0].speed2);
-      P::logn("was_jumping: ", H::best_plan[0].was_jumping);
-      P::logn("was_in_air_after_jumping: ", H::best_plan[0].was_in_air_after_jumping);
-      P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[0].collide_with_ball_before_on_ground_after_jumping);
-      P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[0].was_on_ground_after_in_air_after_jumping);
+      P::logn("fighter score: ", H::best_plan[1].score.score());
+      P::logn("sum_score: ", H::best_plan[1].score.sum_score);
+      P::logn("fighter_min_dist_to_ball: ", -H::best_plan[1].score.fighter_min_dist_to_ball);
+      P::logn("fighter_min_dist_to_goal: ", -H::best_plan[1].score.fighter_min_dist_to_goal);
+      P::logn("fighter_last_dist_to_goal: ", -H::best_plan[1].score.fighter_last_dist_to_goal);
+      P::logn("fighter_closest_enemy_dist: ", H::best_plan[1].score.fighter_closest_enemy_dist);
+      P::logn("time_jump: ", H::best_plan[1].time_jump);
+      P::logn("oncoming_jump: ", H::best_plan[1].oncoming_jump);
+      P::logn("angle1: ", H::best_plan[1].angle1);
+      P::logn("speed1: ", H::best_plan[1].speed1);
+      P::logn("time_change: ", H::best_plan[1].time_change);
+      P::logn("angle2: ", H::best_plan[1].angle2);
+      P::logn("speed2: ", H::best_plan[1].speed2);
+      P::logn("was_jumping: ", H::best_plan[1].was_jumping);
+      P::logn("was_in_air_after_jumping: ", H::best_plan[1].was_in_air_after_jumping);
+      P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[1].collide_with_ball_before_on_ground_after_jumping);
+      P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[1].was_on_ground_after_in_air_after_jumping);
 
       /*SmartSimulator accurate_simulator(H::getMyRobotGlobalIdByLocal(0), H::game.robots, H::game.ball, H::game.nitro_packs, true);
       accurate_simulator.initIteration(400);
