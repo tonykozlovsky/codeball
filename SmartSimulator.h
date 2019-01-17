@@ -955,11 +955,11 @@ struct SmartSimulator {
         //  //H::t[18].call();
         //}
         entity_ball_collision_trigger = true;
-      } else {
+      } else if (!a->state.touch && !b->state.touch) {
         //if (!accurate && main_robot->id == 4) {
         //  //H::t[19].call();
         //}
-        entity_entity_collision_trigger = true; // todo if touch_surf_id != 1
+        entity_entity_collision_trigger = true;
       }
       if (delta_velocity < 0) {
         const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2) * delta_velocity);

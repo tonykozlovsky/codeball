@@ -56,7 +56,7 @@ struct H {
       if (player_score[player.id - 1] != player.score) {
         player_score[player.id - 1] = player.score;
         waiting_ticks = 119;
-        std::cout << int(sum_asserts_failed / asserts_failed_k) << " asserts failed" << std::endl;
+        std::cout << int(sum_asserts_failed / asserts_failed_k) << " ?_?" << std::endl;
       }
     }
     if (waiting_ticks > 0) {
