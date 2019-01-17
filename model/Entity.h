@@ -150,6 +150,26 @@ struct Entity {
     }*/
   }
 
+  void nitroCheck() {
+    if (!action.use_nitro) {
+      return;
+    }
+    bool restrict_nitro = false;
+    const auto& target_velocity_change = (action.target_velocity - state.velocity);
+    const auto& tvc_length_sq = target_velocity_change.length_sq();
+    if (tvc_length_sq > 0) {
+      const auto& max_nitro_change = state.nitro * C::rules.NITRO_POINT_VELOCITY_CHANGE;
+      const auto& ac_per_dt = C::rules.ROBOT_NITRO_ACCELERATION / 60.;
+      if (tvc_length_sq > max_nitro_change * max_nitro_change) {
+        restrict_nitro = true;
+      } else if (ac_per_dt * ac_per_dt > tvc_length_sq) {
+        restrict_nitro = true;
+      }
+    }
+    if (restrict_nitro) {
+      action.use_nitro = false;
+    }
+  }
 };
 
 #endif //CODEBALL_ENTITY_H

@@ -346,7 +346,7 @@ struct SmartSimulator {
       b->state.position += normal * (penetration * k_b);
       const double delta_velocity = (b->state.velocity - a->state.velocity).dot(normal) - (b->radius_change_speed + a->radius_change_speed);
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2) * delta_velocity);
+        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
@@ -401,7 +401,7 @@ struct SmartSimulator {
           if (delta > 0) {
             const auto& robot_acceleration = target_velocity_change * (acceleration * delta_time / length);
             robot->state.velocity += robot_acceleration;
-            const double coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / 2. / number_of_microticks) : 0.;
+            const double& coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / 2. / number_of_microticks) : 0.;
             robot->state.position -= robot_acceleration * (coef * delta_time);
           } else {
             if (robot->state.touch_surface_id == 1) {
@@ -940,10 +940,10 @@ struct SmartSimulator {
         //if (!accurate && main_robot->id == 4) {
         //  H::t[19].call();
         //}
-        entity_entity_collision_trigger = true;
+        entity_entity_collision_trigger = true; // todo if touch_surf_id != 1
       }
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2) * delta_velocity);
+        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
