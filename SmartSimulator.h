@@ -406,9 +406,6 @@ struct SmartSimulator {
           } else {
             if (robot->state.touch_surface_id == 1) {
               acceleration_trigger = true;
-              //if (!accurate && main_robot->id == 4) {
-              //  H::t[12].call();
-              //}
             }
             robot->state.velocity += target_velocity_change;
           }
