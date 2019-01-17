@@ -11,6 +11,13 @@ struct Point {
 
   Point(double x, double y, double z) : x(x), y(y), z(z) {}
 
+  bool operator == (const Point& other) const {
+    return
+    x == other.x
+    && y == other.y
+    && z == other.z;
+  }
+
   Point operator-(const Point& other) const {
     return {x - other.x, y - other.y, z - other.z};
   }
@@ -40,6 +47,12 @@ struct Point {
     x /= value;
     y /= value;
     z /= value;
+    return *this;
+  }
+  Point& operator*=(const double value) {
+    x *= value;
+    y *= value;
+    z *= value;
     return *this;
   }
   double length() const {

@@ -17,6 +17,23 @@ struct EntityState {
   int touch_surface_id;
   int respawn_ticks;
   bool alive;
+
+  bool operator != (const EntityState& other) const {
+    return !(*this == other);
+  }
+  bool operator == (const EntityState& other) const {
+    return
+    position == other.position
+    && velocity == other.velocity
+    && radius == other.radius
+    && nitro == other.nitro
+    && touch == other.touch
+    && touch_normal == other.touch_normal
+    && touch_surface_id == other.touch_surface_id
+    && respawn_ticks == other.respawn_ticks
+    && alive == other.alive;
+
+  }
 };
 
 struct Entity {
@@ -27,6 +44,15 @@ struct Entity {
   };
 
   EntityState state;
+  EntityState* state_ptr; // only for static for not copying state
+
+  EntityState& getState() { // use outside simulator, if we dont know static or dynamic
+    if (is_dynamic) {
+      return state;
+    } else {
+      return *state_ptr;
+    }
+  }
 
   MyAction action;
 
@@ -134,6 +160,10 @@ struct Entity {
 
   void fromPrevMicroState() {
     state = prev_micro_state;
+  }
+
+  void fromStateStatic(const int tick_number) {
+    state_ptr = states + tick_number;
   }
 
   void fromState(const int tick_number) {
