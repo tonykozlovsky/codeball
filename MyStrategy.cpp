@@ -28,7 +28,7 @@ void doStrategy() {
   /*for (int i = 0; i < 50; ++i) {
     H::t[i].init_calls();
   }*/
-  H::t[0].start();
+  //H::t[0].start();
   for (int id = 0; id < 2; id++) {
     H::best_plan[id].score.minimal();
     H::best_plan[id].time_jump--;
@@ -231,8 +231,8 @@ void doStrategy() {
   //P::logn(H::t[0].avg());
 #endif
 
-  H::t[0].cur(true, true);
-  P::logn(H::t[0].avg());
+  //H::t[0].cur(true, true);
+  //P::logn(H::t[0].avg());
 
   //for (int i = 0; i < 50; ++i) {
   //  H::t[i].cur(false, true);

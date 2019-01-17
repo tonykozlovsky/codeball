@@ -347,7 +347,7 @@ struct SmartSimulator {
       b->state.position += normal * (penetration * k_b);
       const double delta_velocity = (b->state.velocity - a->state.velocity).dot(normal) - (b->radius_change_speed + a->radius_change_speed);
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
+        const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
@@ -962,7 +962,7 @@ struct SmartSimulator {
         entity_entity_collision_trigger = true; // todo if touch_surf_id != 1
       }
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + C::rules.MAX_HIT_E) * delta_velocity);
+        const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
