@@ -48,13 +48,13 @@ void doStrategy() {
       int iteration = 0;
       SmartSimulator simulator(H::getMyRobotGlobalIdByLocal(id), H::game.robots,
                                H::game.ball, {}, false, H::getMyRobotGlobalIdByLocal(0));
-      int iterations[2] = {501, 501};
-      int additional_iteration[2] = {500, 500};
+      int iterations[2] = {251, 251};
+      int additional_iteration[2] = {250, 250};
       if (H::game.ball.z < -0.01) {
-        iterations[0] = 951;
-        iterations[1] = 51;
-        additional_iteration[0] = 950;
-        additional_iteration[1] = 50;
+        iterations[0] = 476;
+        iterations[1] = 26;
+        additional_iteration[0] = 475;
+        additional_iteration[1] = 25;
       }
       for (;; iteration++) {
         if (iteration > iterations[id]) {

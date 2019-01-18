@@ -1170,7 +1170,7 @@ struct SmartSimulator {
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
       if (!main_robot->state.touch) {
-        score -= 0.5;
+        score -= 0.5 * C::TPT;
       }
       if (main_robot->collide_with_ball_in_air) {
         score += 20;
@@ -1208,7 +1208,7 @@ struct SmartSimulator {
     }
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
       if (!main_robot->state.touch) {
-        score -= 0.5;
+        score -= 0.5 * C::TPT;
       }
     }
     double x = ball->getState().position.x;
@@ -1217,7 +1217,7 @@ struct SmartSimulator {
     } else if (x < -10) {
       x = -10;
     }
-    score -= 0.0025 * (main_robot->state.position - Point{
+    score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
         x,
         1,
         -C::rules.arena.depth / 2 - 4}).length();
