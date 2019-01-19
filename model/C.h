@@ -37,7 +37,9 @@
 
 struct C {
   static model::Rules rules;
-  static constexpr int MAX_SIMULATION_DEPTH = 100;
+  static constexpr int TPT = 1;
+  static constexpr int MAX_SIMULATION_DEPTH = 100 / TPT;
+  static constexpr int MICROTICKS_PER_TICK = 100 * TPT;
   static constexpr double ball_antiflap = 0.1; // todo check
 #ifdef LOCAL
   static constexpr double time_limit = 330. * 1.5;
