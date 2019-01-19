@@ -25,3 +25,6 @@ double H::time_limit;
 double H::half_time;
 double H::sum_asserts_failed = 0;
 double H::asserts_failed_k = 0;
+int H::danger_grid[80][20][60][50];
+DGState H::used_cells[1000007];
+int H::used_cells_size = 0;

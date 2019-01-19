@@ -78,7 +78,7 @@ struct Plan {
   bool was_in_air_after_jumping;
   bool was_on_ground_after_in_air_after_jumping;
   bool collide_with_ball_before_on_ground_after_jumping;
-  Plan() {
+  Plan(const int simulation_depth = C::MAX_SIMULATION_DEPTH) {
     was_jumping = false;
     was_in_air_after_jumping = false;
     was_on_ground_after_in_air_after_jumping = false;
@@ -91,8 +91,8 @@ struct Plan {
     angle2 = C::rand_double(0, 2 * M_PI);
     cangle2 = cos(angle2);
     sangle2 = sin(angle2);
-    time_change = C::rand_int(0, C::MAX_SIMULATION_DEPTH);
-    time_jump = C::rand_int(0, C::MAX_SIMULATION_DEPTH);
+    time_change = C::rand_int(0, simulation_depth + 1);
+    time_jump = C::rand_int(0, simulation_depth + 1);
 
     speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
 

@@ -82,6 +82,8 @@ struct SmartSimulator {
   bool ball_arena_collision_trigger;
   int ball_arena_collision_trigger_fires;
   const int ball_arena_collision_limit = 2;
+  
+  int simulation_depth;
 
   bool accurate;
 
@@ -89,11 +91,14 @@ struct SmartSimulator {
 
   // maybe we can have 4x-5x performance boost, and more when 3x3
   SmartSimulator(
+      const int simulation_depth,
       const int main_robot_id,
       const std::vector<model::Robot>& _robots,
       const model::Ball& _ball,
       const std::vector<model::NitroPack>& _packs,
-      bool accurate = false, int viz_id = -1, double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2) : accurate(accurate), hit_e(hit_e) {
+      bool accurate = false,
+      int viz_id = -1,
+      double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2) : simulation_depth(simulation_depth), accurate(accurate), hit_e(hit_e) {
 
     initial_static_entities[initial_static_entities_size].fromBall(_ball);
     ball = &initial_static_entities[initial_static_entities_size++];
@@ -122,7 +127,7 @@ struct SmartSimulator {
       initial_static_packs[initial_static_packs_size++] = new_pack;
     }
 
-    for (int i = 0; i < C::MAX_SIMULATION_DEPTH + 1; ++i) {
+    for (int i = 0; i < simulation_depth + 1; ++i) {
       for (int j = 0; j < initial_static_robots_size; ++j) {
         auto& robot = initial_static_robots[j];
         if (robot->is_teammate) {
@@ -136,7 +141,7 @@ struct SmartSimulator {
     if (main_robot_id == viz_id) {
       for (int i = 0; i < initial_static_entities_size; ++i) {
         auto& e = initial_static_entities[i];
-        for (int j = 1; j < C::MAX_SIMULATION_DEPTH; ++j) {
+        for (int j = 1; j < simulation_depth; ++j) {
           P::drawLine(e.states[j - 1].position, e.states[j].position, accurate ? 0xFFFFFF : 0x000000);
         }
       }
@@ -1178,6 +1183,32 @@ struct SmartSimulator {
         score += 20;
       }
     }
+
+    if (tick_number < 50) {
+      const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
+      const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
+      const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
+      /*if (H::danger_grid[cell_x][cell_y][cell_z][tick_number] > 0
+          || H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number] > 0
+          || H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number] > 0
+          || H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number] > 0
+          || H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number] > 0
+          || H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number] > 0
+          || H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number] > 0
+          || H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number] > 0) {
+        //P::drawSphere({cell_x * 2 + 1. - 40, cell_y * 2 + 1., cell_z * 2 + 1. - 30}, 2, 0x0000F0);
+      }*/
+      const int& sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
+          + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
+          + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
+          + H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number]
+          + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number]
+          + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
+          + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
+          + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
+      score -= 100 * sum;
+    }
+
     return score;
   }
 
@@ -1261,6 +1292,32 @@ struct SmartSimulator {
         x,
         1,
         -C::rules.arena.depth / 2 - 4}).length();
+
+    if (tick_number < 50) {
+      const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
+      const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
+      const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
+      /*if (H::danger_grid[cell_x][cell_y][cell_z][tick_number] > 0
+          || H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number] > 0
+          || H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number] > 0
+          || H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number] > 0
+          || H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number] > 0
+          || H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number] > 0
+          || H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number] > 0
+          || H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number] > 0) {
+        //P::drawSphere({cell_x * 2 + 1. - 40, cell_y * 2 + 1., cell_z * 2 + 1. - 30}, 2, 0x0000F0);
+      }*/
+      const int& sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
+          + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
+          + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
+          + H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number]
+          + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number]
+          + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
+          + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
+          + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
+      score -= 100 * sum;
+    }
+
     return score;
   }
 

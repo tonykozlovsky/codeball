@@ -82,6 +82,15 @@ struct P {
 #endif
   }
 
+  static void drawSphere(const Point& position, const double radius,
+                           const uint32_t color = 0) {
+#ifdef LOCAL
+#ifdef DRAWLR
+    spheres_to_draw.push_back(Sphere{position, radius, color});
+#endif
+#endif
+  }
+
   static void drawEntities(const std::vector<EntityState>& entities, const double delta_time = 0,
                            const uint32_t color = 0) {
 #ifdef LOCAL
