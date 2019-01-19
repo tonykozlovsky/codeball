@@ -12,11 +12,10 @@
 model::Game H::game;
 
 int H::tick = -1;
-model::Action H::actions[3];
+model::Action H::actions[7];
 int H::global_id;
-int H::id;
 int H::my_id;
-Plan H::best_plan[2];
+Plan H::best_plan[4];
 
 MyTimer H::t[100];
 MyTimer H::global_timer;

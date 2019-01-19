@@ -85,13 +85,15 @@ struct SmartSimulator {
 
   bool accurate;
 
+  double hit_e;
+
   // maybe we can have 4x-5x performance boost, and more when 3x3
   SmartSimulator(
       const int main_robot_id,
       const std::vector<model::Robot>& _robots,
       const model::Ball& _ball,
       const std::vector<model::NitroPack>& _packs,
-      bool accurate = false, int viz_id = -1) : accurate(accurate) {
+      bool accurate = false, int viz_id = -1, double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2) : accurate(accurate), hit_e(hit_e) {
 
     initial_static_entities[initial_static_entities_size].fromBall(_ball);
     ball = &initial_static_entities[initial_static_entities_size++];
@@ -124,7 +126,7 @@ struct SmartSimulator {
       for (int j = 0; j < initial_static_robots_size; ++j) {
         auto& robot = initial_static_robots[j];
         if (robot->is_teammate) {
-          robot->action = H::best_plan[robot->id % 2].toMyAction(i, true);
+          robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true);
         }
       }
       tickWithJumpsStatic(i, true);
@@ -348,7 +350,7 @@ struct SmartSimulator {
       b->state.position += normal * (penetration * k_b);
       const double delta_velocity = (b->state.velocity - a->state.velocity).dot(normal) - (b->radius_change_speed + a->radius_change_speed);
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2) * delta_velocity);
+        const Point& impulse = normal * ((1. + hit_e) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
@@ -964,7 +966,7 @@ struct SmartSimulator {
         entity_entity_collision_trigger = true;
       }
       if (delta_velocity < 0) {
-        const Point& impulse = normal * ((1. + (C::rules.MAX_HIT_E + C::rules.MIN_HIT_E) / 2) * delta_velocity);
+        const Point& impulse = normal * ((1. + hit_e) * delta_velocity);
         a->state.velocity += impulse * k_a;
         b->state.velocity -= impulse * k_b;
         return true;
@@ -1196,6 +1198,44 @@ struct SmartSimulator {
   }
 
   double getMinDistToBallScoreFighter() {
+    return (main_robot->state.position - ball->getState().position).length();
+  }
+
+  double getSumScoreEnemy(const int tick_number) {
+    double score = 0;
+    if (goal_info.goal_to_me) {
+      score += tick_number == goal_info.goal_tick ? 1e3 : 0;
+    } else if (goal_info.goal_to_enemy) {
+      score += tick_number == goal_info.goal_tick ? -1e3 : 0;
+    }
+    if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
+      if (!main_robot->state.touch) {
+        score -= 0.5 * C::TPT;
+      }
+      if (main_robot->collide_with_ball_in_air) {
+        score += 20;
+      }
+    }
+    return score;
+  }
+
+  double getMinDistToGoalScoreEnemy() {
+    const double& d1 = (Point{
+        -C::rules.arena.goal_width / 2 + 2,
+        C::rules.arena.goal_height - 2,
+        -C::rules.arena.depth / 2 - 2} - ball->getState().position).length_sq();
+    const double& d2 = (Point{
+        0,
+        C::rules.arena.goal_height - 2,
+        -C::rules.arena.depth / 2 - 2} - ball->getState().position).length_sq();
+    const double& d3 = (Point{
+        C::rules.arena.goal_width / 2 - 2,
+        C::rules.arena.goal_height - 2,
+        -C::rules.arena.depth / 2 - 2} - ball->getState().position).length_sq();
+    return sqrt(std::min(d1, std::min(d2, d3)));
+  }
+
+  double getMinDistToBallScoreEnemy() {
     return (main_robot->state.position - ball->getState().position).length();
   }
 

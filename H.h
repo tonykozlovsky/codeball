@@ -13,12 +13,11 @@ struct H {
   static model::Game game;
 
   static int tick;
-  static model::Action actions[3];
+  static model::Action actions[7];
   static int global_id;
-  static int id;
   static int my_id;
 
-  static Plan best_plan[2];
+  static Plan best_plan[4];
   static int player_score[2];
   static int waiting_ticks;
   static double time_limit;
@@ -32,7 +31,6 @@ struct H {
       const model::Rules& _rules,
       const model::Game& _game) {
     global_id = _me.id;
-    id = global_id % _rules.team_size;
     if (tick == _game.current_tick) {
       return false;
     }
@@ -40,7 +38,7 @@ struct H {
     game = _game;
     C::rules = _rules;
     tick = game.current_tick;
-    actions[0] = actions[1] = actions[2] = model::Action();
+    actions[1] = actions[2] = actions[3] = actions[4] = model::Action();
     if (tick == 0) { // init on tick 0
       for (auto& player : game.players) {
         if (player.me) {
@@ -79,16 +77,27 @@ struct H {
   }
 
   static model::Action getCurrentAction() {
-    return actions[id];
+    return actions[global_id];
   }
 
-  static int getMyRobotGlobalIdByLocal(int id) {
-    for (auto& robot : game.robots) {
-      if (robot.is_teammate && robot.id % 2 == id) {
-        return robot.id;
-      }
+  static int getRobotGlobalIdByLocal(int id) {
+    if (my_id == 1) {
+      return id + 1;
+    } else if (id < 2) {
+      return id + 3;
+    } else {
+      return id - 1;
     }
-    return -1;
+  }
+
+  static int getRobotLocalIdByGlobal(int id) {
+    if (my_id == 1) {
+      return id - 1;
+    } else if (id <= 2) {
+      return id + 1;
+    } else {
+      return id - 3;
+    }
   }
 
   static MyTimer t[100];
