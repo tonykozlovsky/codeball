@@ -47,14 +47,14 @@ struct Robot {
 
   void read2(const rapidjson::Value& json, int my_id) {
     id = json["id"].GetInt();
-    player_id = json["player_index"].GetInt();
+    player_id = json["player_index"].GetInt() + 1;
     is_teammate = player_id == my_id;
     x = json["position"]["x"].GetDouble();
     y = json["position"]["y"].GetDouble();
-    z = json["position"]["z"].GetDouble() * (my_id == 1 ? -1 : 1);
+    z = json["position"]["z"].GetDouble() * (my_id == 2 ? -1 : 1);
     velocity_x = json["velocity"]["x"].GetDouble();
     velocity_y = json["velocity"]["y"].GetDouble();
-    velocity_z = json["velocity"]["z"].GetDouble() * (my_id == 1 ? -1 : 1);
+    velocity_z = json["velocity"]["z"].GetDouble() * (my_id == 2 ? -1 : 1);
     radius = json["radius"].GetDouble();
     nitro_amount = json["nitro"].GetDouble();
     auto& j_touch = json["last_touch"];
@@ -62,7 +62,7 @@ struct Robot {
     if (touch) {
       touch_normal_x = j_touch["x"].GetDouble();
       touch_normal_y = j_touch["y"].GetDouble();
-      touch_normal_z = j_touch["z"].GetDouble() * (my_id == 1 ? -1 : 1);
+      touch_normal_z = j_touch["z"].GetDouble() * (my_id == 2 ? -1 : 1);
     }
   }
 

@@ -30,10 +30,10 @@ struct Ball {
   void read2(const rapidjson::Value& json, int my_id) {
     x = json["position"]["x"].GetDouble();
     y = json["position"]["y"].GetDouble();
-    z = json["position"]["z"].GetDouble() * (my_id == 1 ? -1 : 1);
+    z = json["position"]["z"].GetDouble() * (my_id == 2 ? -1 : 1);
     velocity_x = json["velocity"]["x"].GetDouble();
     velocity_y = json["velocity"]["y"].GetDouble();
-    velocity_z = json["velocity"]["z"].GetDouble() * (my_id == 1 ? -1 : 1);
+    velocity_z = json["velocity"]["z"].GetDouble() * (my_id == 2 ? -1 : 1);
     radius = json["radius"].GetDouble();
   }
 

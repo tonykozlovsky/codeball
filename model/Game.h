@@ -54,14 +54,14 @@ struct Game {
       rapidjson::Value::ConstArray json_names = json["names"].GetArray();
       for (int i = 0; i < json_names.Size(); i++) {
         if (std::string(json_names[i].GetString()) == "TonyK") {
-          my_id = i;
+          my_id = i + 1;
         }
       }
     }
     rapidjson::Value::ConstArray json_scores = json["scores"].GetArray();
     players.resize(2);
     for (int i = 0; i < json_scores.Size(); i++) {
-      players[i] = Player{i, i == my_id, false, json_scores[i].GetInt()};
+      players[i] = Player{i + 1, i + 1 == my_id, false, json_scores[i].GetInt()};
     }
     rapidjson::Value::ConstArray json_robots = json["robots"].GetArray();
     robots.resize(json_robots.Size());
