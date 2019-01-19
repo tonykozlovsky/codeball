@@ -64,7 +64,7 @@ void doStrategy() {
         Plan cur_plan;
         if (iteration == 0 || iteration == additional_iteration[id]) {
           cur_plan = H::best_plan[id];
-        } else if (C::rand_double(0, 1) < 1. / 3.) {
+        } else if (0 && C::rand_double(0, 1) < 1. / 10.) {
           cur_plan = H::best_plan[id];
           cur_plan.mutate();
         }
