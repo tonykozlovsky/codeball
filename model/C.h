@@ -42,9 +42,9 @@ struct C {
   static constexpr int MICROTICKS_PER_TICK = 100 * TPT;
   static constexpr double ball_antiflap = 0.1; // todo check
 #ifdef LOCAL
-  static constexpr double time_limit = 330. * 1.5;
+  static constexpr double time_limit = 315. * 1.5;
 #else
-  static constexpr double time_limit = 330.;
+  static constexpr double time_limit = 315.;
 #endif
 
   static std::mt19937_64 rd;

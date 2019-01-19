@@ -48,7 +48,7 @@ void doStrategy() {
       int iteration = 0;
       SmartSimulator simulator(H::getRobotGlobalIdByLocal(id), H::game.robots,
                                H::game.ball, {}, false, H::getRobotGlobalIdByLocal(0));
-      /*for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
+      for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
         if (id == 1) {
           if (H::game.ball.z < -0.01) {
             if (H::global_timer.getCumulative(true) > H::half_time) {
@@ -60,8 +60,8 @@ void doStrategy() {
             }
           }
         }
-*/
-      int iterations[2] = {251, 251};
+
+      /*int iterations[2] = {251, 251};
       int additional_iteration[2] = {250, 250};
       if (H::game.ball.z < -0.01) {
         iterations[0] = 476;
@@ -73,9 +73,9 @@ void doStrategy() {
         if (iteration > iterations[id]) {
           break;
         }
-
+      */
         Plan cur_plan;
-        if (iteration == 0 || iteration == additional_iteration[id]) {
+        if (iteration == 0) {
           cur_plan = H::best_plan[id];
         } else if (C::rand_double(0, 1) < 1. / 10.) {
           cur_plan = H::best_plan[id];
@@ -88,7 +88,7 @@ void doStrategy() {
           cur_plan.score.start_defender();
         }
 
-        simulator.initIteration(iteration, additional_iteration[id]);
+        simulator.initIteration(iteration, -1);
 
         double multiplier = 1.;
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
