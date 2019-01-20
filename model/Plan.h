@@ -16,6 +16,7 @@ struct Plan {
     double fighter_min_dist_to_ball;
     double fighter_min_dist_to_goal;
     double fighter_last_dist_to_goal;
+    double fighter_closest_enemy_dist;
     double defender_min_dist_to_ball;
     double defender_min_dist_from_goal;
     double defender_last_dist_from_goal;
@@ -31,6 +32,7 @@ struct Plan {
       - fighter_min_dist_to_goal
       - fighter_last_dist_to_goal
       - defender_min_dist_to_ball
+      + fighter_closest_enemy_dist
       + defender_min_dist_from_goal
       + defender_last_dist_from_goal;
     }
@@ -40,6 +42,7 @@ struct Plan {
       fighter_min_dist_to_ball = 1e9;
       fighter_min_dist_to_goal = 1e9;
       fighter_last_dist_to_goal = 1e9;
+      fighter_closest_enemy_dist = 1e9;
       defender_min_dist_to_ball = 1e9;
       defender_min_dist_from_goal = 1e9;
       defender_last_dist_from_goal = 1e9;
@@ -50,6 +53,7 @@ struct Plan {
       fighter_min_dist_to_ball = 1e9;
       fighter_min_dist_to_goal = 1e9;
       fighter_last_dist_to_goal = 1e9;
+      fighter_closest_enemy_dist = 1e9;
       defender_min_dist_to_ball = 0;
       defender_min_dist_from_goal = 0;
       defender_last_dist_from_goal = 0;
@@ -60,6 +64,7 @@ struct Plan {
       fighter_min_dist_to_ball = 0;
       fighter_min_dist_to_goal = 0;
       fighter_last_dist_to_goal = 0;
+      fighter_closest_enemy_dist = 0;
       defender_min_dist_to_ball = 1e9;
       defender_min_dist_from_goal = 1e9;
       defender_last_dist_from_goal = 0;
