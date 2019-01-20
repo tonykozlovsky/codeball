@@ -97,7 +97,7 @@ struct Plan {
       time_change = C::rand_int(-1, simulation_depth + 1);
       time_jump = C::rand_int(-1, simulation_depth + 1);
       speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
-      max_jump_speed = C::rand_double(0, C::rules.ROBOT_MAX_JUMP_SPEED);
+      max_jump_speed =  C::rules.ROBOT_MAX_JUMP_SPEED;//C::rand_double(0, C::rules.ROBOT_MAX_JUMP_SPEED);
     } else if (configuration == 2) { // smart enemy
       angle1 = C::rand_double(0, 2 * M_PI);
       cangle1 = cos(angle1);
@@ -165,7 +165,7 @@ struct Plan {
         time_jump = simulation_depth;
       }
 
-      max_jump_speed += C::rand_double(-speed_mutation, speed_mutation);
+      max_jump_speed += 0;//C::rand_double(-speed_mutation, speed_mutation);
       if (max_jump_speed < 0) {
         max_jump_speed = 0;
       }

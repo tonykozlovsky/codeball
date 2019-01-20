@@ -997,14 +997,8 @@ struct SmartSimulator {
       b->state.position += normal * (penetration * k_b);
       const double delta_velocity = (b->state.velocity - a->state.velocity).dot(normal) - (b->radius_change_speed + a->radius_change_speed);
       if (check_with_ball) {
-        //if (!accurate && main_robot->id == 4) {
-        //  //H::t[18].call();
-        //}
         entity_ball_collision_trigger = true;
       } else if (!a->state.touch && !b->state.touch) {
-        //if (!accurate && main_robot->id == 4) {
-        //  //H::t[19].call();
-        //}
         entity_entity_collision_trigger = true;
       }
       if (delta_velocity < 0) {

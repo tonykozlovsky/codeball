@@ -171,6 +171,10 @@ void doStrategy() {
                 if ((cur_plan.enemy_smart_plan || robot->is_teammate)) {
                   robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true);
                 }
+                // else {
+                //   Plan stupid_plan(3, C::MAX_SIMULATION_DEPTH);
+                //   robot->action = stupid_plan.toMyAction(i, true);
+                // }
               }
             }
             simulator.main_robot->action = cur_plan.toMyAction(sim_tick, true);
