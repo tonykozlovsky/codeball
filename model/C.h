@@ -35,12 +35,7 @@
 #include <random>
 #include <string>
 
-struct DGState {
-  int x, y, z, t;
-};
-
 struct C {
-
   static model::Rules rules;
   static constexpr int TPT = 1;
   static constexpr int MAX_SIMULATION_DEPTH = 100 / TPT;

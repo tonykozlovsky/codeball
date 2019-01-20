@@ -44,69 +44,6 @@ void doStrategy() {
       H::best_plan[id].oncoming_jump = -1;
     }
 
-    /*for (int i = 0; i < H::used_cells_size; ++i) {
-      const auto& cell = H::used_cells[i];
-      H::danger_grid[cell.x][cell.y][cell.z][cell.t] = 0;
-    }
-    H::used_cells_size = 0;*/
-
-    const int enemy_depth = 50;
-
-    for (int enemy_id : {2, 3}) {
-      continue;
-      SmartSimulator simulator(enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), H::game.robots, H::game.ball, {}, true);
-
-      for (int iteration = 0; iteration < 250; iteration++) {
-        Plan cur_plan(enemy_depth, true);
-        if (iteration == 0) {
-          cur_plan = H::best_plan[enemy_id];
-        } else if (C::rand_double(0, 1) < 1. / 10.) {
-          cur_plan = H::best_plan[enemy_id];
-          cur_plan.mutate(true);
-        }
-        cur_plan.score.start_fighter();
-        simulator.initIteration(iteration, -1);
-        double multiplier = 1.;
-        for (int sim_tick = 0; sim_tick < enemy_depth; sim_tick++) {
-          for (int i = 0; i < simulator.dynamic_robots_size; ++i) {
-            auto& robot = simulator.dynamic_robots[i];
-            if (robot != simulator.main_robot) {
-              robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true);
-            }
-          }
-          simulator.main_robot->action = cur_plan.toMyAction(sim_tick, true);
-          /*int cell_x = std::clamp((int) ((simulator.main_robot->state.position.x + 40.) / 2.), 1, 78);
-          int cell_y = std::clamp((int) ((simulator.main_robot->state.position.y + 1.) / 2.), 1, 18);
-          int cell_z = std::clamp((int) ((simulator.main_robot->state.position.z + 30.) / 2.), 1, 58);
-          H::danger_grid[cell_x + 1][cell_y][cell_z][sim_tick]++;
-          H::used_cells[H::used_cells_size++] = {cell_x + 1, cell_y, cell_z, sim_tick};
-          H::danger_grid[cell_x][cell_y + 1][cell_z][sim_tick]++;
-          H::used_cells[H::used_cells_size++] = {cell_x, cell_y + 1, cell_z, sim_tick};
-          H::danger_grid[cell_x][cell_y][cell_z + 1][sim_tick]++;
-          H::used_cells[H::used_cells_size++] = {cell_x, cell_y, cell_z + 1, sim_tick};
-
-          H::danger_grid[cell_x - 1][cell_y][cell_z][sim_tick]++;
-          H::used_cells[H::used_cells_size++] = {cell_x - 1, cell_y, cell_z, sim_tick};
-          H::danger_grid[cell_x][cell_y - 1][cell_z][sim_tick]++;
-          H::used_cells[H::used_cells_size++] = {cell_x, cell_y - 1, cell_z, sim_tick};
-          H::danger_grid[cell_x][cell_y][cell_z - 1][sim_tick]++;
-          H::used_cells[H::used_cells_size++] = {cell_x, cell_y, cell_z - 1, sim_tick};
-          */
-          simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(enemy_id), false);
-
-          cur_plan.score.sum_score += simulator.getSumScoreEnemy(sim_tick) * multiplier;
-          cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
-          cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-          if (sim_tick == enemy_depth - 1) {
-            cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreEnemy();
-          }
-
-          multiplier *= 0.999;
-        }
-        H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
-      }
-    }
-
     for (int id = 1; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator_enemy_smart(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), H::game.robots,

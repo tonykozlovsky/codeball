@@ -133,15 +133,15 @@ struct Plan {
     cangle2 = cos(angle2);
     sangle2 = sin(angle2);
     time_change += (one_vector ? 0 : C::rand_int(-time_mutation, time_mutation));
-    if (time_change < -1) {
-      time_change = -1;
+    if (time_change < 0) {
+      time_change = 0;
     }
     if (time_change > C::MAX_SIMULATION_DEPTH) {
       time_change = C::MAX_SIMULATION_DEPTH;
     }
     time_jump = time_jump + C::rand_int(-time_mutation, time_mutation);
-    if (time_jump < -1) {
-      time_jump = -1;
+    if (time_jump < 0) {
+      time_jump = 0;
     }
     if (time_jump > C::MAX_SIMULATION_DEPTH) {
       time_jump = C::MAX_SIMULATION_DEPTH;

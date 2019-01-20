@@ -26,10 +26,6 @@ struct H {
   static double sum_asserts_failed;
   static double asserts_failed_k;
 
-  static int danger_grid[80][20][60][100];
-  static DGState used_cells[1000007];
-  static int used_cells_size;
-
   static bool tryInit(
       const model::Robot& _me,
       const model::Rules& _rules,
