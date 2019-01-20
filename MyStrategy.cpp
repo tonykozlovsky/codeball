@@ -53,6 +53,7 @@ void doStrategy() {
     const int enemy_depth = 50;
 
     for (int enemy_id : {2, 3}) {
+      continue;
       SmartSimulator simulator(enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), H::game.robots, H::game.ball, {}, true);
 
       for (int iteration = 0; iteration < 250; iteration++) {
@@ -159,7 +160,7 @@ void doStrategy() {
         simulator_enemy_smart.initIteration(iteration, additional_iteration[id]);
         simulator_enemy_stupid.initIteration(iteration, additional_iteration[id]);
 
-        for (int minimax_id = 0; minimax_id < 2; minimax_id++) {
+        for (int minimax_id = 1; minimax_id < 2; minimax_id++) {
           SmartSimulator& simulator = (minimax_id == 0 ? simulator_enemy_smart : simulator_enemy_stupid);
           Plan& cur_plan = (minimax_id == 0 ? cur_plan_enemy_smart : cur_plan_enemy_stupid);
           double multiplier = 1.;
@@ -221,7 +222,7 @@ void doStrategy() {
           }
         }
 
-        Plan minimaxed_cur_plan = std::min(cur_plan_enemy_smart, cur_plan_enemy_stupid);
+        Plan minimaxed_cur_plan = cur_plan_enemy_stupid;//std::min(cur_plan_enemy_smart, cur_plan_enemy_stupid);
 
         if (minimaxed_cur_plan.was_in_air_after_jumping && !minimaxed_cur_plan.collide_with_ball_before_on_ground_after_jumping) {
           minimaxed_cur_plan.time_jump = -1;

@@ -184,12 +184,12 @@ struct Entity {
   void wantToBecomeDynamic(int tick_number) {
     want_to_become_dynamic = true;
     want_to_become_dynamic_on_tick = tick_number;
-    for (int i = 0; i < collisions_size; ++i) {
+    /*for (int i = 0; i < collisions_size; ++i) {
       if (collisions[i].tick >= tick_number && (!collisions[i].e->want_to_become_dynamic
           || collisions[i].e->want_to_become_dynamic_on_tick > tick_number)) {
         collisions[i].e->wantToBecomeDynamic(collisions[i].tick);
       }
-    }
+    }*/
   }
 
   void nitroCheck() {
