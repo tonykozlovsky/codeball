@@ -134,7 +134,8 @@ struct Entity {
 
     collisions = new Collision[7];
 
-    action = {state.velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0};
+    //action = {state.velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0};
+    action = {{0, 0, 0}, 0};
 
   }
 
