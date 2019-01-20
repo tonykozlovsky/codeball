@@ -1217,7 +1217,7 @@ struct SmartSimulator {
         score -= 0.5 * C::TPT;
       }
       if (main_robot->collide_with_ball_in_air) {
-        score += 20;
+        score += 0 * 20;
       }
       /*if (tick_number < 100) {
         const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
@@ -1272,7 +1272,7 @@ struct SmartSimulator {
         score -= 0.5 * C::TPT;
       }
       if (main_robot->collide_with_ball_in_air) {
-        score += 20;
+        score += 0 * 20;
       }
     }
     return score;
