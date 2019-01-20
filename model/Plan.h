@@ -94,8 +94,8 @@ struct Plan {
       angle2 = C::rand_double(0, 2 * M_PI);
       cangle2 = cos(angle2);
       sangle2 = sin(angle2);
-      time_change = C::rand_int(-1, simulation_depth + 1);
-      time_jump = C::rand_int(-1, simulation_depth + 1);
+      time_change = C::rand_int(0, simulation_depth);
+      time_jump = C::rand_int(0, simulation_depth);
       speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
       if (C::rand_double(0, 1) < 0.01) {
         speed1 = 0;
@@ -157,15 +157,15 @@ struct Plan {
       cangle2 = cos(angle2);
       sangle2 = sin(angle2);
       time_change += C::rand_int(-time_mutation, time_mutation);
-      if (time_change < -1) {
-        time_change = -1;
+      if (time_change < 0) {
+        time_change = 0;
       }
       if (time_change > simulation_depth) {
         time_change = simulation_depth;
       }
       time_jump += C::rand_int(-time_mutation, time_mutation);
-      if (time_jump < -1) {
-        time_jump = -1;
+      if (time_jump < 0) {
+        time_jump = 0;
       }
       if (time_jump > simulation_depth) {
         time_jump = simulation_depth;
