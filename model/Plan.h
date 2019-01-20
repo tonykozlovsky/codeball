@@ -10,12 +10,12 @@ struct Plan {
   double cangle2;
   int time_change;
   int time_jump;
+  bool enemy_best_plan;
   struct Score {
     double sum_score;
     double fighter_min_dist_to_ball;
     double fighter_min_dist_to_goal;
     double fighter_last_dist_to_goal;
-    double fighter_closest_enemy_dist;
     double defender_min_dist_to_ball;
     double defender_min_dist_from_goal;
     double defender_last_dist_from_goal;
@@ -31,7 +31,6 @@ struct Plan {
       - fighter_min_dist_to_goal
       - fighter_last_dist_to_goal
       - defender_min_dist_to_ball
-      + fighter_closest_enemy_dist
       + defender_min_dist_from_goal
       + defender_last_dist_from_goal;
     }
@@ -41,7 +40,6 @@ struct Plan {
       fighter_min_dist_to_ball = 1e9;
       fighter_min_dist_to_goal = 1e9;
       fighter_last_dist_to_goal = 1e9;
-      fighter_closest_enemy_dist = 1e9;
       defender_min_dist_to_ball = 1e9;
       defender_min_dist_from_goal = 1e9;
       defender_last_dist_from_goal = 1e9;
@@ -52,7 +50,6 @@ struct Plan {
       fighter_min_dist_to_ball = 1e9;
       fighter_min_dist_to_goal = 1e9;
       fighter_last_dist_to_goal = 1e9;
-      fighter_closest_enemy_dist = 1e9;
       defender_min_dist_to_ball = 0;
       defender_min_dist_from_goal = 0;
       defender_last_dist_from_goal = 0;
@@ -63,7 +60,6 @@ struct Plan {
       fighter_min_dist_to_ball = 0;
       fighter_min_dist_to_goal = 0;
       fighter_last_dist_to_goal = 0;
-      fighter_closest_enemy_dist = 0;
       defender_min_dist_to_ball = 1e9;
       defender_min_dist_from_goal = 1e9;
       defender_last_dist_from_goal = 0;
@@ -78,7 +74,7 @@ struct Plan {
   bool was_in_air_after_jumping;
   bool was_on_ground_after_in_air_after_jumping;
   bool collide_with_ball_before_on_ground_after_jumping;
-  Plan(const int simulation_depth = C::MAX_SIMULATION_DEPTH) {
+  Plan(const int simulation_depth = C::MAX_SIMULATION_DEPTH, bool one_vector = false) {
     was_jumping = false;
     was_in_air_after_jumping = false;
     was_on_ground_after_in_air_after_jumping = false;
@@ -91,7 +87,7 @@ struct Plan {
     angle2 = C::rand_double(0, 2 * M_PI);
     cangle2 = cos(angle2);
     sangle2 = sin(angle2);
-    time_change = C::rand_int(0, simulation_depth + 1);
+    time_change = one_vector ? -1 : C::rand_int(0, simulation_depth + 1);
     time_jump = C::rand_int(0, simulation_depth + 1);
 
     speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
@@ -110,7 +106,7 @@ struct Plan {
   static constexpr double speed_mutation = 2;
   static constexpr int time_mutation = 1;
 
-  void mutate() {
+  void mutate(bool one_vector = false) {
 
     was_jumping = false;
     was_in_air_after_jumping = false;
@@ -136,16 +132,16 @@ struct Plan {
     }
     cangle2 = cos(angle2);
     sangle2 = sin(angle2);
-    time_change += C::rand_int(-time_mutation, time_mutation);
-    if (time_change < 0) {
-      time_change = 0;
+    time_change += (one_vector ? 0 : C::rand_int(-time_mutation, time_mutation));
+    if (time_change < -1) {
+      time_change = -1;
     }
     if (time_change > C::MAX_SIMULATION_DEPTH) {
       time_change = C::MAX_SIMULATION_DEPTH;
     }
     time_jump = time_jump + C::rand_int(-time_mutation, time_mutation);
-    if (time_jump < 0) {
-      time_jump = 0;
+    if (time_jump < -1) {
+      time_jump = -1;
     }
     if (time_jump > C::MAX_SIMULATION_DEPTH) {
       time_jump = C::MAX_SIMULATION_DEPTH;

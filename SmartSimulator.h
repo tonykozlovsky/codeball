@@ -96,6 +96,7 @@ struct SmartSimulator {
       const std::vector<model::Robot>& _robots,
       const model::Ball& _ball,
       const std::vector<model::NitroPack>& _packs,
+      bool enemy_best_plan,
       bool accurate = false,
       int viz_id = -1,
       double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2) : simulation_depth(simulation_depth), accurate(accurate), hit_e(hit_e) {
@@ -130,7 +131,7 @@ struct SmartSimulator {
     for (int i = 0; i < simulation_depth + 1; ++i) {
       for (int j = 0; j < initial_static_robots_size; ++j) {
         auto& robot = initial_static_robots[j];
-        if (robot->is_teammate) {
+        if (enemy_best_plan || robot->is_teammate) {
           robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true);
         }
       }
@@ -1182,32 +1183,23 @@ struct SmartSimulator {
       if (main_robot->collide_with_ball_in_air) {
         score += 20;
       }
+      /*if (tick_number < 100) {
+        const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
+        const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
+        const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
+        const int sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
+            + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
+            + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
+            + H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number]
+            + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number]
+            + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
+            + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
+            + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
+        score -= 0 * 0.1 * sum;
+      }*/
     }
 
-    if (tick_number < 50) {
-      const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
-      const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
-      const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
-      /*if (H::danger_grid[cell_x][cell_y][cell_z][tick_number] > 0
-          || H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number] > 0
-          || H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number] > 0
-          || H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number] > 0
-          || H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number] > 0
-          || H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number] > 0
-          || H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number] > 0
-          || H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number] > 0) {
-        //P::drawSphere({cell_x * 2 + 1. - 40, cell_y * 2 + 1., cell_z * 2 + 1. - 30}, 2, 0x0000F0);
-      }*/
-      const int& sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
-          + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
-          + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
-          + H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number]
-          + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number]
-          + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
-          + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
-          + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-      score -= 100 * sum;
-    }
+
 
     return score;
   }
@@ -1281,6 +1273,20 @@ struct SmartSimulator {
       if (!main_robot->state.touch) {
         score -= 0.5 * C::TPT;
       }
+      /*if (tick_number < 100) {
+        const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
+        const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
+        const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
+        const int sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
+            + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
+            + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
+            + H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number]
+            + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number]
+            + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
+            + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
+            + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
+        score -= 0 * 0.1 * sum;
+      }*/
     }
     double x = ball->getState().position.x;
     if (x > 10) {
@@ -1293,30 +1299,7 @@ struct SmartSimulator {
         1,
         -C::rules.arena.depth / 2 - 4}).length();
 
-    if (tick_number < 50) {
-      const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
-      const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
-      const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
-      /*if (H::danger_grid[cell_x][cell_y][cell_z][tick_number] > 0
-          || H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number] > 0
-          || H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number] > 0
-          || H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number] > 0
-          || H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number] > 0
-          || H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number] > 0
-          || H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number] > 0
-          || H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number] > 0) {
-        //P::drawSphere({cell_x * 2 + 1. - 40, cell_y * 2 + 1., cell_z * 2 + 1. - 30}, 2, 0x0000F0);
-      }*/
-      const int& sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
-          + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
-          + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
-          + H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number]
-          + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number]
-          + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
-          + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
-          + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-      score -= 100 * sum;
-    }
+
 
     return score;
   }
