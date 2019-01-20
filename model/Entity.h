@@ -39,6 +39,7 @@ struct EntityState {
 struct Entity {
 
   struct Collision {
+    Entity* me;
     Entity* e;
     int tick;
   };
@@ -69,7 +70,9 @@ struct Entity {
   EntityState prev_state;
   EntityState prev_micro_state;
   EntityState states[101];
-  Collision* collisions = nullptr;
+
+  static constexpr int max_collisions = 100;
+  Collision collisions[100];
   int collisions_size = 0;
 
   bool collide_with_ball_in_air;
@@ -83,6 +86,13 @@ struct Entity {
 
   Entity() {}
 
+  void addCollision(const Collision& collision) {
+    if (collisions_size == max_collisions) {
+      return;
+    }
+    collisions[collisions_size++] = collision;
+  }
+
   void fromPack(const model::NitroPack& _pack) {
     is_pack = true;
     is_ball = is_robot = false;
@@ -91,6 +101,7 @@ struct Entity {
     id = _pack.id;
     state.radius = _pack.radius;
     state.position = {_pack.x, _pack.y, _pack.z};
+    collisions_size = 0;
   }
 
   void fromBall(const model::Ball& ball) {
@@ -110,7 +121,7 @@ struct Entity {
     id = 0;
     is_teammate = false;
 
-    collisions = new Collision[7];
+    collisions_size = 0;
 
   }
 
@@ -132,15 +143,14 @@ struct Entity {
     id = robot.id;
     is_teammate = robot.is_teammate;
 
-    collisions = new Collision[7];
+    collisions_size = 0;
 
     //action = {state.velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0};
-    action = {{0, 0, 0}, 0};
+    action = {{0, 0, 0}, 0, 15, false};
 
   }
 
   ~Entity() {
-    delete[] collisions;
   }
 
   void saveState(const int tick_number) {
@@ -172,13 +182,14 @@ struct Entity {
   }
 
   void wantToBecomeDynamic(int tick_number) {
-    want_to_become_dynamic = true; // todo min tick
+    want_to_become_dynamic = true;
     want_to_become_dynamic_on_tick = tick_number;
-    /*for (auto& collision : collisions) { // TODO do and test
-      if (collision.tick >= tick_number && !collision.e->want_to_become_dynamic) {
-        collision.e->wantToBecomeDynamic(collision.tick);
+    for (int i = 0; i < collisions_size; ++i) {
+      if (collisions[i].tick >= tick_number && (!collisions[i].e->want_to_become_dynamic
+          || collisions[i].e->want_to_become_dynamic_on_tick > tick_number)) {
+        collisions[i].e->wantToBecomeDynamic(collisions[i].tick);
       }
-    }*/
+    }
   }
 
   void nitroCheck() {

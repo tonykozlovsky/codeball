@@ -89,6 +89,8 @@ struct SmartSimulator {
 
   double hit_e;
 
+  bool collided_entities[7][7];
+
   // maybe we can have 4x-5x performance boost, and more when 3x3
   SmartSimulator(
       const int simulation_depth,
@@ -202,6 +204,14 @@ struct SmartSimulator {
     updateStatic((double) number_of_microticks / C::rules.TICKS_PER_SECOND / C::rules.MICROTICKS_PER_TICK, number_of_tick, number_of_microticks);
   }
 
+  void clearCollisions() {
+    for (int i = 0; i < 7; ++i) {
+      for (int j = 0; j < 7; ++j) {
+        collided_entities[i][j] = false;
+      }
+    }
+  }
+
   void tickWithJumpsStatic(const int tick_number, bool with_jumps) {
     for (int i = 0; i < initial_static_entities_size; ++i) { // save state
       auto& e = initial_static_entities[i];
@@ -210,6 +220,7 @@ struct SmartSimulator {
     if (with_jumps) {
       clearAdditionalJumpsStatic();
     }
+    clearCollisions();
     tickStatic(tick_number);
     if (with_jumps) {
       bool needs_rollback = false;
@@ -217,7 +228,7 @@ struct SmartSimulator {
         auto& e = initial_static_robots[i];
         if (e->collide_with_ball_in_air || e->additional_jump) {
           needs_rollback = true;
-          e->action.jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
+          e->action.jump_speed = e->additional_jump ? std::max(C::MIN_WALL_JUMP, e->action.max_jump_speed) : e->action.max_jump_speed;
         }
       }
       if (needs_rollback) {
@@ -225,9 +236,31 @@ struct SmartSimulator {
           auto& e = initial_static_entities[i];
           e.fromState(tick_number);
         }
+        clearCollisions();
         tickStatic(tick_number);
       }
     }
+    for (int i = 0; i < 7; ++i) {
+      for (int j = 0; j < 7; ++j) {
+        if (collided_entities[i][j]) {
+          Entity* e = initialStaticEntityById(i);
+          Entity* me = initialStaticEntityById(j);
+          if (e && me) {
+            me->addCollision({me, e, tick_number});
+            e->addCollision({e, me, tick_number});
+          }
+        }
+      }
+    }
+  }
+
+  Entity* initialStaticEntityById(const int id) {
+    for (int i = 0; i < initial_static_entities_size; ++i) {
+      if (initial_static_entities[i].id == id) {
+        return initial_static_entities + i;
+      }
+    }
+    return 0;
   }
 
   bool anyTriggersActive() {
@@ -332,17 +365,18 @@ struct SmartSimulator {
     const double distance_sq = delta_position.length_sq();
     const double sum_r = a->state.radius + b->state.radius;
     if (check_with_ball) {
-      if ((3.05) * (3.05) > distance_sq) {
+      if ((3 + jr * a->action.max_jump_speed) * (3 + jr * a->action.max_jump_speed) > distance_sq) {
         a->collide_with_ball_in_air = true;
       }
-    } else if ((2.05) * (2.05) > distance_sq) {
-      if (a->is_teammate && !b->state.touch) {
+    } else {
+      if (a->is_teammate && !b->state.touch && (2 + jr * a->action.max_jump_speed) * (2 + jr * a->action.max_jump_speed) > distance_sq) {
         a->collide_with_ball_in_air = true;
-      } else if (b->is_teammate && !a->state.touch) {
-        a->collide_with_ball_in_air = true;
+      } else if (b->is_teammate && !a->state.touch && (2 + jr * b->action.max_jump_speed) * (2 + jr * b->action.max_jump_speed) > distance_sq) {
+        b->collide_with_ball_in_air = true;
       }
     }
     if (sum_r * sum_r > distance_sq) {
+      collided_entities[a->id][b->id] = true;
       const double penetration = sum_r - sqrt(distance_sq);
       if (check_with_ball) {
         entity_ball_collision_trigger = true;
@@ -389,6 +423,8 @@ struct SmartSimulator {
     e->state.position.y -= C::rules.GRAVITY * delta_time * delta_time / 2;
     e->state.velocity.y -= C::rules.GRAVITY * delta_time;
   }
+
+  static constexpr double jr = 0.0033333333333333333333333333333;
 
   bool updateDynamic(const double delta_time, const int number_of_tick, const int number_of_microticks, GoalInfo& cur_goal_info) {
 
@@ -504,7 +540,7 @@ struct SmartSimulator {
 
       ////H::t[10].cur(true);
       ////H::t[23].start();
-      robot->state.radius = 1. + 0.0033333333333333333333333333333 * robot->action.jump_speed;
+      robot->state.radius = 1. + jr * robot->action.jump_speed;
       ////H::t[23].cur(true);
       ////H::t[24].start();
 
@@ -761,7 +797,7 @@ struct SmartSimulator {
         const auto& e = dynamic_robots[i];
         if (e->collide_with_ball_in_air || e->additional_jump) {
           needs_rollback = true;
-          e->action.jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
+          e->action.jump_speed = e->additional_jump ? std::max(C::MIN_WALL_JUMP, e->action.max_jump_speed) : e->action.max_jump_speed;
           if (e == main_robot) {
             if (e->collide_with_ball_in_air) {
               main_robot_additional_jump_type = 1;
@@ -942,13 +978,13 @@ struct SmartSimulator {
     const double distance_sq = delta_position.length_sq();
     const double sum_r = a->state.radius + b->state.radius;
     if (check_with_ball) {
-      if ((3.05) * (3.05) > distance_sq) {
+      if ((3 + jr * a->action.max_jump_speed) * (3 + jr * a->action.max_jump_speed) > distance_sq) {
         a->collide_with_ball_in_air = true;
       }
-    } else if ((2.05) * (2.05) > distance_sq) {
-      if (a->is_teammate && !b->state.touch) {
+    } else {
+      if (a->is_teammate && !b->state.touch && (2 + jr * a->action.max_jump_speed) * (2 + jr * a->action.max_jump_speed) > distance_sq) {
         a->collide_with_ball_in_air = true;
-      } else if (b->is_teammate && !a->state.touch) {
+      } else if (b->is_teammate && !a->state.touch && (2 + jr * b->action.max_jump_speed) * (2 + jr * b->action.max_jump_speed) > distance_sq) {
         b->collide_with_ball_in_air = true;
       }
     }

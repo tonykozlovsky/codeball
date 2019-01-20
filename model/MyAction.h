@@ -12,6 +12,7 @@
 struct MyAction {
   Point target_velocity = {0, 0, 0};
   double jump_speed = 0;
+  double max_jump_speed = 15.;
   bool use_nitro = false;
   model::Action toAction() {
     model::Action result;

@@ -8,9 +8,10 @@ struct Plan {
   double angle2;
   double sangle2;
   double cangle2;
+  double max_jump_speed;
   int time_change;
   int time_jump;
-  bool enemy_best_plan;
+  bool enemy_smart_plan;
   struct Score {
     double sum_score;
     double fighter_min_dist_to_ball;
@@ -70,43 +71,59 @@ struct Plan {
 
   int oncoming_jump;
 
+  double oncoming_jump_speed;
+
   bool was_jumping;
   bool was_in_air_after_jumping;
   bool was_on_ground_after_in_air_after_jumping;
   bool collide_with_ball_before_on_ground_after_jumping;
-  Plan(const int simulation_depth = C::MAX_SIMULATION_DEPTH, bool one_vector = false) {
+
+  Plan() : Plan(3, 0) {}
+
+  Plan(int configuration, const int simulation_depth) {
     was_jumping = false;
     was_in_air_after_jumping = false;
     was_on_ground_after_in_air_after_jumping = false;
     collide_with_ball_before_on_ground_after_jumping = false;
     oncoming_jump  = -1;
 
-    angle1 = C::rand_double(0, 2 * M_PI);
-    cangle1 = cos(angle1);
-    sangle1 = sin(angle1);
-    angle2 = C::rand_double(0, 2 * M_PI);
-    cangle2 = cos(angle2);
-    sangle2 = sin(angle2);
-    time_change = one_vector ? -1 : C::rand_int(0, simulation_depth + 1);
-    time_jump = C::rand_int(0, simulation_depth + 1);
-
-    speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
-
-    if (C::rand_double(0, 1) < 0.01) {
-      speed1 = 0;
-    }
-    if (C::rand_double(0, 1) < 0.01) {
-      speed2 = 0;
+    if (configuration == 1) {
+      angle1 = C::rand_double(0, 2 * M_PI);
+      cangle1 = cos(angle1);
+      sangle1 = sin(angle1);
+      angle2 = C::rand_double(0, 2 * M_PI);
+      cangle2 = cos(angle2);
+      sangle2 = sin(angle2);
+      time_change = C::rand_int(-1, simulation_depth + 1);
+      time_jump = C::rand_int(-1, simulation_depth + 1);
+      speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
+      max_jump_speed = C::rand_double(0, C::rules.ROBOT_MAX_JUMP_SPEED);
+    } else if (configuration == 2) { // smart enemy
+      angle1 = C::rand_double(0, 2 * M_PI);
+      cangle1 = cos(angle1);
+      sangle1 = sin(angle1);
+      time_change = -1;
+      time_jump = C::rand_int(-1, simulation_depth + 1);
+      speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED; // todo enemy speed ?
+      max_jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
+    } else if (configuration == 3) { // sptupid enemy
+      angle1 = 0;
+      cangle1 = 0;
+      sangle1 = 0;
+      time_change = -1;
+      time_jump = -1;
+      speed1 = speed2 = 0;
+      max_jump_speed = 0;
     }
 
     score.minimal();
   }
 
   static constexpr double angle_mutation = M_PI / 100;
-  static constexpr double speed_mutation = 2;
+  static constexpr double speed_mutation = 1;
   static constexpr int time_mutation = 1;
 
-  void mutate(bool one_vector = false) {
+  void mutate(int configuration, const int simulation_depth) {
 
     was_jumping = false;
     was_in_air_after_jumping = false;
@@ -114,54 +131,68 @@ struct Plan {
     collide_with_ball_before_on_ground_after_jumping = false;
     oncoming_jump  = -1;
 
-    angle1 += C::rand_double(-angle_mutation, angle_mutation);
-    if (angle1 > 2 * M_PI) {
-      angle1 -= 2 * M_PI;
-    }
-    if (angle1 < 0) {
-      angle1 += 2 * M_PI;
-    }
-    cangle1 = cos(angle1);
-    sangle1 = sin(angle1);
-    angle2 += C::rand_double(-angle_mutation, angle_mutation);
-    if (angle2 > 2 * M_PI) {
-      angle2 -= 2 * M_PI;
-    }
-    if (angle2 < 0) {
-      angle2 += 2 * M_PI;
-    }
-    cangle2 = cos(angle2);
-    sangle2 = sin(angle2);
-    time_change += (one_vector ? 0 : C::rand_int(-time_mutation, time_mutation));
-    if (time_change < -1) {
-      time_change = -1;
-    }
-    if (time_change > C::MAX_SIMULATION_DEPTH) {
-      time_change = C::MAX_SIMULATION_DEPTH;
-    }
-    time_jump = time_jump + C::rand_int(-time_mutation, time_mutation);
-    if (time_jump < -1) {
-      time_jump = -1;
-    }
-    if (time_jump > C::MAX_SIMULATION_DEPTH) {
-      time_jump = C::MAX_SIMULATION_DEPTH;
-    }
+    if (configuration == 1) {
+      angle1 += C::rand_double(-angle_mutation, angle_mutation);
+      if (angle1 > 2 * M_PI) {
+        angle1 -= 2 * M_PI;
+      }
+      if (angle1 < 0) {
+        angle1 += 2 * M_PI;
+      }
+      cangle1 = cos(angle1);
+      sangle1 = sin(angle1);
+      angle2 += C::rand_double(-angle_mutation, angle_mutation);
+      if (angle2 > 2 * M_PI) {
+        angle2 -= 2 * M_PI;
+      }
+      if (angle2 < 0) {
+        angle2 += 2 * M_PI;
+      }
+      cangle2 = cos(angle2);
+      sangle2 = sin(angle2);
+      time_change += C::rand_int(-time_mutation, time_mutation);
+      if (time_change < -1) {
+        time_change = -1;
+      }
+      if (time_change > simulation_depth) {
+        time_change = simulation_depth;
+      }
+      time_jump += C::rand_int(-time_mutation, time_mutation);
+      if (time_jump < -1) {
+        time_jump = -1;
+      }
+      if (time_jump > simulation_depth) {
+        time_jump = simulation_depth;
+      }
 
-    //speed1 += C::rand_double(-speed_mutation, speed_mutation);
-    //if (speed1 < 0) {
-    //  speed1 = 0;
-    //}
-    //if (speed1 > C::rules.ROBOT_MAX_GROUND_SPEED) {
-    //  speed1 = C::rules.ROBOT_MAX_GROUND_SPEED;
-    //}
+      max_jump_speed += C::rand_double(-speed_mutation, speed_mutation);
+      if (max_jump_speed < 0) {
+        max_jump_speed = 0;
+      }
+      if (max_jump_speed > C::rules.ROBOT_MAX_JUMP_SPEED) {
+        max_jump_speed = C::rules.ROBOT_MAX_JUMP_SPEED;
+      }
 
-    //speed2 += C::rand_double(-speed_mutation, speed_mutation);
-    //if (speed2 < 0) {
-    //  speed2 = 0;
-    //}
-    //if (speed2 > C::rules.ROBOT_MAX_GROUND_SPEED) {
-    //  speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
-    //}
+    } else if (configuration == 2) { // smart enemy
+      angle1 += C::rand_double(-angle_mutation, angle_mutation);
+      if (angle1 > 2 * M_PI) {
+        angle1 -= 2 * M_PI;
+      }
+      if (angle1 < 0) {
+        angle1 += 2 * M_PI;
+      }
+      cangle1 = cos(angle1);
+      sangle1 = sin(angle1);
+
+      time_jump += C::rand_int(-time_mutation, time_mutation);
+      if (time_jump < -1) {
+        time_jump = -1;
+      }
+      if (time_jump > simulation_depth) {
+        time_jump = simulation_depth;
+      }
+
+    }
 
     score.minimal();
   }
@@ -169,22 +200,25 @@ struct Plan {
   MyAction toMyAction(int simulation_tick, bool simulation) {
     double jump_speed;
     if (simulation) {
-      jump_speed = simulation_tick == time_jump ? C::rules.ROBOT_MAX_JUMP_SPEED : 0;
+      jump_speed = simulation_tick == time_jump ? max_jump_speed : 0;
     } else {
-      jump_speed = simulation_tick == oncoming_jump ? C::rules.ROBOT_MAX_JUMP_SPEED : 0;
+      jump_speed = simulation_tick == oncoming_jump ? oncoming_jump_speed : 0;
     }
     if (simulation_tick < time_change) {
       return MyAction{{
           speed1 * cangle1,
           0,
           speed1 * sangle1},
-          jump_speed, false};
+          jump_speed,
+          max_jump_speed,
+          false};
     } else {
       return MyAction{{
           speed2 * cangle2,
                 0,
           speed2 * sangle2},
-                jump_speed, false};
+          jump_speed,
+          max_jump_speed, false};
     }
   }
   bool operator<(const Plan& other) const {

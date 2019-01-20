@@ -53,15 +53,16 @@ void doStrategy() {
     const int enemy_depth = 50;
 
     for (int enemy_id : {2, 3}) {
+      continue;
       SmartSimulator simulator(enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), H::game.robots, H::game.ball, {}, true);
 
       for (int iteration = 0; iteration < 250; iteration++) {
-        Plan cur_plan(enemy_depth, true);
+        Plan cur_plan(2, enemy_depth);
         if (iteration == 0) {
           cur_plan = H::best_plan[enemy_id];
         } else if (C::rand_double(0, 1) < 1. / 10.) {
           cur_plan = H::best_plan[enemy_id];
-          cur_plan.mutate(true);
+          cur_plan.mutate(2, enemy_depth);
         }
         cur_plan.score.start_fighter();
         simulator.initIteration(iteration, -1);
@@ -70,7 +71,7 @@ void doStrategy() {
           for (int i = 0; i < simulator.dynamic_robots_size; ++i) {
             auto& robot = simulator.dynamic_robots[i];
             if (robot != simulator.main_robot) {
-              robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true);
+              robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true); //todo need this ?
             }
           }
           simulator.main_robot->action = cur_plan.toMyAction(sim_tick, true);
@@ -138,12 +139,12 @@ void doStrategy() {
           break;
         }
 
-        Plan cur_plan_enemy_smart(C::MAX_SIMULATION_DEPTH);
+        Plan cur_plan_enemy_smart(1, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0 || iteration == additional_iteration[id]) {
           cur_plan_enemy_smart = H::best_plan[id];
         } else if (C::rand_double(0, 1) < 1. / 10.) {
           cur_plan_enemy_smart = H::best_plan[id];
-          cur_plan_enemy_smart.mutate();
+          cur_plan_enemy_smart.mutate(1, C::MAX_SIMULATION_DEPTH);
         }
 
         if (id == 0) {
@@ -153,21 +154,26 @@ void doStrategy() {
         }
 
         Plan cur_plan_enemy_stupid = cur_plan_enemy_smart;
-        cur_plan_enemy_smart.enemy_best_plan = true;
-        cur_plan_enemy_stupid.enemy_best_plan = false;
+        cur_plan_enemy_smart.enemy_smart_plan = true;
+        cur_plan_enemy_stupid.enemy_smart_plan = false;
 
         simulator_enemy_smart.initIteration(iteration, additional_iteration[id]);
         simulator_enemy_stupid.initIteration(iteration, additional_iteration[id]);
 
-        for (int minimax_id = 0; minimax_id < 2; minimax_id++) {
+        for (int minimax_id = 1; minimax_id < 2; minimax_id++) {
           SmartSimulator& simulator = (minimax_id == 0 ? simulator_enemy_smart : simulator_enemy_stupid);
           Plan& cur_plan = (minimax_id == 0 ? cur_plan_enemy_smart : cur_plan_enemy_stupid);
           double multiplier = 1.;
           for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
             for (int i = 0; i < simulator.dynamic_robots_size; ++i) {
               auto& robot = simulator.dynamic_robots[i];
-              if (robot != simulator.main_robot && (cur_plan.enemy_best_plan || robot->is_teammate)) {
-                robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true);
+              if (robot != simulator.main_robot) {
+                if ((cur_plan.enemy_smart_plan || robot->is_teammate)) {
+                  robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true);
+                } else {
+                  Plan stupid_plan(3, C::MAX_SIMULATION_DEPTH);
+                  robot->action = stupid_plan.toMyAction(i, true);
+                }
               }
             }
             simulator.main_robot->action = cur_plan.toMyAction(sim_tick, true);
@@ -192,8 +198,11 @@ void doStrategy() {
               }
               if (cur_plan.oncoming_jump == -1) {
                 cur_plan.oncoming_jump = sim_tick;
+                cur_plan.oncoming_jump_speed = main_robot_additional_jump_type == 2 ?
+                    std::max(C::MIN_WALL_JUMP, cur_plan.max_jump_speed) : cur_plan.max_jump_speed;
               }
             }
+
             if (id == 0) {
               cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
               cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
@@ -212,15 +221,19 @@ void doStrategy() {
           }
         }
 
-        Plan minimaxed_cur_plan = std::min(cur_plan_enemy_smart, cur_plan_enemy_stupid);
+        Plan minimaxed_cur_plan = cur_plan_enemy_stupid;//std::min(cur_plan_enemy_smart, cur_plan_enemy_stupid);
 
         if (minimaxed_cur_plan.was_in_air_after_jumping && !minimaxed_cur_plan.collide_with_ball_before_on_ground_after_jumping) {
           minimaxed_cur_plan.time_jump = -1;
         }
         if (minimaxed_cur_plan.oncoming_jump == -1) {
           minimaxed_cur_plan.oncoming_jump = minimaxed_cur_plan.time_jump;
+          minimaxed_cur_plan.oncoming_jump_speed = minimaxed_cur_plan.max_jump_speed;
         } else if (minimaxed_cur_plan.time_jump != -1) {
-          minimaxed_cur_plan.oncoming_jump = std::min(minimaxed_cur_plan.oncoming_jump, minimaxed_cur_plan.time_jump);
+          if (minimaxed_cur_plan.oncoming_jump > minimaxed_cur_plan.time_jump) {
+            minimaxed_cur_plan.oncoming_jump = minimaxed_cur_plan.time_jump;
+            minimaxed_cur_plan.oncoming_jump_speed = minimaxed_cur_plan.max_jump_speed;
+          }
         }
         H::best_plan[id] = std::max(H::best_plan[id], minimaxed_cur_plan);
       }
