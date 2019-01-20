@@ -217,6 +217,7 @@ void doStrategy() {
                 cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
               }
             }
+            multiplier *= 0.999;
           }
         }
 
