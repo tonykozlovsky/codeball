@@ -70,16 +70,24 @@ void doStrategy() {
     }
 
 
+    int iterations[2] = {251, 251};
+    int additional_iteration[2] = {250, 250};
     for (int id = 1; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), H::game.robots, H::game.ball, {}, false);
-      int iterations[2] = {251, 251};
-      int additional_iteration[2] = {250, 250};
-      if (H::game.ball.z > 0.01) {
-        iterations[0] = 476;
-        iterations[1] = 26;
-        additional_iteration[0] = 475;
-        additional_iteration[1] = 25;
+      if (id == 1) {
+        bool ball_on_my_side = false;
+        for (int i = 0; i < C::MAX_SIMULATION_DEPTH; ++i) {
+          if (simulator.ball->states[i].position.z < -0.01) {
+            ball_on_my_side = true;
+          }
+        }
+        if (!ball_on_my_side) {
+          iterations[0] = 476;
+          iterations[1] = 26;
+          additional_iteration[0] = 475;
+          additional_iteration[1] = 25;
+        }
       }
       for (;; iteration++) {
         if (iteration > iterations[id]) {
