@@ -87,8 +87,8 @@ struct SmartSimulator {
 
   bool accurate;
 
-  double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
-  // double hit_e = C::rules.MAX_HIT_E;
+  // double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
+  double hit_e = C::rules.MAX_HIT_E;
 
   bool collided_entities[7][7];
 
