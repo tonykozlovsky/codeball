@@ -42,6 +42,9 @@ struct H {
     }
     H::global_timer.start();
     game = _game;
+    std::sort(game.robots.begin(), game.robots.end(), [](const auto& a, const auto& b) {
+      return a.id < b.id;
+    });
     C::rules = _rules;
     tick = game.current_tick;
     actions[1] = actions[2] = actions[3] = actions[4] = model::Action();

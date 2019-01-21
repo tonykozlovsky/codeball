@@ -47,7 +47,6 @@ void doStrategy() {
     for (int id = 2; id < 4; ++id) {
       for (auto& robot : H::game.robots) {
         if (robot.id == H::getRobotGlobalIdByLocal(id)) {
-          // todo LAST ACTION
           H::best_plan[id] = Plan(4, C::MAX_SIMULATION_DEPTH, atan2(robot.velocity_z, robot.velocity_x));
         }
       }
@@ -76,7 +75,7 @@ void doStrategy() {
       SmartSimulator simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), H::game.robots, H::game.ball, {}, false);
       int iterations[2] = {251, 251};
       int additional_iteration[2] = {250, 250};
-      if (H::game.ball.z < -0.01) {
+      if (H::game.ball.z > 0.01) {
         iterations[0] = 476;
         iterations[1] = 26;
         additional_iteration[0] = 475;
