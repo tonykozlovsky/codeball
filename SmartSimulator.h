@@ -87,8 +87,8 @@ struct SmartSimulator {
 
   bool accurate;
 
-  // double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
-  double hit_e = C::rules.MAX_HIT_E;
+  double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
+  // double hit_e = C::rules.MAX_HIT_E;
 
   bool collided_entities[7][7];
 
@@ -378,7 +378,7 @@ struct SmartSimulator {
       const double penetration = sum_r - sqrt(distance_sq);
       if (check_with_ball) {
         entity_ball_collision_trigger = true;
-      } else if (!a->state.touch || !b->state.touch) {
+      } else if (!a->state.touch && !b->state.touch) {
         entity_entity_collision_trigger = true;
       }
       const double k_a = 1. / (a->mass * ((1 / a->mass) + (1 / b->mass)));
@@ -722,9 +722,7 @@ struct SmartSimulator {
 
     static_robots_size = 0;
     for (int i = 0; i < initial_static_robots_size; ++i) {
-      static_robots[static_robots_size] = initial_static_robots[i];
-      static_robots[static_robots_size]->action = {static_robots[static_robots_size]->state.velocity.normalize() * C::rules.ROBOT_MAX_GROUND_SPEED, 0, 15, false};
-      static_robots_size++;
+      static_robots[static_robots_size++] = initial_static_robots[i];
     }
 
     dynamic_robots_size = 0;
@@ -940,7 +938,6 @@ struct SmartSimulator {
     if (goal_info.goal_to_me || goal_info.goal_to_enemy) {
       return 0;
     }
-
     int main_robot_additional_jump_type = false;
     wantedStaticGoToDynamic(tick_number);
     for (int i = 0; i < static_entities_size; ++i) {
@@ -1009,7 +1006,7 @@ struct SmartSimulator {
         //  //H::t[18].call();
         //}
         entity_ball_collision_trigger = true;
-      } else if (!a->state.touch || !b->state.touch) {
+      } else if (!a->state.touch && !b->state.touch) {
         //if (!accurate && main_robot->id == 4) {
         //  //H::t[19].call();
         //}

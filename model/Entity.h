@@ -71,8 +71,8 @@ struct Entity {
   EntityState prev_micro_state;
   EntityState states[101];
 
-  static constexpr int max_collisions = 100;
-  Collision collisions[100];
+  static constexpr int max_collisions = 14;
+  Collision collisions[14];
   int collisions_size = 0;
 
   bool collide_with_ball_in_air;
