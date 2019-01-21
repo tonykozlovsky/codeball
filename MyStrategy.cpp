@@ -169,7 +169,7 @@ void doStrategy() {
               auto& robot = simulator.dynamic_robots[i];
               if (robot != simulator.main_robot) {
                 if ((cur_plan.enemy_smart_plan || robot->is_teammate)) {
-                  robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true);
+                  robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(sim_tick, true);
                 }
               }
             }
