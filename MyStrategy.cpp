@@ -27,21 +27,30 @@ void doStrategy() {
 #endif
   //H::t[0].start();
   if (H::tick % C::TPT == 0) {
-    for (int id = 0; id < 4; id++) {
+    for (int id = 0; id < 2; id++) {
       H::best_plan[id].score.minimal();
       H::best_plan[id].time_jump--;
-      if (H::best_plan[id].time_jump < -1) {
-        H::best_plan[id].time_jump = -1;
+      if (H::best_plan[id].time_jump < 0) {
+        H::best_plan[id].time_jump = 0;
       }
       H::best_plan[id].time_change--;
-      if (H::best_plan[id].time_change < -1) {
-        H::best_plan[id].time_change = -1;
+      if (H::best_plan[id].time_change < 0) {
+        H::best_plan[id].time_change = 0;
       }
       H::best_plan[id].was_jumping = false;
       H::best_plan[id].was_in_air_after_jumping = false;
       H::best_plan[id].was_on_ground_after_in_air_after_jumping = false;
       H::best_plan[id].collide_with_ball_before_on_ground_after_jumping = false;
       H::best_plan[id].oncoming_jump = -1;
+    }
+
+    for (int id = 2; id < 4; ++id) {
+      for (auto& robot : H::game.robots) {
+        if (robot.id == H::getRobotGlobalIdByLocal(id)) {
+          // todo LAST ACTION
+          H::best_plan[id] = Plan(4, C::MAX_SIMULATION_DEPTH, atan2(robot.velocity_z, robot.velocity_x));
+        }
+      }
     }
 
     for (int id = 1; id >= 0; id--) {
@@ -151,6 +160,7 @@ void doStrategy() {
         P::logn("time_jump: ", H::best_plan[0].time_jump);
         P::logn("oncoming_jump: ", H::best_plan[0].oncoming_jump);
         P::logn("oncoming_jump_speed: ", H::best_plan[0].oncoming_jump_speed);
+        P::logn("max_jump_speed: ", H::best_plan[0].max_jump_speed);
         P::logn("angle1: ", H::best_plan[0].angle1);
         P::logn("speed1: ", H::best_plan[0].speed1);
         P::logn("time_change: ", H::best_plan[0].time_change);
@@ -160,6 +170,8 @@ void doStrategy() {
         P::logn("was_in_air_after_jumping: ", H::best_plan[0].was_in_air_after_jumping);
         P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[0].collide_with_ball_before_on_ground_after_jumping);
         P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[0].was_on_ground_after_in_air_after_jumping);
+        P::logn("ajs: ", H::best_plan[0].toMyAction(0, false).toAction().jump_speed);
+
 
         Plan cur_plan = H::best_plan[0];
 

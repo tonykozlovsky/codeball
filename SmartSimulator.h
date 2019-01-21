@@ -88,6 +88,7 @@ struct SmartSimulator {
   bool accurate;
 
   double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
+  // double hit_e = C::rules.MAX_HIT_E;
 
   bool collided_entities[7][7];
 
@@ -129,14 +130,8 @@ struct SmartSimulator {
       initial_static_packs[initial_static_packs_size++] = new_pack;
     }
 
-    for (int i = 0; i < simulation_depth + 1; ++i) {
-      for (int j = 0; j < initial_static_robots_size; ++j) {
-        auto& robot = initial_static_robots[j];
-        if (robot->is_teammate) {
-          robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(i, true);
-        }
-      }
-      tickWithJumpsStatic(i, true);
+    for (int sim_tick = 0; sim_tick < simulation_depth + 1; ++sim_tick) {
+      tickWithJumpsStatic(sim_tick, true);
     }
 
 #ifdef DEBUG
@@ -212,6 +207,10 @@ struct SmartSimulator {
   }
 
   void tickWithJumpsStatic(const int tick_number, bool with_jumps) {
+    for (int i = 0; i < initial_static_robots_size; ++i) {
+      auto& robot = initial_static_robots[i];
+      robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(tick_number, true);
+    }
     for (int i = 0; i < initial_static_entities_size; ++i) { // save state
       auto& e = initial_static_entities[i];
       e.saveState(tick_number);
@@ -819,6 +818,13 @@ struct SmartSimulator {
   }
 
   bool tryDoTickWithoutAnybodyBecomingDynamic(const int tick_number, int& main_robot_additional_jump_type, GoalInfo& cur_goal_info) {
+    for (int i = 0; i < dynamic_robots_size; ++i) {
+      auto& robot = dynamic_robots[i];
+      if (robot == main_robot) {
+        continue;
+      }
+      robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(tick_number, true);
+    }
     return tryTickWithJumpsDynamic(tick_number, true, main_robot_additional_jump_type, cur_goal_info);
   }
 
@@ -934,6 +940,7 @@ struct SmartSimulator {
     if (goal_info.goal_to_me || goal_info.goal_to_enemy) {
       return 0;
     }
+
     int main_robot_additional_jump_type = false;
     wantedStaticGoToDynamic(tick_number);
     for (int i = 0; i < static_entities_size; ++i) {
