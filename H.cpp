@@ -25,6 +25,7 @@ double H::time_limit;
 double H::half_time;
 double H::sum_asserts_failed = 0;
 double H::asserts_failed_k = 0;
+Point H::prev_velocity[7];
 int H::danger_grid[80][20][60][100];
 DGState H::used_cells[1000007];
 int H::used_cells_size = 0;

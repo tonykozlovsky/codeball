@@ -25,6 +25,7 @@ void doStrategy() {
   e.fromBall(H::game.ball);
   P::drawEntities({e.state}, 0, 0x333333);
 #endif
+
   if (H::tick % C::TPT == 0) {
     for (int id = 0; id < 2; id++) {
       H::best_plan[id].score.minimal();
@@ -51,6 +52,25 @@ void doStrategy() {
         }
       }
     }
+
+    for (int id = 2; id < 4; ++id) {
+      for (auto& robot : H::game.robots) {
+        if (robot.id == H::getRobotGlobalIdByLocal(id)) {
+          Point v0 = H::prev_velocity[id];
+          Point v1 = {robot.velocity_x, robot.velocity_y, robot.velocity_z};
+          double dvx = v1.x - v0.x;
+          double dvz = v1.z - v0.z;
+          double ax, az;
+          if (H::solve(v0.x, v0.z, v1.x, v1.z, dvx, dvz, ax, az)) {
+            H::best_plan[id] = Plan(4, C::MAX_SIMULATION_DEPTH, atan2(az, ax));
+            // Point pos = {robot.x, robot.y, robot.z};
+            // P::drawLine(pos, {pos.x + ax, pos.y, pos.z + az});
+          }
+        }
+      }
+    }
+
+
     for (int id = 1; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), H::game.robots, H::game.ball, {}, false);
@@ -208,6 +228,12 @@ void doStrategy() {
   H::actions[H::getRobotGlobalIdByLocal(0)] = H::best_plan[0].toMyAction(0, false).toAction();
   H::actions[H::getRobotGlobalIdByLocal(1)] = H::best_plan[1].toMyAction(0, false).toAction();
 #endif
+
+  for (auto& robot : H::game.robots) {
+    int id = H::getRobotLocalIdByGlobal(robot.id);
+    H::prev_velocity[id] = {robot.velocity_x, robot.velocity_y, robot.velocity_z};
+  }
+
 }
 
 void MyStrategy::act(

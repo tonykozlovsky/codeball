@@ -30,6 +30,8 @@ struct H {
   static DGState used_cells[1000007];
   static int used_cells_size;
 
+  static Point prev_velocity[7];
+
   static bool tryInit(
       const model::Robot& _me,
       const model::Rules& _rules,
@@ -103,6 +105,51 @@ struct H {
       return id - 3;
     }
   }
+
+  static bool solve(double v0x, double v0z, double v1x, double v1z, double dvx, double dvz, double& ax, double& az) {
+    const double eps = 1e-9;
+    if (dvx * dvx + dvz * dvz < eps) {
+      ax = v1x;
+      az = v1z;
+      return true;
+    }
+    double c = v0x * dvz - v0z * dvx;
+    double D = 4 * dvz * dvz * c * c - 4 * (dvx * dvx + dvz * dvz) * (c * c - 900 * dvx * dvx);
+    if (D >= 0) {
+      double x1 = (2 * dvz * c + sqrt(D)) / (2 * (dvx * dvx + dvz * dvz));
+      double x2 = (2 * dvz * c - sqrt(D)) / (2 * (dvx * dvx + dvz * dvz));
+      double y1 = 900 - x1 * x1;
+      double y2 = 900 - x2 * x2;
+
+      if (y1 >= 0) {
+        y1 = sqrt(y1);
+        if (dvz * x1 - c < 0) {
+          y1 = -y1;
+        }
+        if (fabs((x1 - v0x) * dvz - (y1 - v0z) * dvx) < eps) {
+          ax = x1;
+          az = y1;
+          return true;
+        }
+      }
+
+      if (y2 >= 0) {
+        y2 = sqrt(y2);
+        if (dvz * x2 - c > 0) {
+          y2 = -y2;
+        }
+        if (fabs((x2 - v0x) * dvz - (y2 - v0z) * dvx) < eps) {
+          ax = x2;
+          az = y2;
+          return true;
+        }
+      }
+
+    }
+    return false;
+  }
+
+
 
   static MyTimer t[100];
   static MyTimer global_timer;
