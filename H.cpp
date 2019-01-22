@@ -19,6 +19,7 @@ Plan H::best_plan[6];
 Plan H::last_action_plan[6];
 
 MyTimer H::t[100];
+MyTimer H::c[100];
 MyTimer H::global_timer;
 int H::player_score[2];
 int H::waiting_ticks;

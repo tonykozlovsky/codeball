@@ -24,6 +24,7 @@ struct MyTimer {
     end();
   }
 
+  double cur_ = 0;
   double cumulative = 0;
   int k = 0;
   double max_ = 0;
@@ -65,8 +66,7 @@ struct MyTimer {
         (std::chrono::high_resolution_clock::now() - _start).count();
     cumulative -= 640e-10;
 #else
-    double res = CPUTime::getCPUTime() - _start;
-    cumulative -= 0.0000008715;
+    double res = CPUTime::getCPUTime() - _start - 0.0000008715;
 #endif
     if (counter) {
       k++;
@@ -76,6 +76,7 @@ struct MyTimer {
     }
     if (accumulate) {
       cumulative += res;
+      cur_ += res;
     }
     return res;
   }
@@ -84,10 +85,19 @@ struct MyTimer {
     cumulative = 0;
     k = 0;
     max_ = 0;
+    cur_ = 0;
+  }
+
+  void clearCur() {
+    cur_ = 0;
+  }
+
+  double getCur() {
+    return cur_;
   }
 
   double avg() {
-    return cumulative / k;
+    return cumulative / (k == 0 ? 1 : k);
   }
 
   double max() {

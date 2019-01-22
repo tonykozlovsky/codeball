@@ -320,7 +320,7 @@ struct P {
   }
   static inline std::string to_string(double fmt) {
     std::stringstream _s;
-    _s << std::fixed << std::setprecision(18) << fmt;
+    _s << std::fixed << std::setprecision(9) << fmt;
     return _s.str();
   }
   static inline std::string to_string(const char*& fmt) {

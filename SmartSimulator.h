@@ -82,7 +82,7 @@ struct SmartSimulator {
   bool ball_arena_collision_trigger;
   int ball_arena_collision_trigger_fires;
   const int ball_arena_collision_limit = 2;
-  
+
   int simulation_depth;
 
   bool accurate;
@@ -1258,8 +1258,6 @@ struct SmartSimulator {
         score -= 0 * 0.1 * sum;
       }*/
     }
-
-
 
     return score;
   }

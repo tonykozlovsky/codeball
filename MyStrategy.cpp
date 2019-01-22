@@ -143,6 +143,17 @@ void doStrategy() {
   P::drawEntities({e.state}, 0, 0x333333);
 #endif
 
+/*
+  for (int i = 0; i < 100; ++i) {
+    auto& t = H::t[i];
+    t.clearCur();
+  }
+  for (int i = 0; i < 100; ++i) {
+    auto& c = H::c[i];
+    c.init_calls();
+  }
+  H::t[0].start();
+*/
   if (H::tick % C::TPT == 0) {
 
     clearBestPlans();
@@ -315,7 +326,20 @@ void doStrategy() {
     int id = H::getRobotLocalIdByGlobal(robot.id);
     H::prev_velocity[id] = {robot.velocity_x, robot.velocity_y, robot.velocity_z};
   }
+/*
+  H::t[0].cur(true);
+  for (int i = 0; i < 20; ++i) {
+    auto& t = H::t[i];
+    t.cur(false, true);
+    P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
+  }
 
+  for (int i = 0; i < 20; ++i) {
+    auto& c = H::c[i];
+    c.capture();
+    P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
+  }
+*/
 }
 
 void MyStrategy::act(

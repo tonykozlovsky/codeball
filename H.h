@@ -157,6 +157,7 @@ struct H {
 
 
   static MyTimer t[100];
+  static MyTimer c[100];
   static MyTimer global_timer;
 };
 
