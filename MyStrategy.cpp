@@ -143,7 +143,7 @@ void doStrategy() {
   P::drawEntities({e.state}, 0, 0x333333);
 #endif
 
-/*
+
   for (int i = 0; i < 100; ++i) {
     auto& t = H::t[i];
     t.clearCur();
@@ -153,15 +153,14 @@ void doStrategy() {
     c.init_calls();
   }
   H::t[0].start();
-*/
+
   if (H::tick % C::TPT == 0) {
 
     clearBestPlans();
 
     enemiesPrediction();
 
-    int iterations[2] = {250 * 2 + 1, 250 * 2 + 1};
-    int additional_iteration[2] = {250 * 2, 250 * 2};
+    int iterations[2] = {250 / 2 + 1, 250 / 2 + 1};
     for (int id = 1; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator_smart(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, {});
@@ -175,10 +174,8 @@ void doStrategy() {
           }
         }
         if (!ball_on_my_side) {
-          iterations[0] = 475 * 2 + 1;
-          iterations[1] = 25 * 2 + 1;
-          additional_iteration[0] = 475 * 2;
-          additional_iteration[1] = 25 * 2;
+          iterations[0] = 475 / 2 + 1;
+          iterations[1] = 25 / 2 + 1;
         }
       }
       for (;; iteration++) {
@@ -187,7 +184,7 @@ void doStrategy() {
         }
 
         Plan cur_plan_smart(1, C::MAX_SIMULATION_DEPTH);
-        if (iteration == 0 || iteration == additional_iteration[id]) {
+        if (iteration == 0) {
           cur_plan_smart = H::best_plan[id];
         } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
           cur_plan_smart = H::best_plan[id];
@@ -326,7 +323,7 @@ void doStrategy() {
     int id = H::getRobotLocalIdByGlobal(robot.id);
     H::prev_velocity[id] = {robot.velocity_x, robot.velocity_y, robot.velocity_z};
   }
-/*
+
   H::t[0].cur(true);
   for (int i = 0; i < 20; ++i) {
     auto& t = H::t[i];
@@ -339,7 +336,7 @@ void doStrategy() {
     c.capture();
     P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
   }
-*/
+
 }
 
 void MyStrategy::act(
