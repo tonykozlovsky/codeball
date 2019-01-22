@@ -104,12 +104,12 @@ struct Plan {
 
       speed1 = C::rules.ROBOT_MAX_GROUND_SPEED;//C::rand_double(0, C::rules.ROBOT_MAX_GROUND_SPEED);
       speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;//C::rand_double(0, C::rules.ROBOT_MAX_GROUND_SPEED);
-      //if (C::rand_double(0, 1) < 0.01) {
-      //  speed1 = 0;
-      //}
-      //if (C::rand_double(0, 1) < 0.01) {
-      //  speed2 = 0;
-      //}
+      if (C::rand_double(0, 1) < 0.01) {
+        speed1 = 0;
+      }
+      if (C::rand_double(0, 1) < 0.01) {
+        speed2 = 0;
+      }
       max_jump_speed = C::rand_int(0, 15);
     } else if (configuration == 2) { // smart enemy
       angle1 = C::rand_double(0, 2 * M_PI);
