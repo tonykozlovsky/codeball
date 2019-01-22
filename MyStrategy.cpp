@@ -18,11 +18,11 @@ void clearBestPlans() {
   for (int id = 0; id < 4; id++) {
     H::best_plan[id].score.minimal();
     H::best_plan[id].time_jump--;
-    if (H::best_plan[id].time_jump < 0) {
+    if (H::best_plan[id].time_jump < 0) { // todo -1 ?
       H::best_plan[id].time_jump = 0;
     }
     H::best_plan[id].time_change--;
-    if (H::best_plan[id].time_change < 0) {
+    if (H::best_plan[id].time_change < 0) { // todo -1 ?
       H::best_plan[id].time_change = 0;
     }
     H::best_plan[id].was_jumping = false;
@@ -63,6 +63,7 @@ void enemiesPrediction() {
   const int enemy_depth = 100;
 
   for (int enemy_id : {2, 3}) {
+    continue;
     SmartSimulator simulator(enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
 
     for (int iteration = 0; iteration < 250; iteration++) {
@@ -153,7 +154,7 @@ void doStrategy() {
     for (int id = 1; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator_smart(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, {});
-      SmartSimulator simulator_stupid(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 3, H::game.robots, H::game.ball, {});
+      SmartSimulator simulator_stupid(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, {});
 
       if (id == 1) {
         bool ball_on_my_side = false;
@@ -195,9 +196,10 @@ void doStrategy() {
         simulator_stupid.initIteration(iteration, cur_plan_stupid);
 
         cur_plan_smart.plans_config = 1;
-        cur_plan_stupid.plans_config = 3;
+        cur_plan_stupid.plans_config = 2;
 
-        for (int minimax = 0; minimax < 2; ++minimax) {
+        cur_plan_smart.score.sum_score = 1e18;
+        for (int minimax = 1; minimax < 2; ++minimax) {
           auto& simulator = minimax == 0 ? simulator_smart : simulator_stupid;
           auto& cur_plan = minimax == 0 ? cur_plan_smart : cur_plan_stupid;
           double multiplier = 1.;

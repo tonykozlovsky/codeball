@@ -87,8 +87,8 @@ struct SmartSimulator {
 
   bool accurate;
 
-  // double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
-   double hit_e = C::rules.MAX_HIT_E;
+   double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
+  // double hit_e = C::rules.MAX_HIT_E;
 
   bool collided_entities[7][7];
 
@@ -131,15 +131,21 @@ struct SmartSimulator {
       initial_static_packs[initial_static_packs_size++] = new_pack;
     }
 
-    if (plans_configuration == 1) { // best action
+    //todo check what better last_action nothing, best action and for my or enemy
+    if (plans_configuration == 1) { // best action all for minimax
       for (int i = 0; i < initial_static_robots_size; ++i) {
         initial_static_robots[i]->plan = H::best_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
       }
-    } else if (plans_configuration == 2) { // last action
-
-    } else if (plans_configuration == 3) { // enemy prediction
+    } else if (plans_configuration == 2) { // best action my, last action enemy
       for (int i = 0; i < initial_static_robots_size; ++i) {
-        //todo check what better last_action nothing, best action and for my or enemy
+        if (initial_static_robots[i]->is_teammate) {
+          initial_static_robots[i]->plan = H::best_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
+        } else {
+          initial_static_robots[i]->plan = H::last_action_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
+        }
+      }
+    } else if (plans_configuration == 3) { // last action all for minimax
+      for (int i = 0; i < initial_static_robots_size; ++i) {
         initial_static_robots[i]->plan = H::last_action_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
       }
     }
