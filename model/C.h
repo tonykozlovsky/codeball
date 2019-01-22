@@ -41,6 +41,7 @@ struct DGState {
 
 struct C {
 
+  static int unique_plan_id;
   static model::Rules rules;
   static constexpr int TPT = 1;
   static constexpr int MAX_SIMULATION_DEPTH = 100 / TPT;

@@ -17,7 +17,9 @@ struct H {
   static int global_id;
   static int my_id;
 
-  static Plan best_plan[4];
+  static Plan last_best_plan[6];
+  static Plan best_plan[6];
+  static Plan last_action_plan[6];
   static int player_score[2];
   static int waiting_ticks;
   static double time_limit;

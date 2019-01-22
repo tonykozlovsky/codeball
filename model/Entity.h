@@ -3,8 +3,10 @@
 
 #ifdef LOCAL
 #include <model/C.h>
+#include <model/Plan.h>
 #else
 #include "C.h"
+#include "Plan.h"
 #endif
 
 struct EntityState {
@@ -56,6 +58,7 @@ struct Entity {
   }
 
   MyAction action;
+  Plan plan;
 
   double arena_e;
   double mass;

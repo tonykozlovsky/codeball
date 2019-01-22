@@ -87,8 +87,8 @@ struct SmartSimulator {
 
   bool accurate;
 
-  double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
-  // double hit_e = C::rules.MAX_HIT_E;
+  // double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
+   double hit_e = C::rules.MAX_HIT_E;
 
   bool collided_entities[7][7];
 
@@ -96,6 +96,7 @@ struct SmartSimulator {
   SmartSimulator(
       const int simulation_depth,
       const int main_robot_id,
+      const int plans_configuration,
       const std::vector<model::Robot>& _robots,
       const model::Ball& _ball,
       const std::vector<model::NitroPack>& _packs,
@@ -128,6 +129,19 @@ struct SmartSimulator {
       auto new_pack = &initial_static_entities[initial_static_entities_size++];
       new_pack->is_dynamic = false;
       initial_static_packs[initial_static_packs_size++] = new_pack;
+    }
+
+    if (plans_configuration == 1) { // best action
+      for (int i = 0; i < initial_static_robots_size; ++i) {
+        initial_static_robots[i]->plan = H::best_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
+      }
+    } else if (plans_configuration == 2) { // last action
+
+    } else if (plans_configuration == 3) { // enemy prediction
+      for (int i = 0; i < initial_static_robots_size; ++i) {
+        //todo check what better last_action nothing, best action and for my or enemy
+        initial_static_robots[i]->plan = H::last_action_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
+      }
     }
 
     for (int sim_tick = 0; sim_tick < simulation_depth + 1; ++sim_tick) {
@@ -209,7 +223,7 @@ struct SmartSimulator {
   void tickWithJumpsStatic(const int tick_number, bool with_jumps) {
     for (int i = 0; i < initial_static_robots_size; ++i) {
       auto& robot = initial_static_robots[i];
-      robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(tick_number, true);
+      robot->action = robot->plan.toMyAction(tick_number, true);
     }
     for (int i = 0; i < initial_static_entities_size; ++i) { // save state
       auto& e = initial_static_entities[i];
@@ -620,7 +634,7 @@ struct SmartSimulator {
     //H::t[6].start();
 
     if (ball->is_dynamic) {
-      for (int i = 0; i < static_robots_size; i++) {
+      for (int i = 0; i < static_robots_size; ++i) {
         if (collideEntitiesCheckDynamic(static_robots[i], ball)) {
           static_robots[i]->wantToBecomeDynamic(number_of_tick);
           has_collision_with_static = true;
@@ -700,15 +714,11 @@ struct SmartSimulator {
     return has_collision_with_static;
   }
 
-  int cur_iteration, cur_additional_iteration;
-  bool ai;
-
-  void initIteration(const int iteration, const int additional_iteration) {
+  void initIteration(const int iteration, const Plan& main_robot_plan) {
     goal_info.goal_to_me = false;
     goal_info.goal_to_enemy = false;
-    cur_iteration = iteration;
-    cur_additional_iteration = additional_iteration;
-    ai = iteration == additional_iteration;
+
+    main_robot->plan = main_robot_plan;
 
     static_entities_size = 0;
     for (int i = 0; i < initial_static_entities_size; ++i) {
@@ -818,10 +828,7 @@ struct SmartSimulator {
   bool tryDoTickWithoutAnybodyBecomingDynamic(const int tick_number, int& main_robot_additional_jump_type, GoalInfo& cur_goal_info) {
     for (int i = 0; i < dynamic_robots_size; ++i) {
       auto& robot = dynamic_robots[i];
-      if (robot == main_robot) {
-        continue;
-      }
-      robot->action = H::best_plan[H::getRobotLocalIdByGlobal(robot->id)].toMyAction(tick_number, true);
+      robot->action = robot->plan.toMyAction(tick_number, true);
     }
     return tryTickWithJumpsDynamic(tick_number, true, main_robot_additional_jump_type, cur_goal_info);
   }
@@ -934,7 +941,7 @@ struct SmartSimulator {
     return false;
   }
 
-  int tickDynamic(const int tick_number, int viz_id, bool viz) {
+  int tickDynamic(const int tick_number, int viz_id = -1, bool viz = false) {
     if (goal_info.goal_to_me || goal_info.goal_to_enemy) {
       return 0;
     }
@@ -972,6 +979,12 @@ struct SmartSimulator {
       for (int i = 0; i < dynamic_entities_size; ++i) {
         auto& e = dynamic_entities[i];
         P::drawLine(e->state.position, e->prev_state.position, accurate ? 0x00FF00 : 0x0000FF);
+      }
+      for (int i = 0; i < static_entities_size; ++i) {
+        auto& e = static_entities[i];
+        P::drawLine(
+            e->states[tick_number].position,
+            e->states[tick_number + 1].position, accurate ? 0x00FFFF : 0xFF00FF);
       }
     }
 #endif

@@ -15,7 +15,8 @@ int H::tick = -1;
 model::Action H::actions[7];
 int H::global_id;
 int H::my_id;
-Plan H::best_plan[4];
+Plan H::best_plan[6];
+Plan H::last_action_plan[6];
 
 MyTimer H::t[100];
 MyTimer H::global_timer;

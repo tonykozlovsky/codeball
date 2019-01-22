@@ -11,7 +11,9 @@ struct Plan {
   double max_jump_speed;
   int time_change;
   int time_jump;
-  bool enemy_smart_plan;
+  int plans_config;
+  int unique_id;
+  int parent_id;
   struct Score {
     double sum_score;
     double fighter_min_dist_to_ball;
@@ -80,7 +82,10 @@ struct Plan {
 
   Plan() : Plan(3, 0) {}
 
-  Plan(int configuration, const int simulation_depth, const double initial_angle = 0) {
+  Plan(int configuration, const int simulation_depth, const double initial_vx = 0, const double initial_vz = 0) {
+    unique_id = C::unique_plan_id++;
+    parent_id = unique_id;
+
     was_jumping = false;
     was_in_air_after_jumping = false;
     was_on_ground_after_in_air_after_jumping = false;
@@ -110,7 +115,7 @@ struct Plan {
       sangle1 = sin(angle1);
       time_change = simulation_depth;
       time_jump = C::rand_int(0, simulation_depth);
-      speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
+      speed1 = C::rules.ROBOT_MAX_GROUND_SPEED;
       max_jump_speed = 15;
     } else if (configuration == 3) { // sptupid enemy
       angle1 = 0;
@@ -118,16 +123,16 @@ struct Plan {
       sangle1 = 0;
       time_change = simulation_depth;
       time_jump = simulation_depth;
-      speed1 = speed2 = 0;
-      max_jump_speed = 0;
-    } else if (configuration == 4) {
-      angle1 = initial_angle;
+      speed1 = 0;
+      max_jump_speed = 0; // todo keep in mind
+    } else if (configuration == 4) { // last action
+      angle1 = atan2(initial_vz, initial_vx);
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
       time_change = simulation_depth;
       time_jump = simulation_depth;
-      speed1 = speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
-      max_jump_speed = 15;
+      speed1 = Point2d{initial_vx, initial_vz}.length();
+      max_jump_speed = 15;  // todo keep in mind
     }
 
     score.minimal();
@@ -139,6 +144,7 @@ struct Plan {
   static constexpr int time_mutation = 1;
 
   void mutate(int configuration, const int simulation_depth) {
+    unique_id = C::unique_plan_id++;
 
     was_jumping = false;
     was_in_air_after_jumping = false;
