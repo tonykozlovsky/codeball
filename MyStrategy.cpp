@@ -63,7 +63,6 @@ void enemiesPrediction() {
   const int enemy_depth = 100;
 
   for (int enemy_id : {2, 3}) {
-    continue;
     SmartSimulator simulator(enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
 
     for (int iteration = 0; iteration < 250; iteration++) {
@@ -209,8 +208,7 @@ void doStrategy() {
         cur_plan_smart.plans_config = 1;
         cur_plan_stupid.plans_config = 2;
 
-        cur_plan_smart.score.sum_score = 1e18;
-        for (int minimax = 1; minimax < 2; ++minimax) {
+        for (int minimax = 0; minimax < 2; ++minimax) {
           auto& simulator = minimax == 0 ? simulator_smart : simulator_stupid;
           auto& cur_plan = minimax == 0 ? cur_plan_smart : cur_plan_stupid;
           double multiplier = 1.;
