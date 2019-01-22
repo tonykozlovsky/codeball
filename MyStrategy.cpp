@@ -63,6 +63,7 @@ void enemiesPrediction() {
   const int enemy_depth = 100;
 
   for (int enemy_id : {2, 3}) {
+    continue;
     SmartSimulator simulator(enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
 
     for (int iteration = 0; iteration < 250; iteration++) {
@@ -159,8 +160,8 @@ void doStrategy() {
 
     enemiesPrediction();
 
-    int iterations[2] = {251, 251};
-    int additional_iteration[2] = {250, 250};
+    int iterations[2] = {250 * 2 + 1, 250 * 2 + 1};
+    int additional_iteration[2] = {250 * 2, 250 * 2};
     for (int id = 1; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator_smart(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, {});
@@ -174,10 +175,10 @@ void doStrategy() {
           }
         }
         if (!ball_on_my_side) {
-          iterations[0] = 476;
-          iterations[1] = 26;
-          additional_iteration[0] = 475;
-          additional_iteration[1] = 25;
+          iterations[0] = 475 * 2 + 1;
+          iterations[1] = 25 * 2 + 1;
+          additional_iteration[0] = 475 * 2;
+          additional_iteration[1] = 25 * 2;
         }
       }
       for (;; iteration++) {
@@ -208,7 +209,8 @@ void doStrategy() {
         cur_plan_smart.plans_config = 1;
         cur_plan_stupid.plans_config = 2;
 
-        for (int minimax = 0; minimax < 2; ++minimax) {
+        cur_plan_smart.score.sum_score = 1e18;
+        for (int minimax = 1; minimax < 2; ++minimax) {
           auto& simulator = minimax == 0 ? simulator_smart : simulator_stupid;
           auto& cur_plan = minimax == 0 ? cur_plan_smart : cur_plan_stupid;
           double multiplier = 1.;
