@@ -102,8 +102,8 @@ struct Plan {
       time_change = C::rand_int(0, simulation_depth);
       time_jump = C::rand_int(0, simulation_depth);
 
-      speed1 = C::rand_double(0, C::rules.ROBOT_MAX_GROUND_SPEED);
-      speed2 = C::rand_double(0, C::rules.ROBOT_MAX_GROUND_SPEED);
+      speed1 = C::rules.ROBOT_MAX_GROUND_SPEED;//C::rand_double(0, C::rules.ROBOT_MAX_GROUND_SPEED);
+      speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;//C::rand_double(0, C::rules.ROBOT_MAX_GROUND_SPEED);
       //if (C::rand_double(0, 1) < 0.01) {
       //  speed1 = 0;
       //}
@@ -188,7 +188,7 @@ struct Plan {
         time_jump = simulation_depth;
       }
 
-      speed1 += C::rand_double(-speed_mutation, speed_mutation);
+      /*speed1 += C::rand_double(-speed_mutation, speed_mutation);
       if (speed1 > C::rules.ROBOT_MAX_GROUND_SPEED) {
         speed1 = C::rules.ROBOT_MAX_GROUND_SPEED;
       }
@@ -202,7 +202,7 @@ struct Plan {
       }
       if (speed2 < 0) {
         speed2 = 0;
-      }
+      }*/
 
       max_jump_speed += C::rand_int(-jump_mutation, jump_mutation);
       if (max_jump_speed < 0) {
