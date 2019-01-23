@@ -340,13 +340,13 @@ void doStrategy() {
   }
 
   H::t[0].cur(true);
-  for (int i = 0; i < 1; ++i) {
+  for (int i = 0; i < 7; ++i) {
     auto& t = H::t[i];
     t.cur(false, true);
     P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
   }
 
-  for (int i = 0; i < 0; ++i) {
+  for (int i = 0; i < 5; ++i) {
     auto& c = H::c[i];
     c.capture();
     P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
