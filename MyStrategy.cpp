@@ -223,11 +223,13 @@ void doStrategy() {
             if (!cur_plan.was_in_air_after_jumping && cur_plan.was_jumping && !simulator.main_robot->state.touch) {
               cur_plan.was_in_air_after_jumping = true;
             }
-            if (simulator.main_robot->action.jump_speed > 0 && simulator.main_robot->state.touch) {
-              cur_plan.was_jumping = true;// todo fix it !
-            }
+            bool main_touch = simulator.main_robot->state.touch;
+
             int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
 
+            if (simulator.main_robot->action.jump_speed > 0 && main_touch) {
+              cur_plan.was_jumping = true;
+            }
 
             if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - additional
               if (main_robot_additional_jump_type == 1 && cur_plan.was_in_air_after_jumping) {
@@ -338,13 +340,13 @@ void doStrategy() {
   }
 
   H::t[0].cur(true);
-  for (int i = 0; i < 20; ++i) {
+  for (int i = 0; i < 1; ++i) {
     auto& t = H::t[i];
     t.cur(false, true);
     P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
   }
 
-  for (int i = 0; i < 20; ++i) {
+  for (int i = 0; i < 0; ++i) {
     auto& c = H::c[i];
     c.capture();
     P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
