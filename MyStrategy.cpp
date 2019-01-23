@@ -222,26 +222,19 @@ void doStrategy() {
           auto& cur_plan = minimax == 0 ? cur_plan_smart : cur_plan_stupid;
           double multiplier = 1.;
           for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
-
-            bool main_touch = simulator.main_robot->state.touch;
-
-            int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
-
-            if (simulator.main_robot->action.jump_speed > 0 && main_touch) {
-              cur_plan.was_jumping = true;
-            }
-
-            if (!cur_plan.was_in_air_after_jumping && cur_plan.was_jumping && !simulator.main_robot->state.touch) {
-              cur_plan.was_in_air_after_jumping = true;
-            }
-
             if (!cur_plan.was_on_ground_after_in_air_after_jumping && cur_plan.was_in_air_after_jumping && simulator.main_robot->state.touch) {
               cur_plan.was_on_ground_after_in_air_after_jumping = true;
               if (!cur_plan.collide_with_ball_before_on_ground_after_jumping) {
                 cur_plan.time_jump = -1;
               }
             }
-
+            if (!cur_plan.was_in_air_after_jumping && cur_plan.was_jumping && !simulator.main_robot->state.touch) {
+              cur_plan.was_in_air_after_jumping = true;
+            }
+            if (simulator.main_robot->action.jump_speed > 0 && simulator.main_robot->state.touch) {
+              cur_plan.was_jumping = true;
+            }
+            int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
             if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - additional
               if (main_robot_additional_jump_type == 1 && cur_plan.was_in_air_after_jumping) {
                 cur_plan.collide_with_ball_before_on_ground_after_jumping = true;
