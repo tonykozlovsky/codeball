@@ -451,7 +451,7 @@ struct SmartSimulator {
     cur_goal_info = {false, false, -1};
     //H::t[0].cur(true);
 
-    //H::t[1].start();
+    H::t[1].start();
     for (int i = 0; i < dynamic_robots_size; ++i) {
       auto& robot = dynamic_robots[i];
       if (robot->state.touch) {
@@ -565,12 +565,11 @@ struct SmartSimulator {
       robot->radius_change_speed = robot->action.jump_speed;
       ////H::t[24].cur(true);
     }
-    //H::t[1].cur(true);
-    //H::t[2].start();
+    H::t[1].cur(true);
+    H::t[2].start();
     if (ball->is_dynamic) {
       moveDynamic(ball, delta_time);
     }
-    //H::t[2].cur(true);
     //H::t[3].start();
 
     for (int i = 0; i < static_robots_size; i++) {
@@ -661,6 +660,7 @@ struct SmartSimulator {
     }*/
 
     if (has_collision_with_static) {
+      H::t[2].cur(true);
       return true;
     }
 
@@ -717,6 +717,7 @@ struct SmartSimulator {
     }
     //H::t[8].cur(true);
 
+    H::t[2].cur(true);
     return has_collision_with_static;
   }
 

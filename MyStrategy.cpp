@@ -143,6 +143,8 @@ void doStrategy() {
   P::drawEntities({e.state}, 0, 0x333333);
 #endif
 
+  // H::t[0].start();
+
   if (H::tick % C::TPT == 0) {
 
     clearBestPlans();
@@ -315,6 +317,10 @@ void doStrategy() {
     int id = H::getRobotLocalIdByGlobal(robot.id);
     H::prev_velocity[id] = {robot.velocity_x, robot.velocity_y, robot.velocity_z};
   }
+  H::t[1].cur(false, true);
+  H::t[2].cur(false, true);
+  P::logn(H::t[1].avg());
+  P::logn(H::t[2].avg());
 
 }
 
