@@ -144,6 +144,8 @@ void doStrategy() {
 #endif
 
 
+  //todo saving packs collisions
+
   for (int i = 0; i < 100; ++i) {
     auto& t = H::t[i];
     t.clearCur();
@@ -163,8 +165,8 @@ void doStrategy() {
     int iterations[2] = {250 + 1, 250 + 1};
     for (int id = 1; id >= 0; id--) {
       int iteration = 0;
-      SmartSimulator simulator_smart(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, {});
-      SmartSimulator simulator_stupid(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, {});
+      SmartSimulator simulator_smart(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, H::game.nitro_packs);
+      SmartSimulator simulator_stupid(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
 
       if (id == 1) {
         bool ball_on_my_side = false;
@@ -222,9 +224,11 @@ void doStrategy() {
               cur_plan.was_in_air_after_jumping = true;
             }
             if (simulator.main_robot->action.jump_speed > 0 && simulator.main_robot->state.touch) {
-              cur_plan.was_jumping = true;
+              cur_plan.was_jumping = true;// todo fix it !
             }
             int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
+
+
             if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - additional
               if (main_robot_additional_jump_type == 1 && cur_plan.was_in_air_after_jumping) {
                 cur_plan.collide_with_ball_before_on_ground_after_jumping = true;
@@ -272,7 +276,7 @@ void doStrategy() {
 
       H::sum_asserts_failed += iteration;
 #ifdef DEBUG
-      if (id == 1) {
+      if (id == 0) {
         P::logn("best plan id: ", H::best_plan[id].unique_id);
         P::logn("fighter score: ", H::best_plan[id].score.score());
         P::logn("sum_score: ", H::best_plan[id].score.sum_score);
@@ -292,15 +296,14 @@ void doStrategy() {
         P::logn("was_in_air_after_jumping: ", H::best_plan[id].was_in_air_after_jumping);
         P::logn("collide_with_ball_before_on_ground_after_jumping: ", H::best_plan[id].collide_with_ball_before_on_ground_after_jumping);
         P::logn("was_on_ground_after_in_air_after_jumping: ", H::best_plan[id].was_on_ground_after_in_air_after_jumping);
-        P::logn("ajs: ", H::best_plan[id].toMyAction(0, false).toAction().jump_speed);
 
 
         Plan cur_plan = H::best_plan[id];
 
-        SmartSimulator simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, {}, false, H::getRobotGlobalIdByLocal(id));
+        SmartSimulator simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, false, H::getRobotGlobalIdByLocal(id));
         simulator.initIteration(iteration, cur_plan);
 
-        SmartSimulator accurate_simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, {}, true, H::getRobotGlobalIdByLocal(id));
+        SmartSimulator accurate_simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, true, H::getRobotGlobalIdByLocal(id));
         accurate_simulator.initIteration(iteration, cur_plan);
 
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
@@ -315,8 +318,18 @@ void doStrategy() {
 
 
 #ifndef FROM_LOG
-  H::actions[H::getRobotGlobalIdByLocal(0)] = H::best_plan[0].toMyAction(0, false).toAction();
-  H::actions[H::getRobotGlobalIdByLocal(1)] = H::best_plan[1].toMyAction(0, false).toAction();
+  for (auto& robot : H::game.robots) {
+    if (robot.is_teammate) {
+      Entity e;
+      e.fromRobot(robot);
+      e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, true);
+      e.nitroCheck();
+      if (!e.action.use_nitro) {
+        e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, false);
+      }
+      H::actions[robot.id] = e.action.toAction();
+    }
+  }
 #endif
 
   for (auto& robot : H::game.robots) {

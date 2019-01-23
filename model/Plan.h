@@ -5,10 +5,18 @@ struct Plan {
   double angle1;
   double sangle1;
   double cangle1;
+  double z1;
+  double cos_lat1;
   double angle2;
   double sangle2;
   double cangle2;
+  double z2;
+  double cos_lat2;
   double max_jump_speed;
+  double max_speed;
+  int time_nitro_on;
+  int time_nitro_off;
+  bool use_nitro;
   int time_change;
   int time_jump;
   int plans_config;
@@ -96,29 +104,44 @@ struct Plan {
       angle1 = C::rand_double(0, 2 * M_PI);
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
+      z1 = C::rand_double(-C::rules.MAX_ENTITY_SPEED, C::rules.MAX_ENTITY_SPEED);
+      cos_lat1 = cos(asin(z1 / C::rules.MAX_ENTITY_SPEED));
       angle2 = C::rand_double(0, 2 * M_PI);
       cangle2 = cos(angle2);
       sangle2 = sin(angle2);
+      z2 = C::rand_double(-C::rules.MAX_ENTITY_SPEED, C::rules.MAX_ENTITY_SPEED);
+      cos_lat2 = cos(asin(z2 / C::rules.MAX_ENTITY_SPEED));
+
       time_change = C::rand_int(0, simulation_depth);
       time_jump = C::rand_int(0, simulation_depth);
 
-      speed1 = C::rules.ROBOT_MAX_GROUND_SPEED;//C::rand_double(0, C::rules.ROBOT_MAX_GROUND_SPEED);
-      speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;//C::rand_double(0, C::rules.ROBOT_MAX_GROUND_SPEED);
+      speed1 = 1.;//C::rand_double(0, 1.);
+      speed2 = 1.;//C::rand_double(0, 1.);
       if (C::rand_double(0, 1) < 0.01) {
         speed1 = 0;
       }
       if (C::rand_double(0, 1) < 0.01) {
         speed2 = 0;
       }
+
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+
       max_jump_speed = C::rand_int(0, 15);
+      time_nitro_on = C::rand_int(0, simulation_depth);
+      time_nitro_off = C::rand_int(0, simulation_depth);
+      use_nitro = time_nitro_off > time_nitro_on;
     } else if (configuration == 2) { // smart enemy
       angle1 = C::rand_double(0, 2 * M_PI);
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
       time_change = simulation_depth;
       time_jump = C::rand_int(0, simulation_depth);
-      speed1 = C::rules.ROBOT_MAX_GROUND_SPEED;
+      speed1 = 1.;
+
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+
       max_jump_speed = 15;
+      use_nitro = false;
     } else if (configuration == 3) { // sptupid enemy
       angle1 = 0;
       cangle1 = 0;
@@ -126,15 +149,23 @@ struct Plan {
       time_change = simulation_depth;
       time_jump = simulation_depth;
       speed1 = 0;
+
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+
       max_jump_speed = 0; // todo keep in mind
+      use_nitro = false;
     } else if (configuration == 4) { // last action
       angle1 = atan2(initial_vz, initial_vx);
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
       time_change = simulation_depth;
       time_jump = simulation_depth;
-      speed1 = Point2d{initial_vx, initial_vz}.length();
+      speed1 = 1;
+
+      max_speed = Point2d{initial_vx, initial_vz}.length();
+
       max_jump_speed = 15;  // todo keep in mind
+      use_nitro = false; // todo last action nitro
     }
 
     score.minimal();
@@ -142,6 +173,9 @@ struct Plan {
 
   static constexpr double angle_mutation = M_PI / 100;
   static constexpr double speed_mutation = 1;
+  static constexpr double z_mutation = 1;
+
+  static constexpr int nitro_mutation = 1;
   static constexpr int jump_mutation = 1;
   static constexpr int time_mutation = 1;
 
@@ -173,6 +207,13 @@ struct Plan {
       }
       cangle2 = cos(angle2);
       sangle2 = sin(angle2);
+
+      z1 += C::rand_double(-z_mutation, z_mutation);
+      cos_lat1 = cos(asin(z1 / C::rules.MAX_ENTITY_SPEED));
+
+      z2 += C::rand_double(-z_mutation, z_mutation);
+      cos_lat2 = cos(asin(z2 / C::rules.MAX_ENTITY_SPEED));
+
       time_change += C::rand_int(-time_mutation, time_mutation);
       if (time_change < 0) {
         time_change = 0;
@@ -188,17 +229,17 @@ struct Plan {
         time_jump = simulation_depth;
       }
 
-      /*speed1 += C::rand_double(-speed_mutation, speed_mutation);
-      if (speed1 > C::rules.ROBOT_MAX_GROUND_SPEED) {
-        speed1 = C::rules.ROBOT_MAX_GROUND_SPEED;
+      /*speed1 += C::rand_double(-speed_mutation, speed_mutation); // todo change speed mutation
+      if (speed1 > 1) {
+        speed1 = 1;
       }
       if (speed1 < 0) {
         speed1 = 0;
       }
 
       speed2 += C::rand_double(-speed_mutation, speed_mutation);
-      if (speed2 > C::rules.ROBOT_MAX_GROUND_SPEED) {
-        speed2 = C::rules.ROBOT_MAX_GROUND_SPEED;
+      if (speed2 > 1) {
+        speed2 = 1;
       }
       if (speed2 < 0) {
         speed2 = 0;
@@ -211,6 +252,22 @@ struct Plan {
       if (max_jump_speed > 15) {
         max_jump_speed = 15;
       }
+
+      time_nitro_on += C::rand_int(-nitro_mutation, nitro_mutation);
+      if (time_nitro_on < 0) {
+        time_nitro_on = 0;
+      }
+      if (time_nitro_on > simulation_depth) {
+        time_nitro_on = simulation_depth;
+      }
+      time_nitro_off += C::rand_int(-nitro_mutation, nitro_mutation);
+      if (time_nitro_off < 0) {
+        time_nitro_off = 0;
+      }
+      if (time_nitro_off > simulation_depth) {
+        time_nitro_off = simulation_depth;
+      }
+      use_nitro = time_nitro_off > time_nitro_on;
 
     } else if (configuration == 2) { // smart enemy
       angle1 += C::rand_double(-angle_mutation, angle_mutation);
@@ -236,29 +293,40 @@ struct Plan {
     score.minimal();
   }
 
-  MyAction toMyAction(int simulation_tick, bool simulation) {
+  MyAction toMyAction(int simulation_tick, bool simulation, bool can_use_nitro) {
     double jump_speed;
     if (simulation) {
       jump_speed = simulation_tick == time_jump ? max_jump_speed : 0;
     } else {
       jump_speed = simulation_tick == oncoming_jump ? oncoming_jump_speed : 0;
     }
-    if (simulation_tick < time_change) {
-      return MyAction{{
-          speed1 * cangle1,
-          0,
-          speed1 * sangle1},
-          jump_speed,
-          max_jump_speed,
-          false};
+    bool now_use_nitro = use_nitro && simulation_tick >= time_nitro_on && simulation_tick < time_nitro_off;
+    Point velocity;
+    if (now_use_nitro && can_use_nitro) {
+      if (simulation_tick < time_change) {
+        velocity.x = speed1 * C::rules.MAX_ENTITY_SPEED * cos_lat1 * cangle1;
+        velocity.y = z1;
+        velocity.z = speed1 * C::rules.MAX_ENTITY_SPEED * cos_lat1 * sangle1;
+      } else {
+        velocity.x = speed2 * C::rules.MAX_ENTITY_SPEED * cos_lat2 * cangle2;
+        velocity.y = z2;
+        velocity.z = speed2 * C::rules.MAX_ENTITY_SPEED * cos_lat2 * sangle2;
+      }
     } else {
-      return MyAction{{
-          speed2 * cangle2,
-                0,
-          speed2 * sangle2},
-          jump_speed,
-          max_jump_speed, false};
+      if (simulation_tick < time_change) {
+        velocity.x = speed1 * max_speed * cangle1;
+        velocity.y = 0;
+        velocity.z = speed1 * max_speed * sangle1;
+      } else {
+        velocity.x = speed2 * max_speed * cangle2;
+        velocity.y = 0;
+        velocity.z = speed2 * max_speed * sangle2;
+      }
     }
+    return MyAction{velocity,
+        jump_speed,
+        max_jump_speed,
+        now_use_nitro && can_use_nitro};
   }
   bool operator<(const Plan& other) const {
     return score < other.score;
