@@ -203,6 +203,10 @@ struct Entity {
       action.use_nitro = false;
       return;
     }
+    if (state.nitro == 0) {
+      action.use_nitro = false;
+      return;
+    }
     bool restrict_nitro = false;
     const auto& target_velocity_change = (action.target_velocity - state.velocity);
     const auto& tvc_length_sq = target_velocity_change.length_sq();

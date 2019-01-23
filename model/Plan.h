@@ -310,7 +310,7 @@ struct Plan {
     } else {
       jump_speed = simulation_tick == oncoming_jump ? oncoming_jump_speed : 0;
     }
-    bool now_use_nitro = use_nitro && simulation_tick >= time_nitro_on && simulation_tick < time_nitro_off;
+    bool now_use_nitro = (use_nitro && simulation_tick >= time_nitro_on && simulation_tick < time_nitro_off);
     Point velocity;
     if (now_use_nitro && can_use_nitro) {
       if (simulation_tick < time_change) {
@@ -336,7 +336,7 @@ struct Plan {
     return MyAction{velocity,
         jump_speed,
         max_jump_speed,
-        now_use_nitro && can_use_nitro};
+        (now_use_nitro && can_use_nitro)};
   }
   bool operator<(const Plan& other) const {
     return score < other.score;
