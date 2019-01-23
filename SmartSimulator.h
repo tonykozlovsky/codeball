@@ -492,33 +492,33 @@ struct SmartSimulator {
           //////H::t[17].start();
 
           const double& delta = length - acceleration * delta_time;
-          //////H::t[17].cur(true);
+          ////H::t[17].cur(true);
 
           if (delta > 0) {
-            //////H::t[18].start();
+            ////H::t[18].start();
 
             const auto& robot_acceleration = target_velocity_change * (acceleration * delta_time / length);
-            //////H::t[18].cur(true);
-            //////H::t[19].start();
+            ////H::t[18].cur(true);
+            ////H::t[19].start();
 
             robot->state.velocity += robot_acceleration;
-            //////H::t[19].cur(true);
-            //////H::t[20].start();
+            ////H::t[19].cur(true);
+            ////H::t[20].start();
 
             const double& coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / (2. * number_of_microticks)) : 0.; // todo optimise ?
-            //////H::t[20].cur(true);
-            //////H::t[21].start();
+            ////H::t[20].cur(true);
+            ////H::t[21].start();
             robot->state.position -= robot_acceleration * (coef * delta_time);
-            //////H::t[21].cur(true);
+            ////H::t[21].cur(true);
 
           } else {
             if (robot->state.touch_surface_id == 1) {
               acceleration_trigger = true;
             }
-            //////H::t[22].start();
+            ////H::t[22].start();
 
             robot->state.velocity += target_velocity_change;
-            //////H::t[22].cur(true);
+            ////H::t[22].cur(true);
 
           }
         }

@@ -209,9 +209,19 @@ struct Plan {
       sangle2 = sin(angle2);
 
       z1 += C::rand_double(-z_mutation, z_mutation);
+      if (z1 > C::rules.MAX_ENTITY_SPEED) {
+        z1 = C::rules.MAX_ENTITY_SPEED;
+      } else if (z1 < -C::rules.MAX_ENTITY_SPEED) {
+        z1 = -C::rules.MAX_ENTITY_SPEED;
+      }
       cos_lat1 = cos(asin(z1 / C::rules.MAX_ENTITY_SPEED));
 
       z2 += C::rand_double(-z_mutation, z_mutation);
+      if (z2 > C::rules.MAX_ENTITY_SPEED) {
+        z2 = C::rules.MAX_ENTITY_SPEED;
+      } else if (z2 < -C::rules.MAX_ENTITY_SPEED) {
+        z2 = -C::rules.MAX_ENTITY_SPEED;
+      }
       cos_lat2 = cos(asin(z2 / C::rules.MAX_ENTITY_SPEED));
 
       time_change += C::rand_int(-time_mutation, time_mutation);

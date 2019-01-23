@@ -25,6 +25,14 @@ void clearBestPlans() {
     if (H::best_plan[id].time_change < 0) { // todo -1 ?
       H::best_plan[id].time_change = 0;
     }
+    H::best_plan[id].time_nitro_on--;
+    if (H::best_plan[id].time_nitro_on < 0) { // todo -1 ?
+      H::best_plan[id].time_nitro_on = 0;
+    }
+    H::best_plan[id].time_nitro_off--;
+    if (H::best_plan[id].time_nitro_off < 0) { // todo -1 ?
+      H::best_plan[id].time_nitro_off = 0;
+    }
     H::best_plan[id].was_jumping = false;
     H::best_plan[id].was_in_air_after_jumping = false;
     H::best_plan[id].was_on_ground_after_in_air_after_jumping = false;
@@ -146,15 +154,15 @@ void doStrategy() {
 
   //todo saving packs collisions
 
-  for (int i = 0; i < 100; ++i) {
-    auto& t = H::t[i];
-    t.clearCur();
-  }
-  for (int i = 0; i < 100; ++i) {
-    auto& c = H::c[i];
-    c.init_calls();
-  }
-  H::t[0].start();
+  //for (int i = 0; i < 100; ++i) {
+  //  auto& t = H::t[i];
+  //  t.clearCur();
+  //}
+  //for (int i = 0; i < 100; ++i) {
+  //  auto& c = H::c[i];
+  //  c.init_calls();
+  //}
+  //H::t[0].start();
 
   if (H::tick % C::TPT == 0) {
 
@@ -339,18 +347,18 @@ void doStrategy() {
     H::prev_velocity[id] = {robot.velocity_x, robot.velocity_y, robot.velocity_z};
   }
 
-  H::t[0].cur(true);
-  for (int i = 0; i < 7; ++i) {
-    auto& t = H::t[i];
-    t.cur(false, true);
-    P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
-  }
+  //H::t[0].cur(true);
+  //for (int i = 0; i < 7; ++i) {
+  //  auto& t = H::t[i];
+  //  t.cur(false, true);
+  //  P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
+  //}
 
-  for (int i = 0; i < 5; ++i) {
-    auto& c = H::c[i];
-    c.capture();
-    P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
-  }
+  //for (int i = 0; i < 5; ++i) {
+  //  auto& c = H::c[i];
+  //  c.capture();
+  //  P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
+  //}
 
 }
 
