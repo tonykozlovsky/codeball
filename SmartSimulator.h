@@ -1411,7 +1411,7 @@ struct SmartSimulator {
         score -= 0 * 0.1 * sum;
       }*/
     }
-    score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
+    score -= (0.01 * C::TPT) * (main_robot->state.position - Point{
         0,
         1,
         -C::rules.arena.depth / 2 - 4}).length();
