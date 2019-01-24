@@ -175,8 +175,8 @@ void doStrategy() {
       SmartSimulator simulator_smart(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, H::game.nitro_packs);
       SmartSimulator simulator_stupid(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
 
+      bool ball_on_my_side = false;
       if (id == 1) {
-        bool ball_on_my_side = false;
         for (int i = 0; i < C::MAX_SIMULATION_DEPTH; ++i) {
           if (simulator_smart.ball->states[i].position.z < -0.01 || simulator_stupid.ball->states[i].position.z < -0.01) {
             ball_on_my_side = true;
@@ -187,15 +187,24 @@ void doStrategy() {
           iterations[1] = 25 + 1;
         }
       }
-      for (;; iteration++) {
-        if (iteration > iterations[id]) {
-          break;
+
+      for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
+        if (id == 1) {
+          if (ball_on_my_side) {
+            if (H::global_timer.getCumulative(true) > H::half_time) {
+              break;
+            }
+          } else {
+            if (H::global_timer.cur() > 0.002) {
+              break;
+            }
+          }
         }
 
         Plan cur_plan_smart(1, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan_smart = H::best_plan[id];
-        } else if (C::rand_double(0, 1) < 1. / 2.) { // todo check coefficient
+        } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
           cur_plan_smart = H::best_plan[id];
           cur_plan_smart.mutate(1, C::MAX_SIMULATION_DEPTH);
         }
