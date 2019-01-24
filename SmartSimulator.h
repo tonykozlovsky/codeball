@@ -1275,7 +1275,6 @@ struct SmartSimulator {
       if (!main_robot->state.touch) {
         score -= 0.5 * C::TPT;
       }
-
       /*
       score += main_robot->taken_nitro;
 

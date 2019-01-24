@@ -221,12 +221,12 @@ void doStrategy() {
           break;
         }
 
-        Plan cur_plan_smart(6, C::MAX_SIMULATION_DEPTH);
+        Plan cur_plan_smart(7, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan_smart = H::best_plan[id];
         } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
           cur_plan_smart = H::best_plan[id];
-          cur_plan_smart.mutate(6, C::MAX_SIMULATION_DEPTH);
+          cur_plan_smart.mutate(7, C::MAX_SIMULATION_DEPTH);
         }
 
         if (id == 0) {
@@ -258,8 +258,20 @@ void doStrategy() {
             if (main_robot_additional_jump_type == 0 && simulator.main_robot->action.jump_speed > 0 && main_touch) {
               cur_plan.was_jumping = true;
             }
+            if (id == 0) {
+              H::c[0].call();
+            }
 
             if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - with entity, 3 - additional
+              if (id == 0) {
+                if (main_robot_additional_jump_type == 1) {
+                  H::c[1].call();
+                } else if (main_robot_additional_jump_type == 2) {
+                  H::c[2].call();
+                } else if (main_robot_additional_jump_type == 3) {
+                  H::c[3].call();
+                }
+              }
               if ((main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2) && cur_plan.was_jumping && !cur_plan.was_on_ground_after_jumping) {
                 cur_plan.collide_with_entity_before_on_ground_after_jumping = true;
               }
@@ -385,7 +397,7 @@ void doStrategy() {
   //  P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
   //}
 
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 5; ++i) {
     auto& c = H::c[i];
     c.capture();
     P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
