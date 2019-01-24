@@ -234,10 +234,10 @@ struct SmartSimulator {
   void tickWithJumpsStatic(const int tick_number, bool with_jumps) {
     for (int i = 0; i < initial_static_robots_size; ++i) {
       auto& robot = initial_static_robots[i];
-      robot->action = robot->plan.toMyAction(tick_number, true, true);
+      robot->action = robot->plan.toMyAction(tick_number, true, true, robot->state.position);
       robot->nitroCheck();
       if (!robot->action.use_nitro) {
-        robot->action = robot->plan.toMyAction(tick_number, true, false);
+        robot->action = robot->plan.toMyAction(tick_number, true, false, robot->state.position);
       }
     }
     for (int i = 0; i < initial_static_entities_size; ++i) { // save state
@@ -851,10 +851,10 @@ struct SmartSimulator {
   bool tryDoTickWithoutAnybodyBecomingDynamic(const int tick_number, int& main_robot_additional_jump_type, GoalInfo& cur_goal_info) {
     for (int i = 0; i < dynamic_robots_size; ++i) {
       auto& robot = dynamic_robots[i];
-      robot->action = robot->plan.toMyAction(tick_number, true, true);
+      robot->action = robot->plan.toMyAction(tick_number, true, true, robot->state.position);
       robot->nitroCheck();
       if (!robot->action.use_nitro) {
-        robot->action = robot->plan.toMyAction(tick_number, true, false);
+        robot->action = robot->plan.toMyAction(tick_number, true, false, robot->state.position);
       }
     }
     return tryTickWithJumpsDynamic(tick_number, true, main_robot_additional_jump_type, cur_goal_info);
