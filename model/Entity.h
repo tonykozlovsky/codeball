@@ -38,6 +38,13 @@ struct EntityState {
   }
 };
 
+struct StaticEvent {
+  bool collide_with_ball;
+  void clear() {
+    collide_with_ball = false;
+  }
+};
+
 struct Entity {
 
   struct Collision {
@@ -73,13 +80,15 @@ struct Entity {
   EntityState prev_state;
   EntityState prev_micro_state;
   EntityState states[101];
+  StaticEvent static_events[101];
+  StaticEvent* static_event_ptr;
 
   static constexpr int max_collisions = 14;
   Collision collisions[14];
   int collisions_size = 0;
 
   double taken_nitro;
-  bool collide_with_ball_in_air;
+  bool collide_with_ball;
   bool collide_with_entity_in_air;
   bool additional_jump;
 
@@ -179,6 +188,7 @@ struct Entity {
 
   void fromStateStatic(const int tick_number) {
     state_ptr = states + tick_number;
+    static_event_ptr = static_events + tick_number;
   }
 
   void fromState(const int tick_number) {
