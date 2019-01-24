@@ -1273,16 +1273,17 @@ struct SmartSimulator {
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
       if (!main_robot->state.touch) {
-        score -= 2 * C::TPT;
+        score -= 0.5 * C::TPT;
       }
 
+      /*
       score += main_robot->taken_nitro;
 
       if (main_robot->action.use_nitro) {
         score += C::TPT;
-      }
+      }*/
 
-      for (int i = 0; i < static_robots_size; ++i) {
+      /*for (int i = 0; i < static_robots_size; ++i) {
         auto& e = static_robots[i];
         if (!e->is_teammate && e->static_event_ptr->collide_with_ball) {
           score -= 100;
@@ -1293,7 +1294,7 @@ struct SmartSimulator {
         if (!e->is_teammate && e->collide_with_ball) {
           score -= 100;
         }
-      }
+      }*/
       /*if (tick_number < 100) {
         const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
         const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
@@ -1344,6 +1345,9 @@ struct SmartSimulator {
       if (!main_robot->state.touch) {
         score -= 0.5 * C::TPT;
       }
+      if (main_robot->collide_with_ball) {
+        score += 0 * 20;
+      }
     }
     return score;
   }
@@ -1365,7 +1369,7 @@ struct SmartSimulator {
   }
 
   double getMinDistToBallScoreEnemy() {
-    return 0.01 * (main_robot->state.position - ball->getState().position).length();
+    return (main_robot->state.position - ball->getState().position).length();
   }
 
   double getSumScoreDefender(const int tick_number) {
@@ -1380,7 +1384,7 @@ struct SmartSimulator {
         score -= 0.5 * C::TPT;
       }
 
-      for (int i = 0; i < static_robots_size; ++i) {
+      /*for (int i = 0; i < static_robots_size; ++i) {
         auto& e = static_robots[i];
         if (!e->is_teammate && e->static_event_ptr->collide_with_ball) {
           score -= 100;
@@ -1391,12 +1395,12 @@ struct SmartSimulator {
         if (!e->is_teammate && e->collide_with_ball) {
           score -= 100;
         }
-      }
+      }*/
 
-      if (main_robot->action.use_nitro) {
+      /*if (main_robot->action.use_nitro) {
         score += C::TPT;
       }
-      score += main_robot->taken_nitro;
+      score += main_robot->taken_nitro;*/
       /*if (tick_number < 100) {
         const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
         const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
@@ -1438,11 +1442,11 @@ struct SmartSimulator {
   }
 
   double getMinDistFromGoalScoreDefender() {
-    return std::min(0., ball->getState().position.z);
+    return ball->getState().position.z;
   }
 
   double getMinDistToBallScoreDefender() {
-    return 0.01 * (main_robot->state.position - ball->getState().position).length();
+    return 0.1 * (main_robot->state.position - ball->getState().position).length();
   }
 
 };

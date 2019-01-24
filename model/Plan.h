@@ -30,7 +30,6 @@ struct Plan {
     double defender_min_dist_to_ball;
     double defender_min_dist_from_goal;
     double defender_last_dist_from_goal;
-    double min_dist_to_enemy;
 
     bool operator < (const Score& other) const {
       return score() < other.score();
@@ -44,8 +43,7 @@ struct Plan {
       - fighter_last_dist_to_goal
       - defender_min_dist_to_ball
       + defender_min_dist_from_goal
-      + defender_last_dist_from_goal
-      + min_dist_to_enemy;
+      + defender_last_dist_from_goal;
     }
 
     void minimal() {
@@ -56,7 +54,6 @@ struct Plan {
       defender_min_dist_to_ball = 1e9;
       defender_min_dist_from_goal = 1e9;
       defender_last_dist_from_goal = 1e9;
-      min_dist_to_enemy = 1e9;
     }
 
     void start_fighter() {
@@ -67,7 +64,6 @@ struct Plan {
       defender_min_dist_to_ball = 0;
       defender_min_dist_from_goal = 0;
       defender_last_dist_from_goal = 0;
-      min_dist_to_enemy = 1e9;
     }
 
     void start_defender() {
@@ -78,7 +74,6 @@ struct Plan {
       defender_min_dist_to_ball = 1e9;
       defender_min_dist_from_goal = 1e9;
       defender_last_dist_from_goal = 0;
-      min_dist_to_enemy = 1e9;
     }
 
   } score;
@@ -118,14 +113,13 @@ struct Plan {
       time_change = C::rand_int(0, simulation_depth);
       time_jump = C::rand_int(0, simulation_depth);
 
-      speed1 = C::rand_double(0, 1.);
-      speed2 = C::rand_double(0, 1.);
-      //if (C::rand_double(0, 1) < 0.01) {
-      //  speed1 = 0;
-      //}
-      //if (C::rand_double(0, 1) < 0.01) {
-      //  speed2 = 0;
-      //}
+      speed1 = speed2 = 1;
+      if (C::rand_double(0, 1) < 0.01) {
+        speed1 = 0;
+      }
+      if (C::rand_double(0, 1) < 0.01) {
+        speed2 = 0;
+      }
 
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
 
@@ -241,7 +235,7 @@ struct Plan {
         time_jump = simulation_depth;
       }
 
-      speed1 += C::rand_double(-speed_mutation, speed_mutation); // todo change speed mutation
+      /*speed1 += C::rand_double(-speed_mutation, speed_mutation); // todo change speed mutation
       if (speed1 > 1) {
         speed1 = 1;
       }
@@ -255,7 +249,7 @@ struct Plan {
       }
       if (speed2 < 0) {
         speed2 = 0;
-      }
+      }*/
 
       max_jump_speed += C::rand_int(-jump_mutation, jump_mutation);
       if (max_jump_speed < 0) {
