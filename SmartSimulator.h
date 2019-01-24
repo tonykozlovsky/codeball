@@ -1411,14 +1411,8 @@ struct SmartSimulator {
         score -= 0 * 0.1 * sum;
       }*/
     }
-    double x = ball->getState().position.x;
-    if (x > 10) {
-      x = 10;
-    } else if (x < -10) {
-      x = -10;
-    }
     score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
-        x,
+        0,
         1,
         -C::rules.arena.depth / 2 - 4}).length();
 
