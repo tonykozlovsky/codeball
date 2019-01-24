@@ -180,6 +180,7 @@ struct SmartSimulator {
 
   void clearAdditionalJumpsStatic() {
     for (int i = 0; i < initial_static_robots_size; ++i) {
+      initial_static_robots[i]->collide_with_entity_in_air = false;
       initial_static_robots[i]->collide_with_ball_in_air = false;
       initial_static_robots[i]->additional_jump = false;
       initial_static_robots[i]->taken_nitro = 0;
@@ -249,7 +250,7 @@ struct SmartSimulator {
       bool needs_rollback = false;
       for (int i = 0; i < initial_static_robots_size; ++i) {
         auto& e = initial_static_robots[i];
-        if (e->collide_with_ball_in_air || e->additional_jump) {
+        if (e->collide_with_entity_in_air || e->collide_with_ball_in_air || e->additional_jump) {
           needs_rollback = true;
           e->action.jump_speed = e->additional_jump ? std::max(C::MIN_WALL_JUMP, e->action.max_jump_speed) : e->action.max_jump_speed;
         }
@@ -405,9 +406,9 @@ struct SmartSimulator {
       }
     } else {
       if (a->is_teammate && !b->state.touch && (2 + jr * a->action.max_jump_speed) * (2 + jr * a->action.max_jump_speed) > distance_sq) {
-        a->collide_with_ball_in_air = true;
+        a->collide_with_entity_in_air = true;
       } else if (b->is_teammate && !a->state.touch && (2 + jr * b->action.max_jump_speed) * (2 + jr * b->action.max_jump_speed) > distance_sq) {
-        b->collide_with_ball_in_air = true;
+        b->collide_with_entity_in_air = true;
       }
     }
     if (sum_r * sum_r > distance_sq) {
@@ -802,6 +803,7 @@ struct SmartSimulator {
 
   void clearCollideWithBallInAirDynamic() {
     for (int i = 0; i < dynamic_robots_size; ++i) {
+      dynamic_robots[i]->collide_with_entity_in_air = false;
       dynamic_robots[i]->collide_with_ball_in_air = false;
       dynamic_robots[i]->additional_jump = false;
       dynamic_robots[i]->taken_nitro = 0;
@@ -818,14 +820,16 @@ struct SmartSimulator {
       bool needs_rollback = false;
       for (int i = 0; i < dynamic_robots_size; ++i) {
         const auto& e = dynamic_robots[i];
-        if (e->collide_with_ball_in_air || e->additional_jump) {
+        if (e->collide_with_entity_in_air || e->collide_with_ball_in_air || e->additional_jump) {
           needs_rollback = true;
           e->action.jump_speed = e->additional_jump ? std::max(C::MIN_WALL_JUMP, e->action.max_jump_speed) : e->action.max_jump_speed;
           if (e == main_robot) {
             if (e->collide_with_ball_in_air) {
               main_robot_additional_jump_type = 1;
-            } else {
+            } else if (e->collide_with_entity_in_air) {
               main_robot_additional_jump_type = 2;
+            } else if (e->additional_jump) {
+              main_robot_additional_jump_type = 3;
             }
           }
         }
@@ -1031,9 +1035,9 @@ struct SmartSimulator {
       }
     } else {
       if (a->is_teammate && !b->state.touch && (2 + jr * a->action.max_jump_speed) * (2 + jr * a->action.max_jump_speed) > distance_sq) {
-        a->collide_with_ball_in_air = true;
+        a->collide_with_entity_in_air = true;
       } else if (b->is_teammate && !a->state.touch && (2 + jr * b->action.max_jump_speed) * (2 + jr * b->action.max_jump_speed) > distance_sq) {
-        b->collide_with_ball_in_air = true;
+        b->collide_with_entity_in_air = true;
       }
     }
     if (sum_r * sum_r > distance_sq) {
@@ -1267,14 +1271,24 @@ struct SmartSimulator {
       if (!main_robot->state.touch) {
         score -= 0.5 * C::TPT;
       }
-      if (main_robot->collide_with_ball_in_air) {
-        score += 0 * 20;
-      }
 
       score += main_robot->taken_nitro;
 
       if (main_robot->action.use_nitro) {
         score += C::TPT;
+      }
+
+      for (int i = 0; i < static_entities_size; ++i) {
+        auto& e = static_entities[i];
+        if (!e->is_teammate && e->collide_with_ball_in_air) {
+          score -= 100;
+        }
+      }
+      for (int i = 0; i < dynamic_entities_size; ++i) {
+        auto& e = dynamic_entities[i];
+        if (!e->is_teammate && e->collide_with_ball_in_air) {
+          score -= 100;
+        }
       }
 
       /*if (tick_number < 100) {
@@ -1327,9 +1341,6 @@ struct SmartSimulator {
       if (!main_robot->state.touch) {
         score -= 0.5 * C::TPT;
       }
-      if (main_robot->collide_with_ball_in_air) {
-        score += 0 * 20;
-      }
     }
     return score;
   }
@@ -1365,6 +1376,22 @@ struct SmartSimulator {
       if (!main_robot->state.touch) {
         score -= 0.5 * C::TPT;
       }
+
+      for (int i = 0; i < static_entities_size; ++i) {
+        auto& e = static_entities[i];
+        if (!e->is_teammate && e->collide_with_ball_in_air) {
+          score -= 100;
+        }
+      }
+      for (int i = 0; i < dynamic_entities_size; ++i) {
+        auto& e = dynamic_entities[i];
+        if (!e->is_teammate && e->collide_with_ball_in_air) {
+          score -= 100;
+        }
+      }
+
+
+
       if (main_robot->action.use_nitro) {
         score += C::TPT;
       }

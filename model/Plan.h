@@ -86,7 +86,7 @@ struct Plan {
   bool was_jumping;
   bool was_in_air_after_jumping;
   bool was_on_ground_after_in_air_after_jumping;
-  bool collide_with_ball_before_on_ground_after_jumping;
+  bool collide_with_entity_before_on_ground_after_jumping;
 
   Plan() : Plan(3, 0) {}
 
@@ -97,7 +97,7 @@ struct Plan {
     was_jumping = false;
     was_in_air_after_jumping = false;
     was_on_ground_after_in_air_after_jumping = false;
-    collide_with_ball_before_on_ground_after_jumping = false;
+    collide_with_entity_before_on_ground_after_jumping = false;
     oncoming_jump  = -1;
 
     if (configuration == 1) {
@@ -185,7 +185,7 @@ struct Plan {
     was_jumping = false;
     was_in_air_after_jumping = false;
     was_on_ground_after_in_air_after_jumping = false;
-    collide_with_ball_before_on_ground_after_jumping = false;
+    collide_with_entity_before_on_ground_after_jumping = false;
     oncoming_jump  = -1;
 
     if (configuration == 1) {

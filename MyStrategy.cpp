@@ -36,7 +36,7 @@ void clearBestPlans() {
     H::best_plan[id].was_jumping = false;
     H::best_plan[id].was_in_air_after_jumping = false;
     H::best_plan[id].was_on_ground_after_in_air_after_jumping = false;
-    H::best_plan[id].collide_with_ball_before_on_ground_after_jumping = false;
+    H::best_plan[id].collide_with_entity_before_on_ground_after_jumping = false;
     H::best_plan[id].oncoming_jump = -1;
   }
 }
@@ -237,18 +237,18 @@ void doStrategy() {
 
             if (!cur_plan.was_on_ground_after_in_air_after_jumping && cur_plan.was_in_air_after_jumping && simulator.main_robot->state.touch) {
               cur_plan.was_on_ground_after_in_air_after_jumping = true;
-              if (!cur_plan.collide_with_ball_before_on_ground_after_jumping) {
+              if (!cur_plan.collide_with_entity_before_on_ground_after_jumping) {
                 cur_plan.time_jump = -1;
               }
             }
 
-            if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - additional
-              if (main_robot_additional_jump_type == 1 && cur_plan.was_in_air_after_jumping) {
-                cur_plan.collide_with_ball_before_on_ground_after_jumping = true;
+            if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - with entity, 3 - additional
+              if ((main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2) && cur_plan.was_in_air_after_jumping) {
+                cur_plan.collide_with_entity_before_on_ground_after_jumping = true;
               }
               if (cur_plan.oncoming_jump == -1) {
                 cur_plan.oncoming_jump = sim_tick;
-                cur_plan.oncoming_jump_speed = main_robot_additional_jump_type == 2 ?
+                cur_plan.oncoming_jump_speed = main_robot_additional_jump_type == 3 ?
                     std::max(C::MIN_WALL_JUMP, cur_plan.max_jump_speed) : cur_plan.max_jump_speed;
               }
             }
@@ -271,7 +271,7 @@ void doStrategy() {
             multiplier *= 0.999;
           }
 
-          if (cur_plan.was_in_air_after_jumping && !cur_plan.collide_with_ball_before_on_ground_after_jumping) {
+          if (cur_plan.was_in_air_after_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping) {
             cur_plan.time_jump = -1;
           }
           if (cur_plan.oncoming_jump == -1) {

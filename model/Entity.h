@@ -80,6 +80,7 @@ struct Entity {
 
   double taken_nitro;
   bool collide_with_ball_in_air;
+  bool collide_with_entity_in_air;
   bool additional_jump;
 
   bool is_robot, is_ball, is_pack;
