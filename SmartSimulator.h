@@ -1374,7 +1374,7 @@ struct SmartSimulator {
     }
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
       if (!main_robot->state.touch) {
-        score -= 0.5 * C::TPT;
+        score -= 2 * C::TPT;
       }
 
       for (int i = 0; i < static_entities_size; ++i) {
@@ -1411,7 +1411,7 @@ struct SmartSimulator {
         score -= 0 * 0.1 * sum;
       }*/
     }
-    score -= (0.01 * C::TPT) * (main_robot->state.position - Point{
+    score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
         0,
         1,
         -C::rules.arena.depth / 2 - 4}).length();
