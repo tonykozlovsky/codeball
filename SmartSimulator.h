@@ -1294,7 +1294,7 @@ struct SmartSimulator {
           score -= 100;
         }
       }*/
-      /*if (tick_number < 100) {
+      if (tick_number < 100) {
         const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
         const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
         const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
@@ -1306,8 +1306,8 @@ struct SmartSimulator {
             + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
             + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
             + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-        score -= 0 * 0.1 * sum;
-      }*/
+        score -= 100 * sum;
+      }
     }
 
     return score;
@@ -1400,7 +1400,7 @@ struct SmartSimulator {
         score += C::TPT;
       }
       score += main_robot->taken_nitro;*/
-      /*if (tick_number < 100) {
+      if (tick_number < 100) {
         const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
         const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
         const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
@@ -1412,8 +1412,8 @@ struct SmartSimulator {
             + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
             + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
             + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-        score -= 0 * 0.1 * sum;
-      }*/
+        score -= 100 * sum;
+      }
     }
     score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
         0,

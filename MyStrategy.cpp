@@ -96,13 +96,18 @@ void enemiesPrediction() {
     }
   }
 
-  const int enemy_depth = 50;
+  for (int i = 0; i < H::used_cells_size; ++i) {
+    const auto& cell = H::used_cells[i];
+    H::danger_grid[cell.x][cell.y][cell.z][cell.t] = 0;
+  }
+  H::used_cells_size = 0;
+
+  const int enemy_depth = 100;
 
   for (int enemy_id : {2, 3}) {
-    continue;
     SmartSimulator simulator(enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
 
-    for (int iteration = 0; iteration < 100; iteration++) {
+    for (int iteration = 0; iteration < 1000; iteration++) {
       Plan cur_plan(2, enemy_depth);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
@@ -116,7 +121,7 @@ void enemiesPrediction() {
       cur_plan.plans_config = 3;
       double multiplier = 1.;
       for (int sim_tick = 0; sim_tick < enemy_depth; sim_tick++) {
-        /*int cell_x = std::clamp((int) ((simulator.main_robot->state.position.x + 40.) / 2.), 1, 78);
+        int cell_x = std::clamp((int) ((simulator.main_robot->state.position.x + 40.) / 2.), 1, 78);
         int cell_y = std::clamp((int) ((simulator.main_robot->state.position.y + 1.) / 2.), 1, 18);
         int cell_z = std::clamp((int) ((simulator.main_robot->state.position.z + 30.) / 2.), 1, 58);
         H::danger_grid[cell_x + 1][cell_y][cell_z][sim_tick]++;
@@ -132,7 +137,7 @@ void enemiesPrediction() {
         H::used_cells[H::used_cells_size++] = {cell_x, cell_y - 1, cell_z, sim_tick};
         H::danger_grid[cell_x][cell_y][cell_z - 1][sim_tick]++;
         H::used_cells[H::used_cells_size++] = {cell_x, cell_y, cell_z - 1, sim_tick};
-        */
+
         simulator.tickDynamic(sim_tick);
 
         cur_plan.score.sum_score += simulator.getSumScoreEnemy(sim_tick) * multiplier;
@@ -165,6 +170,12 @@ void enemiesPrediction() {
       }
     }*/
   }
+  //for (int i = 0; i < H::used_cells_size; ++i) {
+  //  const auto& cell = H::used_cells[i];
+  //  if (cell.t == 99) {
+  //    P::drawSphere({cell.x * 2 - 40, cell.y * 2 - 1, cell.z * 2 - 30}, 1, 0x00FF00);
+  //  }
+  //}
 }
 
 void doStrategy() {
