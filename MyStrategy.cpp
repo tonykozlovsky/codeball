@@ -182,7 +182,7 @@ void doStrategy() {
             ball_on_my_side = true;
           }
         }
-        if (0 && !ball_on_my_side) {
+        if (!ball_on_my_side) {
           iterations[0] = 475 + 1;
           iterations[1] = 25 + 1;
         }
@@ -195,7 +195,7 @@ void doStrategy() {
         Plan cur_plan_smart(1, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan_smart = H::best_plan[id];
-        } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
+        } else if (C::rand_double(0, 1) < 1. / 2.) { // todo check coefficient
           cur_plan_smart = H::best_plan[id];
           cur_plan_smart.mutate(1, C::MAX_SIMULATION_DEPTH);
         }
