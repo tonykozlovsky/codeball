@@ -5,12 +5,12 @@ struct Plan {
   double angle1;
   double sangle1;
   double cangle1;
-  double z1;
+  double y1;
   double cos_lat1;
   double angle2;
   double sangle2;
   double cangle2;
-  double z2;
+  double y2;
   double cos_lat2;
   double max_jump_speed;
   double max_speed;
@@ -111,13 +111,13 @@ struct Plan {
       angle1 = C::rand_double(0, 2 * M_PI);
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
-      z1 = C::rand_double(-C::rules.MAX_ENTITY_SPEED, C::rules.MAX_ENTITY_SPEED);
-      cos_lat1 = cos(asin(z1 / C::rules.MAX_ENTITY_SPEED));
+      y1 = C::rand_double(-C::rules.MAX_ENTITY_SPEED, C::rules.MAX_ENTITY_SPEED);
+      cos_lat1 = cos(asin(y1 / C::rules.MAX_ENTITY_SPEED));
       angle2 = C::rand_double(0, 2 * M_PI);
       cangle2 = cos(angle2);
       sangle2 = sin(angle2);
-      z2 = C::rand_double(-C::rules.MAX_ENTITY_SPEED, C::rules.MAX_ENTITY_SPEED);
-      cos_lat2 = cos(asin(z2 / C::rules.MAX_ENTITY_SPEED));
+      y2 = C::rand_double(-C::rules.MAX_ENTITY_SPEED, C::rules.MAX_ENTITY_SPEED);
+      cos_lat2 = cos(asin(y2 / C::rules.MAX_ENTITY_SPEED));
 
       time_change = C::rand_int(0, simulation_depth);
       time_jump = C::rand_int(0, simulation_depth);
@@ -263,21 +263,21 @@ struct Plan {
       cangle2 = cos(angle2);
       sangle2 = sin(angle2);
 
-      z1 += C::rand_double(-z_mutation, z_mutation);
-      if (z1 > C::rules.MAX_ENTITY_SPEED) {
-        z1 = C::rules.MAX_ENTITY_SPEED;
-      } else if (z1 < -C::rules.MAX_ENTITY_SPEED) {
-        z1 = -C::rules.MAX_ENTITY_SPEED;
+      y1 += C::rand_double(-z_mutation, z_mutation);
+      if (y1 > C::rules.MAX_ENTITY_SPEED) {
+        y1 = C::rules.MAX_ENTITY_SPEED;
+      } else if (y1 < -C::rules.MAX_ENTITY_SPEED) {
+        y1 = -C::rules.MAX_ENTITY_SPEED;
       }
-      cos_lat1 = cos(asin(z1 / C::rules.MAX_ENTITY_SPEED));
+      cos_lat1 = cos(asin(y1 / C::rules.MAX_ENTITY_SPEED));
 
-      z2 += C::rand_double(-z_mutation, z_mutation);
-      if (z2 > C::rules.MAX_ENTITY_SPEED) {
-        z2 = C::rules.MAX_ENTITY_SPEED;
-      } else if (z2 < -C::rules.MAX_ENTITY_SPEED) {
-        z2 = -C::rules.MAX_ENTITY_SPEED;
+      y2 += C::rand_double(-z_mutation, z_mutation);
+      if (y2 > C::rules.MAX_ENTITY_SPEED) {
+        y2 = C::rules.MAX_ENTITY_SPEED;
+      } else if (y2 < -C::rules.MAX_ENTITY_SPEED) {
+        y2 = -C::rules.MAX_ENTITY_SPEED;
       }
-      cos_lat2 = cos(asin(z2 / C::rules.MAX_ENTITY_SPEED));
+      cos_lat2 = cos(asin(y2 / C::rules.MAX_ENTITY_SPEED));
 
       if (time_change != C::NEVER) {
         time_change += C::rand_int(-time_mutation, time_mutation);
@@ -541,7 +541,7 @@ struct Plan {
         std::swap(angle1, angle2);
         std::swap(sangle1, sangle2);
         std::swap(cangle1, cangle2);
-        std::swap(z1, z2);
+        std::swap(y1, y2);
         std::swap(cos_lat1, cos_lat2);
         std::swap(speed1, speed2);
         std::swap(crossing, crossing2);
@@ -574,16 +574,15 @@ struct Plan {
       if (simulation_tick < time_change) {
         if (configuration != 7) {
           velocity.x = speed1 * C::rules.MAX_ENTITY_SPEED * cos_lat1 * cangle1;
-          velocity.y = z1;
+          velocity.y = y1;
           velocity.z = speed1 * C::rules.MAX_ENTITY_SPEED * cos_lat1 * sangle1;
         } else {
           velocity = (crossing - position).normalize() * (speed1 * C::rules.MAX_ENTITY_SPEED);
-
         }
       } else {
         if (configuration != 7) {
           velocity.x = speed2 * C::rules.MAX_ENTITY_SPEED * cos_lat2 * cangle2;
-          velocity.y = z2;
+          velocity.y = y2;
           velocity.z = speed2 * C::rules.MAX_ENTITY_SPEED * cos_lat2 * sangle2;
         } else {
           velocity = (crossing2 - position).normalize() * (speed2 * C::rules.MAX_ENTITY_SPEED);

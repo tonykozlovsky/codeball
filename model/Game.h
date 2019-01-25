@@ -69,8 +69,15 @@ struct Game {
       robots[i].read2(json_robots[i], my_id);
     }
 
+    rapidjson::Value::ConstArray json_nitro_packs = json["nitro_packs"].GetArray();
+    nitro_packs.resize(json_nitro_packs.Size());
+    for (size_t i = 0; i < nitro_packs.size(); i++) {
+      nitro_packs[i].read2(json_nitro_packs[i], my_id);
+    }
+
     ball.read2(json["ball"], my_id);
-    //todo nitro from log
+
+
   }
 #endif
 };

@@ -28,6 +28,19 @@ namespace model {
                 respawn_ticks = json["respawn_ticks"].GetInt();
             }
         }
+
+      void read2(const rapidjson::Value& json, const int my_id) {
+        id = 228;
+        x = json["position"]["x"].GetDouble();
+        y = json["position"]["y"].GetDouble();
+        z = json["position"]["z"].GetDouble() * (my_id == 2 ? -1 : 1);
+        radius = json["radius"].GetDouble();
+        alive = json["respawn_ticks"].IsNull();
+        if (!alive) {
+          respawn_ticks = json["respawn_ticks"].GetInt();
+        }
+      }
+
     };
 }
 

@@ -52,7 +52,7 @@ void enemiesPrediction() {
           Point crossing;
           //P::drawLine({p0.x, 1, p0.z}, {p0.x + prev.x, 1, p0.z + prev.y}, 0xFF0000);
           //P::drawLine({p1.x, 1, p1.z}, {p1.x + cur.x, 1, p1.z + cur.y}, 0xFF0000);
-          if (H::solve2(
+          if (0 && H::solve2(
               {p0.x, p0.z},
               {p0.x + prev.x, p0.z + prev.y},
               {p1.x, p1.z},
@@ -157,6 +157,11 @@ void doStrategy() {
     e.fromRobot(robot);
     P::drawEntities({e.state}, 0, e.is_teammate ? 0x00FF00 : 0xFF0000);
   }
+  for (auto& nitro_pack : H::game.nitro_packs) {
+    Entity e;
+    e.fromPack(nitro_pack);
+    P::drawEntities({e.state}, 0, 0x0000FF);
+  }
   Entity e;
   e.fromBall(H::game.ball);
   P::drawEntities({e.state}, 0, 0x333333);
@@ -181,7 +186,7 @@ void doStrategy() {
 
     enemiesPrediction();
 
-    int iterations[2] = {1250 + 1, 1250 + 1};
+    int iterations[2] = {250 + 1, 250 + 1};
     for (int id = 1; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator_smart(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, H::game.nitro_packs);
@@ -195,12 +200,12 @@ void doStrategy() {
           }
         }
         if (!ball_on_my_side) {
-          iterations[0] = 2475 + 1;
+          iterations[0] = 475 + 1;
           iterations[1] = 25 + 1;
         }
       }
 
-      for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
+      /*for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
         if (id == 1) {
           if (ball_on_my_side) {
             if (H::global_timer.getCumulative(true) > H::half_time) {
@@ -211,17 +216,17 @@ void doStrategy() {
               break;
             }
           }
-        }
-        /*for (;; iteration++) {
+        }*/
+        for (;; iteration++) {
           if (iteration > iterations[id]) {
             break;
-          }*/
-        Plan cur_plan_smart(7, C::MAX_SIMULATION_DEPTH);
+          }
+        Plan cur_plan_smart(1, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan_smart = H::best_plan[id];
         } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
           cur_plan_smart = H::best_plan[id];
-          cur_plan_smart.mutate(7, C::MAX_SIMULATION_DEPTH);
+          cur_plan_smart.mutate(1, C::MAX_SIMULATION_DEPTH);
         }
 
         if (id == 0) {
