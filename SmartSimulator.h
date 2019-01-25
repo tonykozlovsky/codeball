@@ -420,7 +420,7 @@ struct SmartSimulator {
       const double penetration = sum_r - sqrt(distance_sq);
       if (check_with_ball) {
         entity_ball_collision_trigger = true;
-      } else if (!a->state.touch || !b->state.touch) {
+      } else if (!a->state.touch && !b->state.touch) {
         entity_entity_collision_trigger = true;
       }
       const double k_a = 1. / (a->mass * ((1 / a->mass) + (1 / b->mass)));
@@ -1057,7 +1057,7 @@ struct SmartSimulator {
         //  //H::t[18].call();
         //}
         entity_ball_collision_trigger = true;
-      } else if (!a->state.touch || !b->state.touch) {
+      } else if (!a->state.touch && !b->state.touch) {
         entity_entity_collision_trigger = true;
       }
       if (delta_velocity < 0) {
