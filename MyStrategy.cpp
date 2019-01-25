@@ -198,7 +198,7 @@ void doStrategy() {
 
     enemiesPrediction();
 
-    int iterations[2] = {250 + 1, 250 + 1};
+    int iterations[2] = {1250 + 1, 1250 + 1};
     for (int id = 1; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator_smart(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, H::game.nitro_packs);
@@ -212,7 +212,7 @@ void doStrategy() {
           }
         }
         if (!ball_on_my_side) {
-          iterations[0] = 475 + 1;
+          iterations[0] = 2475 + 1;
           iterations[1] = 25 + 1;
         }
       }

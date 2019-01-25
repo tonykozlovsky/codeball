@@ -223,7 +223,7 @@ struct Entity {
     const auto& tvc_length_sq = target_velocity_change.length_sq();
     if (tvc_length_sq > 0) {
       const auto& max_nitro_change = state.nitro * C::rules.NITRO_POINT_VELOCITY_CHANGE;
-      const auto& ac_per_dt = C::rules.ROBOT_NITRO_ACCELERATION / 60.;
+      const auto& ac_per_dt = C::rules.ROBOT_NITRO_ACCELERATION / 60. * C::TPT;
       if (max_nitro_change < ac_per_dt && tvc_length_sq > max_nitro_change * max_nitro_change) {
         restrict_nitro = true;
       } else if (ac_per_dt * ac_per_dt > tvc_length_sq) {
