@@ -217,7 +217,7 @@ void doStrategy() {
         }
       }
 
-      /*for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
+      for (; H::global_timer.getCumulative(true) < H::time_limit; iteration++) {
         if (id == 1) {
           if (ball_on_my_side) {
             if (H::global_timer.getCumulative(true) > H::half_time) {
@@ -228,11 +228,11 @@ void doStrategy() {
               break;
             }
           }
-        }*/
-      for (;; iteration++) {
+        }
+      /*for (;; iteration++) {
         if (iteration > iterations[id]) {
           break;
-        }
+        }*/
         Plan cur_plan_smart(7, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan_smart = H::best_plan[id];
