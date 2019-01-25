@@ -17,6 +17,7 @@ struct H {
   static int global_id;
   static int my_id;
 
+  static Point2d prev_last_action[6];
   static Plan last_best_plan[6];
   static Plan best_plan[6];
   static Plan last_action_plan[6];
@@ -33,6 +34,7 @@ struct H {
   static int used_cells_size;
 
   static Point prev_velocity[7];
+  static Point prev_position[7];
 
   static bool tryInit(
       const model::Robot& _me,
@@ -152,6 +154,34 @@ struct H {
 
     }
     return false;
+  }
+
+  template <typename T> static int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+  }
+
+  static bool solve2(Point2d v11, Point2d v12, Point2d v21, Point2d v22, Point& crossing) {
+
+    Point2d cut1 = v12 - v11;
+    Point2d cut2 = v22 - v21;
+
+    double z1 = cut1.x * (v21 - v11).y - cut1.y * (v21 - v11).x;
+    double z2 = cut1.x * (v22 - v11).y - cut1.y * (v22 - v11).x;
+
+    if (sgn(z1) == sgn(z2) || (z1 == 0) || (z2 == 0)) // Отсекаем также и пограничные случаи
+      return false;
+
+    z1 = cut2.x * (v11 - v21).y - cut2.y * (v11 - v21).x;
+    z2 = cut2.x * (v12 - v21).y - cut2.y * (v12 - v21).x;
+
+    if (sgn(z1) == sgn(z2) || (z1 == 0) || (z2 == 0)) // Отсекаем также и пограничные случаи
+      return false;
+
+    crossing.x = v11.x + cut1.x * fabs(z1) / fabs(z2 - z1);
+    crossing.z = v11.y + cut1.y * fabs(z1) / fabs(z2 - z1);
+
+    return true;
+
   }
 
 
