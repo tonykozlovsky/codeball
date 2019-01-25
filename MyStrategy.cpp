@@ -15,28 +15,11 @@
 MyStrategy::MyStrategy() {}
 
 void clearBestPlans() {
-  for (int id = 0; id < 4; id++) {
-    H::best_plan[id].score.minimal();
-    H::best_plan[id].time_jump--;
-    if (H::best_plan[id].time_jump < 0) { // todo -1 ?
-      H::best_plan[id].time_jump = 0;
-    }
-    H::best_plan[id].time_change--;
-    if (H::best_plan[id].time_change < 0) { // todo -1 ?
-      H::best_plan[id].time_change = 0;
-    }
-    H::best_plan[id].time_nitro_on--;
-    if (H::best_plan[id].time_nitro_on < 0) { // todo -1 ?
-      H::best_plan[id].time_nitro_on = 0;
-    }
-    H::best_plan[id].time_nitro_off--;
-    if (H::best_plan[id].time_nitro_off < 0) { // todo -1 ?
-      H::best_plan[id].time_nitro_off = 0;
-    }
-    H::best_plan[id].was_jumping = false;
-    H::best_plan[id].was_on_ground_after_jumping = false;
-    H::best_plan[id].collide_with_entity_before_on_ground_after_jumping = false;
-    H::best_plan[id].oncoming_jump = -1;
+  for (int id = 0; id < 2; id++) {
+    H::best_plan[id].clearAndShift(C::MAX_SIMULATION_DEPTH);
+  }
+  for (int id = 2; id < 4; id++) {
+    H::best_plan[id].clearAndShift(C::ENEMY_SIMULATION_DEPTH);
   }
 }
 
@@ -275,7 +258,7 @@ void doStrategy() {
               if ((main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2) && cur_plan.was_jumping && !cur_plan.was_on_ground_after_jumping) {
                 cur_plan.collide_with_entity_before_on_ground_after_jumping = true;
               }
-              if (cur_plan.oncoming_jump == -1) {
+              if (cur_plan.oncoming_jump == C::NEVER) {
                 cur_plan.oncoming_jump = sim_tick;
                 cur_plan.oncoming_jump_speed = main_robot_additional_jump_type == 3 ?
                     std::max(C::MIN_WALL_JUMP, cur_plan.max_jump_speed) : cur_plan.max_jump_speed;
@@ -285,7 +268,7 @@ void doStrategy() {
             if (cur_plan.was_jumping && !cur_plan.was_on_ground_after_jumping && simulator.main_robot->state.touch) {
               cur_plan.was_on_ground_after_jumping = true;
               if (!cur_plan.collide_with_entity_before_on_ground_after_jumping) {
-                cur_plan.time_jump = C::MAX_SIMULATION_DEPTH;
+                cur_plan.time_jump = C::NEVER;
               }
             }
 
@@ -308,13 +291,13 @@ void doStrategy() {
           }
 
           if (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping) {
-            cur_plan.time_jump = C::MAX_SIMULATION_DEPTH;
+            cur_plan.time_jump = C::NEVER;
           } else {
 
-            if (cur_plan.oncoming_jump == -1) {
+            if (cur_plan.oncoming_jump == C::NEVER) {
               cur_plan.oncoming_jump = cur_plan.time_jump;
               cur_plan.oncoming_jump_speed = cur_plan.max_jump_speed;
-            } else if (cur_plan.time_jump != -1) {
+            } else if (cur_plan.time_jump != C::NEVER) {
               if (cur_plan.oncoming_jump > cur_plan.time_jump) {
                 cur_plan.oncoming_jump = cur_plan.time_jump;
                 cur_plan.oncoming_jump_speed = cur_plan.max_jump_speed;
