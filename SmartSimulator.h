@@ -1073,33 +1073,32 @@ struct SmartSimulator {
     return false;
   }
 
- /* inline bool collideEntitiesCheckDynamic(Entity* a_static, Entity* b_dynamic) {
-    const double& sum_r = a_static->state_ptr->radius + b_dynamic->state.radius;
-    const double& dx = a_static->state_ptr->position.x - b_dynamic->state.position.x;
-    if (fabs(dx) > sum_r) {
-      return false;
-    }
-    const double& dz = a_static->state_ptr->position.z - b_dynamic->state.position.z;
-    if (fabs(dz) > sum_r) {
-      return false;
-    }
-    const double& dy = a_static->state_ptr->position.y - b_dynamic->state.position.y;
-    if (fabs(dy) > sum_r) {
-      return false;
-    }
+  /* inline bool collideEntitiesCheckDynamic(Entity* a_static, Entity* b_dynamic) {
+     const double& sum_r = a_static->state_ptr->radius + b_dynamic->state.radius;
+     const double& dx = a_static->state_ptr->position.x - b_dynamic->state.position.x;
+     if (fabs(dx) > sum_r) {
+       return false;
+     }
+     const double& dz = a_static->state_ptr->position.z - b_dynamic->state.position.z;
+     if (fabs(dz) > sum_r) {
+       return false;
+     }
+     const double& dy = a_static->state_ptr->position.y - b_dynamic->state.position.y;
+     if (fabs(dy) > sum_r) {
+       return false;
+     }
+     return
+         sum_r
+             * sum_r >
+             dx * dx + dy * dy + dz * dz;
+   }*/
+
+  bool collideEntitiesCheckDynamic(Entity* a_static, Entity* b_dynamic) {
     return
-        sum_r
-            * sum_r >
-            dx * dx + dy * dy + dz * dz;
-  }*/
-
- bool collideEntitiesCheckDynamic(Entity* a_static, Entity* b_dynamic) {
-   return
-       (a_static->state_ptr->radius + b_dynamic->state.radius)
-           * (a_static->state_ptr->radius + b_dynamic->state.radius) >
-           (b_dynamic->state.position - a_static->state_ptr->position).length_sq();
- }
-
+        (a_static->state_ptr->radius + b_dynamic->state.radius)
+            * (a_static->state_ptr->radius + b_dynamic->state.radius) >
+            (b_dynamic->state.position - a_static->state_ptr->position).length_sq();
+  }
 
   bool collideWithArenaDynamic(Entity* e, Point& result, int& collision_surface_id) {
     const Dan& dan = Dan::dan_to_arena(e->state.position, e->state.radius);
@@ -1276,7 +1275,6 @@ struct SmartSimulator {
         score -= 0.5 * C::TPT;
       }
 
-
       if (main_robot->action.use_nitro) {
         //score -= 0.1 * C::TPT;
       }
@@ -1426,7 +1424,7 @@ struct SmartSimulator {
   }
 
   double getMinDistToEnemyScore() {
-   double min_dist = 1e9;
+    double min_dist = 1e9;
     for (int i = 0; i < static_robots_size; ++i) {
       auto& e = static_robots[i];
       if (!e->is_teammate) {

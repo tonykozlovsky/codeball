@@ -43,7 +43,7 @@ struct C {
 
   static int unique_plan_id;
   static model::Rules rules;
-  static constexpr int TPT = 2;
+  static constexpr int TPT = 1;
   static constexpr int MAX_SIMULATION_DEPTH = 100 / TPT;
   static constexpr int MICROTICKS_PER_TICK = 100 * TPT;
   static constexpr double ball_antiflap = 0.1; // todo check
@@ -57,11 +57,11 @@ struct C {
   static std::mt19937_64 rd;
 
   static double rand_double(double a, double b) {
-    return a + (double)rd() / rd.max() * (b - a);
+    return a + (double) rd() / rd.max() * (b - a);
   }
 
   static int rand_int(int a, int b) {
-    return (int)(a + rd() % (b - a + 1));
+    return (int) (a + rd() % (b - a + 1));
   }
 
 };

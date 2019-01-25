@@ -60,7 +60,7 @@ void enemiesPrediction() {
         double ax, az;
         if (H::solve(v0.x, v0.z, v1.x, v1.z, dvx, dvz, ax, az)) {
 
-          Point2d cur {ax, az};
+          Point2d cur{ax, az};
           Point2d prev = H::prev_last_action[H::getRobotLocalIdByGlobal(robot.id)];
 
           Point p0 = H::prev_position[id];
@@ -229,10 +229,10 @@ void doStrategy() {
             }
           }
         }
-      /*for (;; iteration++) {
-        if (iteration > iterations[id]) {
-          break;
-        }*/
+        /*for (;; iteration++) {
+          if (iteration > iterations[id]) {
+            break;
+          }*/
         Plan cur_plan_smart(7, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan_smart = H::best_plan[id];
@@ -311,7 +311,6 @@ void doStrategy() {
             cur_plan.time_jump = C::MAX_SIMULATION_DEPTH;
           } else {
 
-
             if (cur_plan.oncoming_jump == -1) {
               cur_plan.oncoming_jump = cur_plan.time_jump;
               cur_plan.oncoming_jump_speed = cur_plan.max_jump_speed;
@@ -367,7 +366,6 @@ void doStrategy() {
     }
     H::asserts_failed_k += 1;
   }
-
 
 #ifndef FROM_LOG
   for (auto& robot : H::game.robots) {

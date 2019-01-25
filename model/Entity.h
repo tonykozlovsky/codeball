@@ -20,20 +20,20 @@ struct EntityState {
   int respawn_ticks;
   bool alive;
 
-  bool operator != (const EntityState& other) const {
+  bool operator!=(const EntityState& other) const {
     return !(*this == other);
   }
-  bool operator == (const EntityState& other) const {
+  bool operator==(const EntityState& other) const {
     return
-    position == other.position
-    && velocity == other.velocity
-    && radius == other.radius
-    && nitro == other.nitro
-    && touch == other.touch
-    && touch_normal == other.touch_normal
-    && touch_surface_id == other.touch_surface_id
-    && respawn_ticks == other.respawn_ticks
-    && alive == other.alive;
+        position == other.position
+            && velocity == other.velocity
+            && radius == other.radius
+            && nitro == other.nitro
+            && touch == other.touch
+            && touch_normal == other.touch_normal
+            && touch_surface_id == other.touch_surface_id
+            && respawn_ticks == other.respawn_ticks
+            && alive == other.alive;
 
   }
 };
