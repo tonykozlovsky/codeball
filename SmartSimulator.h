@@ -1276,12 +1276,11 @@ struct SmartSimulator {
         score -= 0.5 * C::TPT;
       }
 
-      /*
-      score += main_robot->taken_nitro;
 
       if (main_robot->action.use_nitro) {
-        score += C::TPT;
-      }*/
+        //score -= 0.1 * C::TPT;
+      }
+      score += 0.1 * main_robot->taken_nitro;
 
       /*for (int i = 0; i < static_robots_size; ++i) {
         auto& e = static_robots[i];
@@ -1384,6 +1383,11 @@ struct SmartSimulator {
         score -= 0.5 * C::TPT;
       }
 
+      if (main_robot->action.use_nitro) {
+        //score -= 0.1 * C::TPT;
+      }
+      score += 0.1 * main_robot->taken_nitro;
+
       /*for (int i = 0; i < static_robots_size; ++i) {
         auto& e = static_robots[i];
         if (!e->is_teammate && e->static_event_ptr->collide_with_ball) {
@@ -1397,10 +1401,7 @@ struct SmartSimulator {
         }
       }*/
 
-      /*if (main_robot->action.use_nitro) {
-        score += C::TPT;
-      }
-      score += main_robot->taken_nitro;*/
+
       /*if (tick_number < 100) {
         const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
         const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
