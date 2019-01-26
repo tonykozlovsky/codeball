@@ -65,30 +65,30 @@ struct SmartSimulator {
 
   bool acceleration_trigger;
   int acceleration_trigger_fires;
-  const int acceleration_trigger_limit = 2;
+  const int acceleration_trigger_limit = 20;
 
   bool entity_entity_collision_trigger;
   int entity_entity_collision_trigger_fires;
-  const int entity_entity_collision_limit = 2;
+  const int entity_entity_collision_limit = 40;
 
   bool entity_ball_collision_trigger;
   int entity_ball_collision_trigger_fires;
-  const int entity_ball_collision_limit = 2;
+  const int entity_ball_collision_limit = 20;
 
   bool entity_arena_collision_trigger;
   int entity_arena_collision_trigger_fires;
-  const int entity_arena_collision_limit = 2;
+  const int entity_arena_collision_limit = 20;
 
   bool ball_arena_collision_trigger;
   int ball_arena_collision_trigger_fires;
-  const int ball_arena_collision_limit = 2;
+  const int ball_arena_collision_limit = 20;
 
   int simulation_depth;
 
   bool accurate;
 
-  double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
-  // double hit_e = C::rules.MAX_HIT_E;
+  // double hit_e = (C::rules.MIN_HIT_E + C::rules.MAX_HIT_E) / 2;
+  double hit_e = C::rules.MAX_HIT_E;
 
   bool collided_entities[7][7];
 
@@ -159,6 +159,9 @@ struct SmartSimulator {
       for (int i = 0; i < initial_static_entities_size; ++i) {
         auto& e = initial_static_entities[i];
         for (int j = 1; j < simulation_depth; ++j) {
+          if (!e.states[j].alive) {
+            break;
+          }
           P::drawLine(e.states[j - 1].position, e.states[j].position, accurate ? 0xFFFFFF : 0x000000);
         }
       }
@@ -231,9 +234,28 @@ struct SmartSimulator {
     }
   }
 
+  bool predict_for_grid = false;
+
   void tickWithJumpsStatic(const int tick_number, bool with_jumps) {
     for (int i = 0; i < initial_static_robots_size; ++i) {
       auto& robot = initial_static_robots[i];
+      if (!robot->state.alive) {
+        continue;
+      }
+      if (!predict_for_grid && !robot->is_teammate) {
+        if (robot->did_not_touch_on_prefix && robot->state.touch) {
+          robot->did_not_touch_on_prefix = false;
+        }
+        if (tick_number > C::ENEMY_LIVE_TICKS && !robot->did_not_touch_on_prefix) {
+          robot->state.alive = false;
+        }
+      }
+    }
+    for (int i = 0; i < initial_static_robots_size; ++i) {
+      auto& robot = initial_static_robots[i];
+      if (!robot->state.alive) {
+        continue;
+      }
       robot->action = robot->plan.toMyAction(tick_number, true, true, robot->state.position);
       robot->nitroCheck();
       if (!robot->action.use_nitro) {
@@ -253,6 +275,9 @@ struct SmartSimulator {
       bool needs_rollback = false;
       for (int i = 0; i < initial_static_robots_size; ++i) {
         auto& e = initial_static_robots[i];
+        if (!e->state.alive) {
+          continue;
+        }
         if (e->collide_with_entity_in_air || e->collide_with_ball || e->additional_jump) {
           needs_rollback = true;
           e->action.jump_speed = e->additional_jump ? std::max(C::MIN_WALL_JUMP, e->action.max_jump_speed) : e->action.max_jump_speed;
@@ -261,6 +286,9 @@ struct SmartSimulator {
       if (needs_rollback) {
         for (int i = 0; i < initial_static_entities_size; ++i) {
           auto& e = initial_static_entities[i];
+          if (!e.state.alive) {
+            continue;
+          }
           e.fromState(tick_number);
         }
         clearCollisionsAndStaticEvents(tick_number);
@@ -334,6 +362,9 @@ struct SmartSimulator {
   void saveMicrostatesStatic() {
     for (int i = 0; i < initial_static_robots_size; ++i) {
       auto& e = initial_static_robots[i];
+      if (!e->state.alive) {
+        continue;
+      }
       e->savePrevMicroState();
     }
     ball->savePrevMicroState();
@@ -342,6 +373,9 @@ struct SmartSimulator {
   void fromMictostatesStatic() {
     for (int i = 0; i < initial_static_robots_size; ++i) {
       auto& e = initial_static_robots[i];
+      if (!e->state.alive) {
+        continue;
+      }
       e->fromPrevMicroState();
     }
     ball->fromPrevMicroState();
@@ -968,15 +1002,69 @@ struct SmartSimulator {
     return false;
   }
 
+  void removeSleepingEntitiesDynamic(int simulation_tick) {
+
+
+    int new_static_entities_size = 0;
+    for (int i = 0; i < static_entities_size; ++i) {
+      auto& e = static_entities[i];
+      if (e->state_ptr->alive) {
+        static_entities[new_static_entities_size++] = e;
+      }
+    }
+    static_entities_size = new_static_entities_size;
+
+
+    int new_dynamic_entities_size = 0;
+    for (int i = 0; i < dynamic_entities_size; ++i) {
+      auto& e = dynamic_entities[i];
+      if (e->state.alive
+      //&& !(e == main_robot && !e->is_teammate && simulation_tick > C::ENEMY_LIVE_TICKS)
+          ) {
+        dynamic_entities[new_dynamic_entities_size++] = e;
+      }
+    }
+    dynamic_entities_size = new_dynamic_entities_size;
+
+
+    int new_static_robots_size = 0;
+    for (int i = 0; i < static_robots_size; ++i) {
+      auto& e = static_robots[i];
+      if (e->state_ptr->alive) {
+        static_robots[new_static_robots_size++] = e;
+      }
+    }
+    static_robots_size = new_static_robots_size;
+
+
+    int new_dynamic_robots_size = 0;
+    for (int i = 0; i < dynamic_robots_size; ++i) {
+      auto& e = dynamic_robots[i];
+      if (e->state.alive
+      //&& !(e == main_robot && !e->is_teammate && simulation_tick > C::ENEMY_LIVE_TICKS)
+          ) {
+        dynamic_robots[new_dynamic_robots_size++] = e;
+      }
+    }
+    dynamic_robots_size = new_dynamic_robots_size;
+
+
+  }
+
   int tickDynamic(const int tick_number, int viz_id = -1, bool viz = false) {
     if (goal_info.goal_to_me || goal_info.goal_to_enemy) {
       return 0;
     }
     int main_robot_additional_jump_type = 0;
+
     wantedStaticGoToDynamic(tick_number);
+
     for (int i = 0; i < static_entities_size; ++i) {
       static_entities[i]->fromStateStatic(tick_number + 1);
     }
+
+    removeSleepingEntitiesDynamic(tick_number);
+
     for (int i = 0; i < dynamic_entities_size; ++i) {
       dynamic_entities[i]->savePrevState();
     }
@@ -1057,7 +1145,7 @@ struct SmartSimulator {
         //  //H::t[18].call();
         //}
         entity_ball_collision_trigger = true;
-      } else if (!a->state.touch && !b->state.touch) {
+      } else if (a->state.radius > 1.000000001 || b->state.radius > 1.000000001) {
         entity_entity_collision_trigger = true;
       }
       if (delta_velocity < 0) {
@@ -1128,6 +1216,9 @@ struct SmartSimulator {
   void updateStatic(const double delta_time, const int number_of_tick, const int number_of_microticks) {
     for (int i = 0; i < initial_static_robots_size; ++i) {
       auto& robot = initial_static_robots[i];
+      if (!robot->state.alive) {
+        continue;
+      }
       if (robot->state.touch) { //todo nitro max speed clamp
         const Point& target_velocity = robot->action.target_velocity - robot->state.touch_normal * robot->state.touch_normal.dot(robot->action.target_velocity);
         const Point& target_velocity_change = target_velocity - robot->state.velocity;
@@ -1173,7 +1264,13 @@ struct SmartSimulator {
     moveStatic(ball, delta_time);
 
     for (int i = 0; i < initial_static_robots_size; i++) {
+      if (!initial_static_robots[i]->state.alive) {
+        continue;
+      }
       for (int j = 0; j < i; j++) {
+        if (!initial_static_robots[j]->state.alive) {
+          continue;
+        }
         collideEntitiesStatic(number_of_tick, initial_static_robots[i], initial_static_robots[j], false);
       }
     }
@@ -1182,6 +1279,9 @@ struct SmartSimulator {
     int touch_surface_id;
     for (int i = 0; i < initial_static_robots_size; i++) {
       auto& robot = initial_static_robots[i];
+      if (!robot->state.alive) {
+        continue;
+      }
       collideEntitiesStatic(number_of_tick, robot, ball, true);
       if (!collideWithArenaStatic(robot, collision_normal, touch_surface_id)) {
         if (robot->state.touch) {
@@ -1217,6 +1317,9 @@ struct SmartSimulator {
 
     for (int i = 0; i < initial_static_robots_size; i++) {
       auto& robot = initial_static_robots[i];
+      if (!robot->state.alive) {
+        continue;
+      }
       if (robot->state.nitro == C::rules.MAX_NITRO_AMOUNT) {
         continue;
       }
@@ -1262,15 +1365,15 @@ struct SmartSimulator {
   double getSumScoreFighter(const int tick_number) {
     double score = 0;
     if (goal_info.goal_to_me) {
-      score += tick_number == goal_info.goal_tick ? -1e3 : 0;
+      score += tick_number == goal_info.goal_tick ? -1e9 : 0;
     } else if (goal_info.goal_to_enemy) {
-      score += tick_number == goal_info.goal_tick ? 1e3 : 0;
+      score += tick_number == goal_info.goal_tick ? 1e9 : 0;
     }
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
-
-      if (!main_robot->state.touch) {
-        score -= 0.5 * C::TPT;
-      }
+      score += -getMinDistToGoalScoreFighter();
+      //if (!main_robot->state.touch) {
+      //  score -= 0.5 * C::TPT;
+      //}
 
       //if (main_robot->collide_with_ball) {
       //  score += 1;
@@ -1278,22 +1381,22 @@ struct SmartSimulator {
       //if (main_robot->action.use_nitro) {
       //  //score -= 0.1 * C::TPT;
       //}
-      score += 0.01 * main_robot->taken_nitro;
+      //score += 0.01 * main_robot->taken_nitro;
 
-      /*for (int i = 0; i < static_robots_size; ++i) {
+      for (int i = 0; i < static_robots_size; ++i) {
         auto& e = static_robots[i];
         if (!e->is_teammate && e->static_event_ptr->collide_with_ball) {
-          score -= 10;
+          score -= 1e8;
         }
       }
       for (int i = 0; i < dynamic_robots_size; ++i) {
         auto& e = dynamic_robots[i];
         if (!e->is_teammate && e->collide_with_ball) {
-          score -= 10;
+          score -= 1e8;
         }
-      }*/
-      /*if (tick_number < 100) {
-        const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
+      }
+      if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
+        const int cell_x = std::clamp((int) ((ball->getState().position.x + 50. - 1.) / 2.), 0, 98);
         const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
         const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
         const int sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
@@ -1304,8 +1407,8 @@ struct SmartSimulator {
             + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
             + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
             + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-        score -= 0 * 0.1 * sum;
-      }*/
+        score -= sum;
+      }
     }
 
     return score;
@@ -1324,11 +1427,11 @@ struct SmartSimulator {
         C::rules.arena.goal_width / 2 - 2,
         C::rules.arena.goal_height - 2,
         C::rules.arena.depth / 2 + 2} - ball->getState().position).length_sq();
-    return sqrt(std::min(d1, std::min(d2, d3)));
+    return 0.001 * sqrt(std::min(d1, std::min(d2, d3)));
   }
 
   double getMinDistToBallScoreFighter() {
-    return (main_robot->state.position - ball->getState().position).length();
+    return 0.001 * (main_robot->state.position - ball->getState().position).length();
   }
 
   double getSumScoreEnemy(const int tick_number) {
