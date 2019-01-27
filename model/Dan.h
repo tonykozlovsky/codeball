@@ -12,24 +12,24 @@ struct Dan {
   double distance;
   Point normal;
   int collision_surface_id;
-  bool operator<(const Dan& other) const {
+  inline bool operator<(const Dan& other) const {
     return distance < other.distance;
   }
 
-  static Dan dan_to_plane(
+  inline static Dan dan_to_plane(
       const Point& point,
       const Point& point_on_plane,
       const Point& plane_normal,
-      const int collision_surface_id) {
+      const int& collision_surface_id) {
     return {(point - point_on_plane).dot(plane_normal), plane_normal, collision_surface_id};
   }
 
-  static Dan dan_to_sphere_inner(
-      const double radius,
+  inline static Dan dan_to_sphere_inner(
+      const double& radius,
       const Point& point,
       const Point& sphere_center,
-      const double sphere_radius,
-      const int collision_surface_id) {
+      const double& sphere_radius,
+      const int& collision_surface_id) {
     const double length_sq = (point - sphere_center).length_sq();
     if ((sphere_radius - radius) * (sphere_radius - radius) > length_sq) {
       return {1e9, {0, 0, 0}, 0};
@@ -37,12 +37,12 @@ struct Dan {
     return {sphere_radius - sqrt(length_sq), sphere_center - point, collision_surface_id};
   }
 
-  static Dan dan_to_sphere_outer(
-      const double radius,
+  inline static Dan dan_to_sphere_outer(
+      const double& radius,
       const Point& point,
       const Point& sphere_center,
-      const double sphere_radius,
-      const int collision_surface_id) {
+      const double& sphere_radius,
+      const int& collision_surface_id) {
     const double length_sq = (point - sphere_center).length_sq();
     if (length_sq > (radius + sphere_radius) * (radius + sphere_radius)) {
       return {1e9, {0, 0, 0}, 0};
@@ -50,7 +50,7 @@ struct Dan {
     return {sqrt(length_sq) - sphere_radius, point - sphere_center, collision_surface_id};
   }
 
-  static Dan dan_to_arena(Point& point, const double radius) {
+  inline static Dan dan_to_arena(Point& point, const double& radius) {
     const bool& negate_x = point.x < 0;
     const bool& negate_z = point.z < 0;
     if (negate_x) {
@@ -71,7 +71,7 @@ struct Dan {
     return result;
   }
 
-  inline static double my_clamp(const double x, const double a, const double b) {
+  inline static double my_clamp(const double& x, const double& a, const double& b) {
     if (x < a) {
       return a;
     }
@@ -81,7 +81,7 @@ struct Dan {
     return x;
   }
 
-  static Dan dan_to_arena_quarter(const Point& point, const double radius) {
+  inline static Dan dan_to_arena_quarter(const Point& point, const double& radius) {
     //H::t[11].start();
     Dan dan = Dan({1e9, {0, 0, 0}});
     //H::t[11].cur(true);

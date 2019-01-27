@@ -37,6 +37,10 @@ struct Plan {
 
   int configuration;
 
+  Point nitro_velocity1, nitro_velocity2;
+  Point velocity1, velocity2;
+
+
   struct Score {
     double sum_score;
     double fighter_min_dist_to_ball;
@@ -224,7 +228,27 @@ struct Plan {
       time_nitro_off = C::rand_int(0, simulation_depth);
     }
 
+    calcVelocities();
+
     score.minimal();
+  }
+
+  inline void calcVelocities() {
+    velocity1.x = speed1 * max_speed * cangle1;
+    velocity1.y = 0;
+    velocity1.z = speed1 * max_speed * sangle1;
+
+    velocity2.x = speed2 * max_speed * cangle2;
+    velocity2.y = 0;
+    velocity2.z = speed2 * max_speed * sangle2;
+
+    nitro_velocity1.x = speed1 * 100 * cos_lat1 * cangle1;
+    nitro_velocity1.y = y1;
+    nitro_velocity1.z = speed1 * 100 * cos_lat1 * sangle1;
+
+    nitro_velocity2.x = speed2 * 100 * cos_lat2 * cangle2;
+    nitro_velocity2.y = y2;
+    nitro_velocity2.z = speed2 * 100 * cos_lat2 * sangle2;
   }
 
   static constexpr double angle_mutation = M_PI / 100;
@@ -514,6 +538,7 @@ struct Plan {
 
     }
 
+    calcVelocities();
     score.minimal();
   }
 
@@ -558,60 +583,35 @@ struct Plan {
     }
   }
 
-  MyAction toMyAction(int simulation_tick, bool simulation, bool can_use_nitro, const Point& position) {
-    double jump_speed;
-    if (simulation) {
-      jump_speed = simulation_tick == time_jump ? max_jump_speed : 0;
-    } else {
-      jump_speed = simulation_tick == oncoming_jump ? oncoming_jump_speed : 0;
-    }
-    bool now_use_nitro = (simulation_tick >= time_nitro_on && simulation_tick < time_nitro_off);
-    Point velocity;
-    if (now_use_nitro && can_use_nitro) {
+  inline MyAction toMyAction(const int& simulation_tick, const bool& simulation, const bool& can_use_nitro, const Point& position) {
+    const double& jump_speed = simulation ?  (simulation_tick == time_jump ? max_jump_speed : 0) : (simulation_tick == oncoming_jump ? oncoming_jump_speed : 0);
+    const bool& now_use_nitro = can_use_nitro && simulation_tick >= time_nitro_on && simulation_tick < time_nitro_off;
+    if (now_use_nitro) {
       if (simulation_tick < time_change) {
-        if (configuration != 7) {
-          velocity.x = speed1 * C::rules.MAX_ENTITY_SPEED * cos_lat1 * cangle1;
-          velocity.y = y1;
-          velocity.z = speed1 * C::rules.MAX_ENTITY_SPEED * cos_lat1 * sangle1;
-        } else {
-          velocity = (crossing - position).normalize() * (speed1 * C::rules.MAX_ENTITY_SPEED);
-        }
+          return MyAction{nitro_velocity1,
+              jump_speed,
+              max_jump_speed,
+              now_use_nitro};
+
       } else {
-        if (configuration != 7) {
-          velocity.x = speed2 * C::rules.MAX_ENTITY_SPEED * cos_lat2 * cangle2;
-          velocity.y = y2;
-          velocity.z = speed2 * C::rules.MAX_ENTITY_SPEED * cos_lat2 * sangle2;
-        } else {
-          velocity = (crossing2 - position).normalize() * (speed2 * C::rules.MAX_ENTITY_SPEED);
-        }
+          return MyAction{nitro_velocity2,
+              jump_speed,
+              max_jump_speed,
+              now_use_nitro};
       }
     } else {
       if (simulation_tick < time_change) {
-        if (configuration != 5 && configuration != 6 && configuration != 7) {
-          velocity.x = speed1 * max_speed * cangle1;
-          velocity.y = 0;
-          velocity.z = speed1 * max_speed * sangle1;
-        } else {
-          Point p = (crossing - position);
-          p.y = 0;
-          velocity = p.normalize() * (speed1 * max_speed);
-        }
+          return MyAction{velocity1,
+              jump_speed,
+              max_jump_speed,
+              now_use_nitro};
       } else {
-        if (configuration != 7) {
-          velocity.x = speed2 * max_speed * cangle2;
-          velocity.y = 0;
-          velocity.z = speed2 * max_speed * sangle2;
-        } else {
-          Point p = (crossing2 - position);
-          p.y = 0;
-          velocity = p.normalize() * (speed2 * max_speed);
-        }
+          return MyAction{velocity2,
+              jump_speed,
+              max_jump_speed,
+              now_use_nitro};
       }
     }
-    return MyAction{velocity,
-        jump_speed,
-        max_jump_speed,
-        (now_use_nitro && can_use_nitro)};
   }
   bool operator<(const Plan& other) const {
     return score < other.score;

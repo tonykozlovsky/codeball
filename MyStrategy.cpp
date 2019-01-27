@@ -168,27 +168,25 @@ void doStrategy() {
 
   //todo saving packs collisions
 
-  //for (int i = 0; i < 100; ++i) {
-  //  auto& t = H::t[i];
-  //  t.clearCur();
-  //}
-  //for (int i = 0; i < 100; ++i) {
-  //  auto& c = H::c[i];
-  //  c.init_calls();
-  //}
-  //H::t[0].start();
+  for (int i = 0; i < 100; ++i) {
+    auto& t = H::t[i];
+    t.clearCur();
+  }
+  for (int i = 0; i < 100; ++i) {
+    auto& c = H::c[i];
+    c.init_calls();
+  }
 
+  H::t[0].start();
   if (H::tick % C::TPT == 0) {
 
     clearBestPlans();
-
     enemiesPrediction();
 
     int iterations[3] = {250 + 1, 250 + 1, 250 + 1};
     for (int id = 2; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
-
       for (;; iteration++) {
         if (iteration > iterations[id]) {
           break;
@@ -210,14 +208,11 @@ void doStrategy() {
         simulator.initIteration(iteration, cur_plan);
 
         cur_plan.plans_config = 2;
-
         double multiplier = 1.;
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
-
           bool main_touch = simulator.main_robot->state.touch;
 
           int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
-
           if (main_robot_additional_jump_type == 0 && simulator.main_robot->action.jump_speed > 0 && main_touch) {
             cur_plan.was_jumping = true;
           }
@@ -255,6 +250,7 @@ void doStrategy() {
               cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
             }
           }
+
           multiplier *= 0.999;
         }
 
@@ -318,6 +314,7 @@ void doStrategy() {
     H::iterations_k += 1;
   }
 
+
 #ifndef FROM_LOG
   for (auto& robot : H::game.robots) {
     if (robot.is_teammate) {
@@ -339,18 +336,18 @@ void doStrategy() {
     H::prev_position[id] = {robot.x, robot.y, robot.z};
   }
 
-  //H::t[0].cur(true);
-  //for (int i = 0; i < 7; ++i) {
-  //  auto& t = H::t[i];
-  //  t.cur(false, true);
-  //  P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
-  //}
+  H::t[0].cur(true);
+  for (int i = 0; i < 12; ++i) {
+    auto& t = H::t[i];
+    t.cur(false, true);
+    P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
+  }
 
-  //for (int i = 0; i < 5; ++i) {
-  //  auto& c = H::c[i];
-  //  c.capture();
-  //  P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
-  //}
+  for (int i = 0; i < 5; ++i) {
+    auto& c = H::c[i];
+    c.capture();
+    P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
+  }
 
 }
 

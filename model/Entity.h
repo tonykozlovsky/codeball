@@ -21,10 +21,10 @@ struct EntityState {
   int respawn_ticks;
   bool alive;
 
-  bool operator!=(const EntityState& other) const {
+  inline bool operator!=(const EntityState& other) const {
     return !(*this == other);
   }
-  bool operator==(const EntityState& other) const {
+  inline bool operator==(const EntityState& other) const {
     return
         position == other.position
             && velocity == other.velocity
@@ -41,7 +41,7 @@ struct EntityState {
 
 struct StaticEvent {
   bool collide_with_ball;
-  void clear() {
+  inline void clear() {
     collide_with_ball = false;
   }
 };
@@ -57,7 +57,7 @@ struct Entity {
   EntityState state;
   EntityState* state_ptr; // only for static for not copying state
 
-  EntityState& getState() { // use outside simulator, if we dont know static or dynamic
+  inline EntityState& getState() { // use outside simulator, if we dont know static or dynamic
     if (is_dynamic) {
       return state;
     } else {
@@ -95,20 +95,20 @@ struct Entity {
 
   bool is_robot, is_ball, is_pack;
 
-  bool operator<(const Entity& other) const {
+  inline bool operator<(const Entity& other) const {
     return id < other.id;
   }
 
   Entity() {}
 
-  void addCollision(const Collision& collision) {
+  inline void addCollision(const Collision& collision) {
     if (collisions_size == max_collisions) {
       return;
     }
     collisions[collisions_size++] = collision;
   }
 
-  void fromPack(const model::NitroPack& _pack) {
+  inline void fromPack(const model::NitroPack& _pack) {
     is_pack = true;
     is_ball = is_robot = false;
     state.respawn_ticks = _pack.respawn_ticks;
@@ -119,7 +119,7 @@ struct Entity {
     collisions_size = 0;
   }
 
-  void fromBall(const model::Ball& ball) {
+  inline void fromBall(const model::Ball& ball) {
     is_ball = true;
     is_pack = is_robot = false;
     state.position = {ball.x, ball.y, ball.z};
@@ -140,7 +140,7 @@ struct Entity {
 
   }
 
-  void fromRobot(const model::Robot& robot) {
+  inline void fromRobot(const model::Robot& robot) {
     is_robot = true;
     is_pack = is_ball = false;
     state.position = {robot.x, robot.y, robot.z};
@@ -167,36 +167,36 @@ struct Entity {
   ~Entity() {
   }
 
-  void saveState(const int tick_number) {
+  inline void saveState(const int& tick_number) {
     states[tick_number] = state;
   }
 
-  void savePrevState() {
+  inline void savePrevState() {
     prev_state = state;
   }
 
-  void fromPrevState() {
+  inline void fromPrevState() {
     state = prev_state;
   }
 
-  void savePrevMicroState() {
+  inline void savePrevMicroState() {
     prev_micro_state = state;
   }
 
-  void fromPrevMicroState() {
+  inline void fromPrevMicroState() {
     state = prev_micro_state;
   }
 
-  void fromStateStatic(const int tick_number) {
+  inline void fromStateStatic(const int& tick_number) {
     state_ptr = states + tick_number;
     static_event_ptr = static_events + tick_number;
   }
 
-  void fromState(const int tick_number) {
+  inline void fromState(const int& tick_number) {
     state = states[tick_number];
   }
 
-  void wantToBecomeDynamic(int tick_number) {
+  inline void wantToBecomeDynamic(const int& tick_number) {
     want_to_become_dynamic = true;
     want_to_become_dynamic_on_tick = tick_number;
     for (int i = 0; i < collisions_size; ++i) {
@@ -207,7 +207,7 @@ struct Entity {
     }
   }
 
-  void nitroCheck() {
+  inline void nitroCheck() {
     if (!action.use_nitro) {
       return;
     }
