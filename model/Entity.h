@@ -81,8 +81,8 @@ struct Entity {
 
   EntityState prev_state;
   EntityState prev_micro_state;
-  EntityState states[101];
-  StaticEvent static_events[101];
+  EntityState states[C::MAX_SIMULATION_DEPTH + 1];
+  StaticEvent static_events[C::MAX_SIMULATION_DEPTH + 1];
   StaticEvent* static_event_ptr;
 
   static constexpr int max_collisions = 14;
