@@ -81,7 +81,7 @@ void enemiesPrediction() {
 
   for (int enemy_id : {2, 3}) {
     continue;
-    SmartSimulator simulator(enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
+    SmartSimulator simulator(false, 1, enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
 
     for (int iteration = 0; iteration < 100; iteration++) {
       Plan cur_plan(2, enemy_depth);
@@ -186,7 +186,7 @@ void doStrategy() {
     int iterations[3] = {250 + 1, 250 + 1, 250 + 1};
     for (int id = 2; id >= 0; id--) {
       int iteration = 0;
-      SmartSimulator simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
+      SmartSimulator simulator(false, 1, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
       for (;; iteration++) {
         if (iteration > iterations[id]) {
           break;
@@ -298,10 +298,10 @@ void doStrategy() {
 
         Plan cur_plan = H::best_plan[id];
 
-        SmartSimulator simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, false, H::getRobotGlobalIdByLocal(id));
+        SmartSimulator simulator(false, 1, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, false, H::getRobotGlobalIdByLocal(id));
         simulator.initIteration(iteration, cur_plan);
 
-        SmartSimulator accurate_simulator(C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, true, H::getRobotGlobalIdByLocal(id));
+        SmartSimulator accurate_simulator(false, 1, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, true, H::getRobotGlobalIdByLocal(id));
         accurate_simulator.initIteration(iteration, cur_plan);
 
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {

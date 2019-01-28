@@ -567,6 +567,8 @@ struct Plan {
         std::swap(cos_lat1, cos_lat2);
         std::swap(speed1, speed2);
         std::swap(crossing, crossing2);
+        std::swap(velocity1, velocity2);
+        std::swap(nitro_velocity1, nitro_velocity2);
       }
     }
     if (time_nitro_on != C::NEVER && time_nitro_off != C::NEVER) {

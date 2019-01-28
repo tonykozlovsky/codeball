@@ -9,7 +9,6 @@
 #include "Plan.h"
 #endif
 
-
 struct EntityState {
   Point position;
   Point velocity;
@@ -78,10 +77,12 @@ struct Entity {
   bool want_to_become_dynamic;
   int want_to_become_dynamic_on_tick;
 
+  bool did_not_touch_on_prefix;
+
   EntityState prev_state;
   EntityState prev_micro_state;
-  EntityState states[101];
-  StaticEvent static_events[101];
+  EntityState states[C::MAX_SIMULATION_DEPTH + 1];
+  StaticEvent static_events[C::MAX_SIMULATION_DEPTH + 1];
   StaticEvent* static_event_ptr;
 
   static constexpr int max_collisions = 14;
@@ -128,6 +129,7 @@ struct Entity {
     state.nitro = 0;
     state.touch = false;
     state.touch_normal = {0, 0, 0};
+    state.alive = true;
 
     arena_e = C::rules.BALL_ARENA_E;
     mass = C::rules.BALL_MASS;
@@ -150,6 +152,7 @@ struct Entity {
     state.touch = robot.touch;
     state.touch_normal = {robot.touch_normal_x, robot.touch_normal_y, robot.touch_normal_z};
     state.touch_surface_id = 1; //TODO set right surface ids
+    state.alive = true;
 
     arena_e = C::rules.ROBOT_ARENA_E;
     mass = C::rules.ROBOT_MASS;
@@ -161,6 +164,8 @@ struct Entity {
     collisions_size = 0;
 
     action = {{0, 0, 0}, 0, 0, false};
+
+    did_not_touch_on_prefix = !robot.touch;
 
   }
 

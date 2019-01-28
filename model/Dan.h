@@ -7,7 +7,6 @@
 #include "../H.h"
 #endif
 
-
 struct Dan {
   double distance;
   Point normal;
