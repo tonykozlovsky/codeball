@@ -168,15 +168,15 @@ void doStrategy() {
 
   //todo saving packs collisions
 
-  //for (int i = 0; i < 100; ++i) {
-  //  auto& t = H::t[i];
-  //  t.clearCur();
-  //}
-  //for (int i = 0; i < 100; ++i) {
-  //  auto& c = H::c[i];
-  //  c.init_calls();
-  //}
-  //H::t[0].start();
+  for (int i = 0; i < 100; ++i) {
+    auto& t = H::t[i];
+    t.clearCur();
+  }
+  for (int i = 0; i < 100; ++i) {
+    auto& c = H::c[i];
+    c.init_calls();
+  }
+  H::t[0].start();
 
   if (H::tick % C::TPT == 0) {
 
@@ -339,12 +339,12 @@ void doStrategy() {
     H::prev_position[id] = {robot.x, robot.y, robot.z};
   }
 
-  //H::t[0].cur(true);
-  //for (int i = 0; i < 7; ++i) {
-  //  auto& t = H::t[i];
-  //  t.cur(false, true);
-  //  P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
-  //}
+  H::t[0].cur(true);
+  for (int i = 0; i < 7; ++i) {
+    auto& t = H::t[i];
+    t.cur(false, true);
+    P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
+  }
 
   //for (int i = 0; i < 5; ++i) {
   //  auto& c = H::c[i];
