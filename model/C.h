@@ -43,7 +43,7 @@ struct C {
 
   static int unique_plan_id;
   static model::Rules rules;
-  static constexpr int TPT = 2;
+  static constexpr int TPT = 1;
   static constexpr int MAX_SIMULATION_DEPTH = 100 / TPT;
   static constexpr int ENEMY_SIMULATION_DEPTH = 100;
   static constexpr double ball_antiflap = 0.1; // todo check
