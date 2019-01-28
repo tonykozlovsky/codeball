@@ -29,7 +29,7 @@ double H::sum_iterations = 0;
 double H::iterations_k = 0;
 Point H::prev_velocity[7];
 Point H::prev_position[7];
-int H::danger_grid[80][20][60][100];
+int H::danger_grid[60][20][100][100];
 DGState H::used_cells[1000007];
 int H::used_cells_size = 0;
 

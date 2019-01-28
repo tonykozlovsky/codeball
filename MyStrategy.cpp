@@ -21,7 +21,23 @@ void clearBestPlans() {
   }
 }
 
-void enemiesPrediction() {
+void addCell(int x, int y, int z, int t) {
+  if (x < 0 || y < 0 || z < 0 || t < 0) {
+    return;
+  }
+  H::danger_grid[x][y][z][t]++;
+  if (H::danger_grid[x][y][z][t] == 1) {
+    H::used_cells[H::used_cells_size++] = {x, y, z, t};
+  }
+}
+
+void addCell(int x, int y, int z, int t, int tpt) {
+  for (int i = 0; i < tpt; ++i) {
+    addCell(x, y, z, t * tpt + i);
+  }
+}
+
+int enemiesPrediction() {
 
   for (int id = 0; id < 6; ++id) {
     for (auto& robot : H::game.robots) {
@@ -77,55 +93,65 @@ void enemiesPrediction() {
     }
   }
 
-  const int enemy_depth = 50;
+  for (int i = 0; i < H::used_cells_size; ++i) {
+    const auto& cell = H::used_cells[i];
+    H::danger_grid[cell.x][cell.y][cell.z][cell.t] = 0;
 
-  for (int enemy_id : {2, 3}) {
+    // P::drawSphere({cell.x * 2 + 1 - 30, cell.y * 2 + 1, cell.z * 2 + 1 - 50}, 1, 0x00AA00);
+
+  }
+  H::used_cells_size = 0;
+
+  int min_time_for_enemy_to_hit_the_ball = C::NEVER;
+
+  int grid_tpt = 1;
+
+  H::t[0].start();
+  for (int enemy_id : {3, 4, 5}) {
     continue;
-    SmartSimulator simulator(false, 1, enemy_depth, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
-
+    SmartSimulator simulator(true, grid_tpt, C::ENEMY_SIMULATION_DEPTH / grid_tpt, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
     for (int iteration = 0; iteration < 100; iteration++) {
-      Plan cur_plan(2, enemy_depth);
+      Plan cur_plan(2, C::ENEMY_SIMULATION_DEPTH / grid_tpt);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
-      } else if (C::rand_double(0, 1) < 1. / 10.) {
-        cur_plan = H::best_plan[enemy_id];
-        cur_plan.mutate(2, enemy_depth);
       }
       cur_plan.score.start_fighter();
       simulator.initIteration(iteration, cur_plan);
 
       cur_plan.plans_config = 3;
-      double multiplier = 1.;
-      for (int sim_tick = 0; sim_tick < enemy_depth; sim_tick++) {
-        /*int cell_x = std::clamp((int) ((simulator.main_robot->state.position.x + 40.) / 2.), 1, 78);
-        int cell_y = std::clamp((int) ((simulator.main_robot->state.position.y + 1.) / 2.), 1, 18);
-        int cell_z = std::clamp((int) ((simulator.main_robot->state.position.z + 30.) / 2.), 1, 58);
-        H::danger_grid[cell_x + 1][cell_y][cell_z][sim_tick]++;
-        H::used_cells[H::used_cells_size++] = {cell_x + 1, cell_y, cell_z, sim_tick};
-        H::danger_grid[cell_x][cell_y + 1][cell_z][sim_tick]++;
-        H::used_cells[H::used_cells_size++] = {cell_x, cell_y + 1, cell_z, sim_tick};
-        H::danger_grid[cell_x][cell_y][cell_z + 1][sim_tick]++;
-        H::used_cells[H::used_cells_size++] = {cell_x, cell_y, cell_z + 1, sim_tick};
-
-        H::danger_grid[cell_x - 1][cell_y][cell_z][sim_tick]++;
-        H::used_cells[H::used_cells_size++] = {cell_x - 1, cell_y, cell_z, sim_tick};
-        H::danger_grid[cell_x][cell_y - 1][cell_z][sim_tick]++;
-        H::used_cells[H::used_cells_size++] = {cell_x, cell_y - 1, cell_z, sim_tick};
-        H::danger_grid[cell_x][cell_y][cell_z - 1][sim_tick]++;
-        H::used_cells[H::used_cells_size++] = {cell_x, cell_y, cell_z - 1, sim_tick};
-        */
+      //double multiplier = 1.;
+      bool main_fly_on_prefix = !simulator.main_robot->state.touch;
+      for (int sim_tick = 0; sim_tick < C::ENEMY_SIMULATION_DEPTH / grid_tpt; sim_tick++) {
         simulator.tickDynamic(sim_tick);
+        main_fly_on_prefix &= !simulator.main_robot->state.touch;
 
+        int cell_x = (int) ((simulator.main_robot->state.position.x + 30.) / 2.);
+        int cell_y = (int) ((simulator.main_robot->state.position.y) / 2.);
+        int cell_z = (int) ((simulator.main_robot->state.position.z + 50.) / 2.);
+
+        addCell(cell_x + 1, cell_y, cell_z, sim_tick, grid_tpt);
+        addCell(cell_x, cell_y + 1, cell_z, sim_tick, grid_tpt);
+        addCell(cell_x, cell_y, cell_z + 1, sim_tick, grid_tpt);
+        addCell(cell_x - 1, cell_y, cell_z, sim_tick, grid_tpt);
+        addCell(cell_x, cell_y - 1, cell_z, sim_tick, grid_tpt);
+        addCell(cell_x, cell_y, cell_z - 1, sim_tick, grid_tpt);
+
+        if (!main_fly_on_prefix && simulator.main_robot->collide_with_ball) {
+          min_time_for_enemy_to_hit_the_ball = std::min(min_time_for_enemy_to_hit_the_ball, sim_tick * grid_tpt);
+        }
+
+        /*
         cur_plan.score.sum_score += simulator.getSumScoreEnemy(sim_tick) * multiplier;
         cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
         cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
         if (sim_tick == enemy_depth - 1) {
-          cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreEnemy();
-        }
 
-        multiplier *= 0.999;
+          cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreEnemy();
+        }*/
+
+        //multiplier *= 0.999;
       }
-      H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
+      //H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
     }
     /*if (enemy_id == 3) {
       Plan cur_plan = H::best_plan[enemy_id];
@@ -146,6 +172,10 @@ void enemiesPrediction() {
       }
     }*/
   }
+  H::t[0].cur(true, true);
+  P::logn(H::t[0].avg());
+  P::logn("mtfethtb: ", min_time_for_enemy_to_hit_the_ball);
+  return min_time_for_enemy_to_hit_the_ball;
 }
 
 void doStrategy() {
@@ -176,15 +206,16 @@ void doStrategy() {
   //  auto& c = H::c[i];
   //  c.init_calls();
   //}
-
   //H::t[0].start();
+
   if (H::tick % C::TPT == 0) {
 
     clearBestPlans();
-    enemiesPrediction();
 
-    int iterations[3] = {250 + 1, 250 + 1, 250 + 1};
-    for (int id = 2; id >= 0; id--) {
+    int min_time_for_enemy_to_hit_the_ball = enemiesPrediction();
+
+    int iterations[3] = {100 + 1, 100 + 1, 100 + 1};
+    for (int id = 0; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
       for (;; iteration++) {
@@ -208,18 +239,29 @@ void doStrategy() {
         simulator.initIteration(iteration, cur_plan);
 
         cur_plan.plans_config = 2;
+
         double multiplier = 1.;
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
-          bool main_touch = simulator.main_robot->state.touch;
+
+          bool main_touch = simulator.main_robot->state.touch || simulator.main_robot->state.position.y < C::NITRO_TOUCH_EPSILON;
 
           int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
+
           if (main_robot_additional_jump_type == 0 && simulator.main_robot->action.jump_speed > 0 && main_touch) {
             cur_plan.was_jumping = true;
           }
 
           if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - with entity, 3 - additional
-            if ((main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2) && cur_plan.was_jumping && !cur_plan.was_on_ground_after_jumping) {
+            if ((main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2)
+                && cur_plan.was_jumping
+                && !cur_plan.was_on_ground_after_jumping) {
               cur_plan.collide_with_entity_before_on_ground_after_jumping = true;
+              if (main_robot_additional_jump_type == 1
+                  && min_time_for_enemy_to_hit_the_ball < sim_tick
+                  && cur_plan.time_jump < min_time_for_enemy_to_hit_the_ball) {
+                cur_plan.score.minimal();
+                break;
+              }
             }
             if (cur_plan.oncoming_jump == C::NEVER) {
               cur_plan.oncoming_jump = sim_tick;
@@ -254,7 +296,7 @@ void doStrategy() {
           multiplier *= 0.999;
         }
 
-        if (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping) {
+        if (!cur_plan.was_jumping || (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping)) {
           cur_plan.time_jump = C::NEVER;
         } else {
 
@@ -306,6 +348,22 @@ void doStrategy() {
 
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
           simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(id), true);
+          if (sim_tick < C::ENEMY_SIMULATION_DEPTH) {
+            const int cell_x = std::clamp((int) ((simulator.ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
+            const int cell_y = std::clamp((int) ((simulator.ball->getState().position.y - 1.) / 2.), 0, 18);
+            const int cell_z = std::clamp((int) ((simulator.ball->getState().position.z + 50. - 1.) / 2.), 0, 98);
+            const int sum = H::danger_grid[cell_x][cell_y][cell_z][sim_tick]
+                + H::danger_grid[cell_x + 1][cell_y][cell_z][sim_tick]
+                + H::danger_grid[cell_x][cell_y + 1][cell_z][sim_tick]
+                + H::danger_grid[cell_x][cell_y][cell_z + 1][sim_tick]
+                + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][sim_tick]
+                + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][sim_tick]
+                + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][sim_tick]
+                + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][sim_tick];
+            if (sum > 0) {
+              P::drawEntities(simulator.ball->getState());
+            }
+          }
           accurate_simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(id), true);
         }
       }

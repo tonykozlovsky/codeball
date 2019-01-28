@@ -130,6 +130,9 @@ struct SmartSimulator {
     }
 
     for (auto& pack : _packs) {
+      if (unaccurate) {
+        continue;
+      }
       initial_static_entities[initial_static_entities_size].fromPack(pack);
       auto new_pack = &initial_static_entities[initial_static_entities_size++];
       new_pack->is_dynamic = false;
@@ -1319,14 +1322,14 @@ struct SmartSimulator {
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
       if (!main_robot->state.touch) {
-        score -= 0.5 * C::TPT;
+        score -= 0.5 * tpt;
       }
 
       //if (main_robot->collide_with_ball) {
       //  score += 1;
       //}
       //if (main_robot->action.use_nitro) {
-      //  //score -= 0.1 * C::TPT;
+      //  //score -= 0.1 * tpt;
       //}
       score += 0.01 * main_robot->taken_nitro;
 
@@ -1342,10 +1345,10 @@ struct SmartSimulator {
           score -= 10;
         }
       }*/
-      /*if (tick_number < 100) {
-        const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
+      /*if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
+        const int cell_x = std::clamp((int) ((ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
         const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
-        const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
+        const int cell_z = std::clamp((int) ((ball->getState().position.z + 50. - 1.) / 2.), 0, 98);
         const int sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
             + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
             + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
@@ -1354,7 +1357,7 @@ struct SmartSimulator {
             + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
             + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
             + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-        score -= 0 * 0.1 * sum;
+        score -= 10 * sum;
       }*/
     }
 
@@ -1390,7 +1393,7 @@ struct SmartSimulator {
     }
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
       if (!main_robot->state.touch) {
-        score -= 0.5 * C::TPT;
+        score -= 0.5 * tpt;
       }
       if (main_robot->collide_with_ball) {
         score += 0 * 20;
@@ -1428,7 +1431,7 @@ struct SmartSimulator {
     }
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
       if (!main_robot->state.touch) {
-        score -= 0.5 * C::TPT;
+        score -= 0.5 * tpt;
       }
       score += 0.01 * main_robot->taken_nitro;
 
@@ -1436,7 +1439,7 @@ struct SmartSimulator {
       //  score += 1;
       //}
       //if (main_robot->action.use_nitro) {
-      //score -= 0.1 * C::TPT;
+      //score -= 0.1 * tpt;
       //}
 
       /*for (int i = 0; i < static_robots_size; ++i) {
@@ -1453,22 +1456,8 @@ struct SmartSimulator {
       }*/
 
 
-      /*if (tick_number < 100) {
-        const int cell_x = std::clamp((int) ((ball->getState().position.x + 40. - 1.) / 2.), 0, 78);
-        const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
-        const int cell_z = std::clamp((int) ((ball->getState().position.z + 30. - 1.) / 2.), 0, 58);
-        const int sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
-            + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
-            + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
-            + H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number]
-            + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number]
-            + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
-            + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
-            + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-        score -= 0 * 0.1 * sum;
-      }*/
     }
-    score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
+    score -= (0.0025 * tpt) * (main_robot->state.position - Point{
         0,
         1,
         -C::rules.arena.depth / 2}).length();

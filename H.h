@@ -30,7 +30,7 @@ struct H {
   static double sum_iterations;
   static double iterations_k;
 
-  static int danger_grid[80][20][60][100];
+  static int danger_grid[60][20][100][100];
   static DGState used_cells[1000007];
   static int used_cells_size;
 
