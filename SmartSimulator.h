@@ -1122,10 +1122,11 @@ struct SmartSimulator {
     //todo optimise in goal
     const double& x = e->state.position.x > 0 ? e->state.position.x : -e->state.position.x;
     const double& z = e->state.position.z > 0 ? e->state.position.z : -e->state.position.z;
-    if (x < 24 && z < 34 && e->state.position.y < 18) {
+    if (((x < 24 && z < 34) || (z < 47 && x < 12)) && e->state.position.y < 18) {
       if (e->state.position.y < e->state.radius) {
         e->state.position.y = e->state.radius;
         e->state.velocity.y -= (1. + e->arena_e) * (e->state.velocity.y - e->radius_change_speed);
+        result = {0, 1, 0};
         collision_surface_id = 1;
         return true;
       }
