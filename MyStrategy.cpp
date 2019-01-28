@@ -168,16 +168,16 @@ void doStrategy() {
 
   //todo saving packs collisions
 
-  for (int i = 0; i < 100; ++i) {
-    auto& t = H::t[i];
-    t.clearCur();
-  }
-  for (int i = 0; i < 100; ++i) {
-    auto& c = H::c[i];
-    c.init_calls();
-  }
+  //for (int i = 0; i < 100; ++i) {
+  //  auto& t = H::t[i];
+  //  t.clearCur();
+  //}
+  //for (int i = 0; i < 100; ++i) {
+  //  auto& c = H::c[i];
+  //  c.init_calls();
+  //}
 
-  H::t[0].start();
+  //H::t[0].start();
   if (H::tick % C::TPT == 0) {
 
     clearBestPlans();
@@ -186,7 +186,7 @@ void doStrategy() {
     int iterations[3] = {250 + 1, 250 + 1, 250 + 1};
     for (int id = 2; id >= 0; id--) {
       int iteration = 0;
-      SmartSimulator simulator(false, 1, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
+      SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
       for (;; iteration++) {
         if (iteration > iterations[id]) {
           break;
@@ -336,18 +336,18 @@ void doStrategy() {
     H::prev_position[id] = {robot.x, robot.y, robot.z};
   }
 
-  H::t[0].cur(true);
-  for (int i = 0; i < 12; ++i) {
-    auto& t = H::t[i];
-    t.cur(false, true);
-    P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
-  }
+  //H::t[0].cur(true);
+  //for (int i = 0; i < 12; ++i) {
+  //  auto& t = H::t[i];
+  //  t.cur(false, true);
+  //  P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
+  //}
 
-  for (int i = 0; i < 5; ++i) {
-    auto& c = H::c[i];
-    c.capture();
-    P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
-  }
+  //for (int i = 0; i < 5; ++i) {
+  //  auto& c = H::c[i];
+  //  c.capture();
+  //  P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
+  //}
 
 }
 
