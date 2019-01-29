@@ -119,7 +119,7 @@ struct SmartSimulator {
         initial_dynamic_robots[initial_dynamic_robots_size++] = new_robot;
         new_robot->saveState(0);
       } else {
-        if (unaccurate) {
+        if (unaccurate) { // todo check if need my guys maybe no
           continue;
         }
         initial_static_entities[initial_static_entities_size].fromRobot(robot);

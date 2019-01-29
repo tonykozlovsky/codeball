@@ -111,12 +111,15 @@ int enemiesPrediction() {
       Plan cur_plan(2, C::ENEMY_SIMULATION_DEPTH);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
+      } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
+        cur_plan = H::best_plan[enemy_id];
+        cur_plan.mutate(2, C::ENEMY_SIMULATION_DEPTH);
       }
       cur_plan.score.start_fighter();
       simulator.initIteration(iteration, cur_plan);
 
       cur_plan.plans_config = 3;
-      //double multiplier = 1.;
+      double multiplier = 1.;
       bool main_fly_on_prefix = !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
       for (int sim_tick = 0; sim_tick < C::ENEMY_SIMULATION_DEPTH; sim_tick++) {
         simulator.tickDynamic(sim_tick);
@@ -141,18 +144,17 @@ int enemiesPrediction() {
           min_time_for_enemy_to_hit_the_ball = std::min(min_time_for_enemy_to_hit_the_ball, sim_tick);
         }
 
-        /*
+
         cur_plan.score.sum_score += simulator.getSumScoreEnemy(sim_tick) * multiplier;
         cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
         cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-        if (sim_tick == enemy_depth - 1) {
-
+        if (sim_tick == C::ENEMY_SIMULATION_DEPTH - 1) {
           cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreEnemy();
-        }*/
+        }
 
-        //multiplier *= 0.999;
+        multiplier *= 0.999;
       }
-      //H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
+      H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
     }
     /*if (enemy_id == 3) {
       Plan cur_plan = H::best_plan[enemy_id];
@@ -281,7 +283,7 @@ void doStrategy() {
     //double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
     for (int id = 0; id < 3; id++) {
       int iteration = 0;
-      SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
+      SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, H::game.nitro_packs);
 
       bool ball_on_my_side = false;
       if (id == 0) {

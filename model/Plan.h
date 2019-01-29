@@ -112,7 +112,7 @@ struct Plan {
     collide_with_entity_before_on_ground_after_jumping = false;
     oncoming_jump = C::NEVER;
 
-    if (configuration == 1) {
+    if (configuration == 1) { // me 2 vec
       angle1 = C::rand_double(0, 2 * M_PI);
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
@@ -143,17 +143,23 @@ struct Plan {
       time_nitro_off = C::rand_int(0, simulation_depth);
 
     } else if (configuration == 2) { // smart enemy
+
       angle1 = C::rand_double(0, 2 * M_PI);
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
+      y1 = C::rand_double(-C::rules.MAX_ENTITY_SPEED, C::rules.MAX_ENTITY_SPEED);
+      cos_lat1 = cos(asin(y1 / C::rules.MAX_ENTITY_SPEED));
+
       time_change = C::NEVER;
-      time_jump = C::rand_int(0, simulation_depth);
-      speed1 = 1.;
+      time_jump = C::rand_int(0, C::ENEMY_LIVE_TICKS);
+      speed1 = 1.; //todo check maybe rand
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
-      max_jump_speed = 15;
-      time_nitro_on = C::NEVER;
-      time_nitro_off = C::NEVER;
-    } else if (configuration == 3) { // sptupid enemy
+      max_jump_speed = 15; //initial 15 but can mutate
+      time_nitro_on = C::rand_int(0, C::ENEMY_LIVE_TICKS);
+      time_nitro_off = C::rand_int(0, C::ENEMY_LIVE_TICKS);
+
+    } else
+      /*if (configuration == 3) { // dont need
       angle1 = 0;
       cangle1 = 0;
       sangle1 = 0;
@@ -161,10 +167,11 @@ struct Plan {
       time_jump = C::NEVER;
       speed1 = 0;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
-      max_jump_speed = 0; // todo keep in mind
+      max_jump_speed = 0; // todo keep in mind !
       time_nitro_on = C::NEVER;
       time_nitro_off = C::NEVER;
-    } else if (configuration == 4) { // last action
+    } else */
+      if (configuration == 4) { // last action
       angle1 = atan2(initial_vz, initial_vx);
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
@@ -172,11 +179,13 @@ struct Plan {
       time_jump = C::NEVER;
       speed1 = 1;
       max_speed = Point2d{initial_vx, initial_vz}.length();
-      max_jump_speed = 15;  // todo keep in mind
-      // todo last action nitro
+      max_jump_speed = 0;  // todo keep in mind !
+      // todo last action nitro !
       time_nitro_on = C::NEVER;
       time_nitro_off = C::NEVER;
-    } else if (configuration == 5) {
+    }
+      /*else
+      if (configuration == 5) {
       time_change = C::NEVER;
       time_jump = C::NEVER;
       speed1 = 1;
@@ -226,7 +235,7 @@ struct Plan {
       max_jump_speed = C::rand_int(0, 15);
       time_nitro_on = C::rand_int(0, simulation_depth);
       time_nitro_off = C::rand_int(0, simulation_depth);
-    }
+    }*/
 
     calcVelocities();
 
@@ -376,13 +385,56 @@ struct Plan {
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
 
+      y1 += C::rand_double(-z_mutation, z_mutation);
+      if (y1 > C::rules.MAX_ENTITY_SPEED) {
+        y1 = C::rules.MAX_ENTITY_SPEED;
+      } else if (y1 < -C::rules.MAX_ENTITY_SPEED) {
+        y1 = -C::rules.MAX_ENTITY_SPEED;
+      }
+      cos_lat1 = cos(asin(y1 / C::rules.MAX_ENTITY_SPEED));
+
       if (time_jump != C::NEVER) {
         time_jump += C::rand_int(-time_mutation, time_mutation);
         if (time_jump < 0) {
           time_jump = 0;
         }
-        if (time_jump > simulation_depth) {
-          time_jump = simulation_depth;
+        if (time_jump > C::ENEMY_LIVE_TICKS) {
+          time_jump = C::ENEMY_LIVE_TICKS;
+        }
+      }
+
+      /*speed1 += C::rand_double(-speed_mutation, speed_mutation); // todo check maybe need
+      if (speed1 > 1) {
+        speed1 = 1;
+      }
+      if (speed1 < 0) {
+        speed1 = 0;
+      }*/
+
+      max_jump_speed += C::rand_int(-jump_mutation, jump_mutation);
+      if (max_jump_speed < 0) {
+        max_jump_speed = 0;
+      }
+      if (max_jump_speed > 15) {
+        max_jump_speed = 15;
+      }
+
+      if (time_nitro_on != C::NEVER) {
+        time_nitro_on += C::rand_int(-nitro_mutation, nitro_mutation);
+        if (time_nitro_on < 0) {
+          time_nitro_on = 0;
+        }
+        if (time_nitro_on > C::ENEMY_LIVE_TICKS) {
+          time_nitro_on = C::ENEMY_LIVE_TICKS;
+        }
+      }
+      if (time_nitro_off != C::NEVER) {
+        time_nitro_off += C::rand_int(-nitro_mutation, nitro_mutation);
+        if (time_nitro_off < 0) {
+          time_nitro_off = 0;
+        }
+        if (time_nitro_off > C::ENEMY_LIVE_TICKS) {
+          time_nitro_off = C::ENEMY_LIVE_TICKS;
         }
       }
 
