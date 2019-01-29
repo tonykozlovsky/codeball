@@ -530,8 +530,10 @@ struct SmartSimulator {
             robot->state.position -= robot_acceleration * (coef * delta_time);
           } else {
             if (robot->state.touch_surface_id == 1 && robot->is_teammate) {
-              acceleration_trigger = true; // todo fix overflow
-              //H::c[4].call();
+              if (robot->accelerate_trigger_on_prev_tick == false) {
+                acceleration_trigger = true;
+              }
+              robot->accelerate_trigger_on_cur_tick = true;
             }
             robot->state.velocity += target_velocity_change;
           }
@@ -792,6 +794,7 @@ struct SmartSimulator {
       dynamic_robots[i]->collide_with_ball = false;
       dynamic_robots[i]->additional_jump = false;
       dynamic_robots[i]->taken_nitro = 0;
+      dynamic_robots[i]->accelerate_trigger_on_cur_tick = false;
     }
   }
 
@@ -1047,6 +1050,10 @@ struct SmartSimulator {
         dynamic_entities[i]->savePrevState();
       }
       tryDoTickWithoutAnybodyBecomingDynamic(tick_number, main_robot_additional_jump_type, cur_goal_info);
+    }
+
+    for (int i = 0; i < dynamic_robots_size; ++i) {
+      dynamic_robots[i]->accelerate_trigger_on_prev_tick = dynamic_robots[i]->accelerate_trigger_on_cur_tick;
     }
 
     for (int i = 0; i < dynamic_packs_size; ++i) {

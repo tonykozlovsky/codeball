@@ -106,7 +106,7 @@ int enemiesPrediction() {
 
   int grid_tpt = 1;
 
-  //H::t[0].start();
+//  H::t[0].start();
   for (int enemy_id : {3, 4, 5}) {
     continue;
     SmartSimulator simulator(true, grid_tpt, C::ENEMY_SIMULATION_DEPTH / grid_tpt, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
