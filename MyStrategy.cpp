@@ -283,12 +283,14 @@ void doStrategy() {
     //double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
     for (int id = 0; id < 3; id++) {
       int iteration = 0;
-      SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, H::game.nitro_packs);
+      SmartSimulator simulator_smart(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 1, H::game.robots, H::game.ball, H::game.nitro_packs);
+      SmartSimulator simulator_stupid(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
 
       bool ball_on_my_side = false;
       if (id == 0) {
         for (int i = 0; i < C::MAX_SIMULATION_DEPTH; ++i) {
-          if (simulator.ball->states[i].position.z < -0.01) {
+          if (simulator_smart.ball->states[i].position.z < -0.01
+              || simulator_stupid.ball->states[i].position.z < -0.01) {
             ball_on_my_side = true;
           }
         }
@@ -312,105 +314,114 @@ void doStrategy() {
           break;
         }
       //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
-        Plan cur_plan(1, C::MAX_SIMULATION_DEPTH);
+        Plan cur_plan_smart(1, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
-          cur_plan = H::best_plan[id];
+          cur_plan_smart = H::best_plan[id];
         } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
-          cur_plan = H::best_plan[id];
-          cur_plan.mutate(1, C::MAX_SIMULATION_DEPTH);
+          cur_plan_smart = H::best_plan[id];
+          cur_plan_smart.mutate(1, C::MAX_SIMULATION_DEPTH);
         }
 
         if (H::role[id] == H::FIGHTER) {
-          cur_plan.score.start_fighter();
+          cur_plan_smart.score.start_fighter();
         } else if (H::role[id] == H::SEMI) {
-          cur_plan.score.start_fighter();
+          cur_plan_smart.score.start_fighter();
         } else if (H::role[id] == H::DEFENDER) {
-          cur_plan.score.start_defender();
+          cur_plan_smart.score.start_defender();
         }
 
-        simulator.initIteration(iteration, cur_plan);
+        simulator_smart.initIteration(iteration, cur_plan_smart);
+        auto cur_plan_stupid = cur_plan_smart;
+        simulator_stupid.initIteration(iteration, cur_plan_stupid);
 
-        cur_plan.plans_config = 2;
+        cur_plan_smart.plans_config = 1;
+        cur_plan_stupid.plans_config = 2;
 
-        double multiplier = 1.;
-        for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
+        for (int minimax_id = 0; minimax_id < 2; minimax_id++) {
 
-          bool main_touch = simulator.main_robot->state.touch || simulator.main_robot->state.position.y < C::NITRO_TOUCH_EPSILON;
+          auto& simulator = minimax_id == 0 ? simulator_smart : simulator_stupid;
+          auto& cur_plan = minimax_id == 0 ? cur_plan_smart : cur_plan_stupid;
 
-          int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
+          double multiplier = 1.;
+          for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
 
-          if (main_robot_additional_jump_type == 0 && simulator.main_robot->action.jump_speed > 0 && main_touch) {
-            cur_plan.was_jumping = true;
-          }
+            bool main_touch = simulator.main_robot->state.touch || simulator.main_robot->state.position.y < C::NITRO_TOUCH_EPSILON;
 
-          if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - with entity, 3 - additional
-            if ((main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2)
-                && cur_plan.was_jumping
-                && !cur_plan.was_on_ground_after_jumping) {
-              cur_plan.collide_with_entity_before_on_ground_after_jumping = true;
-              if (H::role[id] == H::DEFENDER && main_robot_additional_jump_type == 1
-                  && min_time_for_enemy_to_hit_the_ball < sim_tick
-                  && cur_plan.time_jump <= min_time_for_enemy_to_hit_the_ball) {
-                cur_plan.score.minimal();
-                break;
+            int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
+
+            if (main_robot_additional_jump_type == 0 && simulator.main_robot->action.jump_speed > 0 && main_touch) {
+              cur_plan.was_jumping = true;
+            }
+
+            if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - with entity, 3 - additional
+              if ((main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2)
+                  && cur_plan.was_jumping
+                  && !cur_plan.was_on_ground_after_jumping) {
+                cur_plan.collide_with_entity_before_on_ground_after_jumping = true;
+                if (H::role[id] == H::DEFENDER && main_robot_additional_jump_type == 1
+                    && min_time_for_enemy_to_hit_the_ball < sim_tick
+                    && cur_plan.time_jump <= min_time_for_enemy_to_hit_the_ball) {
+                  cur_plan.score.minimal();
+                  break;
+                }
+              }
+              if (cur_plan.oncoming_jump == C::NEVER) {
+                cur_plan.oncoming_jump = sim_tick;
+                cur_plan.oncoming_jump_speed = main_robot_additional_jump_type == 3 ?
+                    std::max(C::MIN_WALL_JUMP, cur_plan.max_jump_speed) : cur_plan.max_jump_speed;
               }
             }
+
+            if (cur_plan.was_jumping && !cur_plan.was_on_ground_after_jumping && simulator.main_robot->state.touch) {
+              cur_plan.was_on_ground_after_jumping = true;
+              if (!cur_plan.collide_with_entity_before_on_ground_after_jumping) {
+                cur_plan.time_jump = C::NEVER;
+              }
+            }
+
+            if (H::role[id] == H::FIGHTER) {
+              cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
+              cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
+              cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
+              if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+                cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
+              }
+            } else if (H::role[id] == H::DEFENDER) {
+              cur_plan.score.sum_score += simulator.getSumScoreDefender(sim_tick) * multiplier;
+              cur_plan.score.defender_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreDefender() * multiplier, cur_plan.score.defender_min_dist_to_ball);
+              cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
+              if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+                cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
+              }
+            } else if (H::role[id] == H::SEMI) {
+              cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
+              cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
+              cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
+              if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+                cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
+              }
+            }
+
+            multiplier *= 0.999;
+          }
+
+          if (!cur_plan.was_jumping || (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping)) {
+            cur_plan.time_jump = C::NEVER;
+          } else {
+
             if (cur_plan.oncoming_jump == C::NEVER) {
-              cur_plan.oncoming_jump = sim_tick;
-              cur_plan.oncoming_jump_speed = main_robot_additional_jump_type == 3 ?
-                  std::max(C::MIN_WALL_JUMP, cur_plan.max_jump_speed) : cur_plan.max_jump_speed;
-            }
-          }
-
-          if (cur_plan.was_jumping && !cur_plan.was_on_ground_after_jumping && simulator.main_robot->state.touch) {
-            cur_plan.was_on_ground_after_jumping = true;
-            if (!cur_plan.collide_with_entity_before_on_ground_after_jumping) {
-              cur_plan.time_jump = C::NEVER;
-            }
-          }
-
-          if (H::role[id] == H::FIGHTER) {
-            cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
-            cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
-            cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-            if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-              cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
-            }
-          } else if (H::role[id] == H::DEFENDER) {
-            cur_plan.score.sum_score += simulator.getSumScoreDefender(sim_tick) * multiplier;
-            cur_plan.score.defender_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreDefender() * multiplier, cur_plan.score.defender_min_dist_to_ball);
-            cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
-            if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-              cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
-            }
-          } else if (H::role[id] == H::SEMI) {
-            cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
-            cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
-            cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-            if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-              cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
-            }
-          }
-
-          multiplier *= 0.999;
-        }
-
-        if (!cur_plan.was_jumping || (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping)) {
-          cur_plan.time_jump = C::NEVER;
-        } else {
-
-          if (cur_plan.oncoming_jump == C::NEVER) {
-            cur_plan.oncoming_jump = cur_plan.time_jump;
-            cur_plan.oncoming_jump_speed = cur_plan.max_jump_speed;
-          } else if (cur_plan.time_jump != C::NEVER) {
-            if (cur_plan.oncoming_jump > cur_plan.time_jump) {
               cur_plan.oncoming_jump = cur_plan.time_jump;
               cur_plan.oncoming_jump_speed = cur_plan.max_jump_speed;
+            } else if (cur_plan.time_jump != C::NEVER) {
+              if (cur_plan.oncoming_jump > cur_plan.time_jump) {
+                cur_plan.oncoming_jump = cur_plan.time_jump;
+                cur_plan.oncoming_jump_speed = cur_plan.max_jump_speed;
+              }
             }
           }
         }
 
-        H::best_plan[id] = std::max(H::best_plan[id], cur_plan);
+        H::best_plan[id] = std::max(H::best_plan[id], std::min(cur_plan_smart, cur_plan_stupid));
       }
 
       H::sum_iterations += iteration;
