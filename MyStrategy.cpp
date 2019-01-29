@@ -270,14 +270,41 @@ void doStrategy() {
 
     int min_time_for_enemy_to_hit_the_ball = enemiesPrediction();
 
-    int iterations[3] = {250 + 1, 250 + 1, 250 + 1};
-    for (int id = 2; id >= 0; id--) {
+    int iterations[3] = {250, 250, 250};
+    //P::logn(H::cur_tick_remaining_time);
+    //double available_time[3] = {0, 0, 0};
+    //double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
+    for (int id = 0; id < 3; id++) {
       int iteration = 0;
       SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
+
+      bool ball_on_my_side = false;
+      if (id == 0) {
+        for (int i = 0; i < C::MAX_SIMULATION_DEPTH; ++i) {
+          if (simulator.ball->states[i].position.z < -0.01) {
+            ball_on_my_side = true;
+          }
+        }
+        if (!ball_on_my_side) {
+          for (int i = 0; i < 3; ++i) {
+            if (H::role[i] == H::DEFENDER) {
+              //available_time[i] = 0.1 * H::cur_tick_remaining_time;
+              iterations[i] = 50;
+            } else {
+              iterations[i] = 350;
+              //available_time[i] = 0.45 * H::cur_tick_remaining_time;
+            }
+          }
+          //for (int i = 0; i < 3; ++i) {
+          //  available_time_prefix[i] = i == 0 ? H::global_timer.getCumulative() + available_time[i] : available_time[i] + available_time_prefix[i - 1];
+          //}
+        }
+      }
       for (;; iteration++) {
         if (iteration > iterations[id]) {
           break;
         }
+      //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         Plan cur_plan(1, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan = H::best_plan[id];
@@ -435,6 +462,7 @@ void doStrategy() {
 #endif
     }
     H::iterations_k += 1;
+    P::logn((double)H::sum_iterations / H::iterations_k);
   }
 
 

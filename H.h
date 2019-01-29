@@ -25,7 +25,7 @@ struct H {
   static int player_score[2];
   static int waiting_ticks;
   static double time_limit;
-  static double half_time;
+  static double cur_tick_remaining_time;
 
   static double sum_iterations;
   static double iterations_k;
@@ -79,15 +79,14 @@ struct H {
       waiting_ticks--;
       return false;
     }
-    double time_per_tick = C::time_limit / 18000.;
-    double ticks_remaining = (18000 - tick);
-    double half_ticks_remaining = ticks_remaining / 50.;
-    double tick_end_balance = tick + half_ticks_remaining;
-    double time_end_balance = C::time_limit - time_per_tick * (ticks_remaining - half_ticks_remaining);
+    //double time_per_tick = C::time_limit / 18000.;
+    //double ticks_remaining = (18000 - tick);
+    //double half_ticks_remaining = ticks_remaining / 2.;
+    //double tick_end_balance = tick + half_ticks_remaining;
+    //double time_end_balance = C::time_limit - time_per_tick * (ticks_remaining - half_ticks_remaining);
 
-    half_time = (time_end_balance - global_timer.getCumulative()) / half_ticks_remaining / 2;
-    time_limit = global_timer.getCumulative() + half_time * 2;
-    half_time = global_timer.getCumulative() + half_time;
+    //cur_tick_remaining_time = (time_end_balance - global_timer.getCumulative()) / half_ticks_remaining;
+    cur_tick_remaining_time = (C::time_limit - global_timer.getCumulative()) / (18001. - tick);
     return true;
   }
 
@@ -190,6 +189,7 @@ struct H {
   static MyTimer t[100];
   static MyTimer c[100];
   static MyTimer global_timer;
+  static MyTimer cur_tick_timer;
 };
 
 #ifndef LOCAL
