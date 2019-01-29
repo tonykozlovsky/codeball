@@ -592,18 +592,12 @@ struct SmartSimulator {
       if (!collideWithArenaDynamic(robot, collision_normal, touch_surface_id)) {
         if (robot->is_teammate && robot->state.touch) {
           //H::c[7].call();
-          if (!robot->entity_arena_collision_on_prev_tick) {
-            entity_arena_collision_trigger = true;
-          }
-          robot->entity_arena_collision_on_cur_tick = true;
+          entity_arena_collision_trigger = true;
         }
         robot->state.touch = false;
       } else {
         if (!robot->state.touch || robot->state.touch_surface_id != touch_surface_id) {
-          if (!robot->entity_arena_collision_on_prev_tick) {
-            entity_arena_collision_trigger = true;
-          }
-          robot->entity_arena_collision_on_cur_tick = true;
+          entity_arena_collision_trigger = true;
         }
         if (robot->is_teammate && touch_surface_id != 1) {
           robot->additional_jump = true;
@@ -657,21 +651,14 @@ struct SmartSimulator {
         if (ball->state.touch) {
           if (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap) {
             //H::c[9].call();
-
-            if (!ball->ball_arena_collision_on_prev_tick) {
-              ball_arena_collision_trigger = true;
-            }
-            ball->ball_arena_collision_on_cur_tick = true;
+            ball_arena_collision_trigger = true;
             ball->state.touch = false;
           }
         }
       } else {
         if (!ball->state.touch || ball->state.touch_surface_id != touch_surface_id) {
           //H::c[10].call();
-          if (!ball->ball_arena_collision_on_prev_tick) {
-            ball_arena_collision_trigger = true;
-          }
-          ball->ball_arena_collision_on_cur_tick = true;
+          ball_arena_collision_trigger = true;
         }
         ball->state.touch_surface_id = touch_surface_id;
         ball->state.touch = true;
@@ -808,10 +795,6 @@ struct SmartSimulator {
       dynamic_robots[i]->additional_jump = false;
       dynamic_robots[i]->taken_nitro = 0;
       dynamic_robots[i]->accelerate_trigger_on_cur_tick = false;
-      dynamic_robots[i]->entity_ball_collision_on_cur_tick = false;
-      dynamic_robots[i]->entity_arena_collision_on_cur_tick = false;
-      dynamic_robots[i]->entity_entity_collision_on_cur_tick = false;
-      dynamic_robots[i]->ball_arena_collision_on_cur_tick = false;
     }
   }
 
@@ -1071,10 +1054,6 @@ struct SmartSimulator {
 
     for (int i = 0; i < dynamic_robots_size; ++i) {
       dynamic_robots[i]->accelerate_trigger_on_prev_tick = dynamic_robots[i]->accelerate_trigger_on_cur_tick;
-      dynamic_robots[i]->entity_arena_collision_on_prev_tick = dynamic_robots[i]->entity_arena_collision_on_cur_tick;
-      dynamic_robots[i]->entity_ball_collision_on_prev_tick = dynamic_robots[i]->entity_ball_collision_on_cur_tick;
-      dynamic_robots[i]->ball_arena_collision_on_prev_tick = dynamic_robots[i]->ball_arena_collision_on_cur_tick;
-      dynamic_robots[i]->entity_entity_collision_on_prev_tick = dynamic_robots[i]->entity_entity_collision_on_cur_tick;
     }
 
     for (int i = 0; i < dynamic_packs_size; ++i) {
@@ -1140,18 +1119,10 @@ struct SmartSimulator {
         //if (!accurate && main_robot->id == 4) {
         //  //H::t[18].call();
         //}
-        if (!a->entity_ball_collision_on_prev_tick) {
-          entity_ball_collision_trigger = true;
-        }
-        a->entity_ball_collision_on_cur_tick = true;
+        entity_ball_collision_trigger = true;
         //H::c[5].call();
       } else if (a->radius_change_speed > 0 || b->radius_change_speed > 0) { // todo my on ground accurate if radius change speed > 0
-        if (!a->entity_entity_collision_on_prev_tick
-            && !b->entity_entity_collision_on_prev_tick) {
-          entity_entity_collision_trigger = true;
-        }
-        a->entity_entity_collision_on_cur_tick = true;
-        b->entity_entity_collision_on_cur_tick = true;
+        entity_entity_collision_trigger = true;
         //H::c[6].call();
       }
       if (delta_velocity < 0) {
@@ -1382,7 +1353,7 @@ struct SmartSimulator {
   double getSumScoreFighter(const int tick_number) {
     double score = 0;
     if (goal_info.goal_to_me) {
-      score += tick_number == goal_info.goal_tick ? -1e3 : 0;
+      score += tick_number == goal_info.goal_tick ? -1e9 : 0;
     } else if (goal_info.goal_to_enemy) {
       //const double& height = ball->getState().position.y;
       //const double& height_score = 1e3 + 1e3 * ((height - 2) / 6.);
@@ -1415,7 +1386,7 @@ struct SmartSimulator {
           score -= 10;
         }
       }*/
-      /*
+
       if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
         const int cell_x = std::clamp((int) ((ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
         const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
@@ -1429,7 +1400,7 @@ struct SmartSimulator {
             + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
             + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
         score -= 1e4 * sum;
-      }*/
+      }
     }
 
     return score;
@@ -1535,7 +1506,7 @@ struct SmartSimulator {
   double getSumScoreDefender(const int tick_number) {
     double score = 0;
     if (goal_info.goal_to_me) {
-      score += tick_number == goal_info.goal_tick ? -1e3 : 0;
+      score += tick_number == goal_info.goal_tick ? -1e9 : 0;
     } else if (goal_info.goal_to_enemy) {
       score += tick_number == goal_info.goal_tick ? 1e3 : 0;
     }
@@ -1565,7 +1536,7 @@ struct SmartSimulator {
         }
       }*/
 
-      /*if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
+      if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
         const int cell_x = std::clamp((int) ((ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
         const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
         const int cell_z = std::clamp((int) ((ball->getState().position.z + 50. - 1.) / 2.), 0, 98);
@@ -1579,7 +1550,6 @@ struct SmartSimulator {
             + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
         score -= 1e4 * sum;
       }
-      */
     }
     score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
         0,

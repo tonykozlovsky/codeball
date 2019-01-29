@@ -97,21 +97,18 @@ int enemiesPrediction() {
     const auto& cell = H::used_cells[i];
     H::danger_grid[cell.x][cell.y][cell.z][cell.t] = 0;
 
-    //P::drawSphere({cell.x * 2 + 1 - 30, cell.y * 2 + 1, cell.z * 2 + 1 - 50}, 1, 0x00AA00);
+    // P::drawSphere({cell.x * 2 + 1 - 30, cell.y * 2 + 1, cell.z * 2 + 1 - 50}, 1, 0x00AA00);
 
   }
   H::used_cells_size = 0;
 
   int min_time_for_enemy_to_hit_the_ball = C::NEVER;
 
-  int grid_tpt = 1;
-
-//  H::t[0].start();
+  H::t[1].start();
   for (int enemy_id : {3, 4, 5}) {
-    continue;
-    SmartSimulator simulator(true, grid_tpt, C::ENEMY_SIMULATION_DEPTH / grid_tpt, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
-    for (int iteration = 0; iteration < 333; iteration++) {
-      Plan cur_plan(2, C::ENEMY_SIMULATION_DEPTH / grid_tpt);
+    SmartSimulator simulator(true, C::TPT, C::ENEMY_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
+    for (int iteration = 0; iteration < 100; iteration++) {
+      Plan cur_plan(2, C::ENEMY_SIMULATION_DEPTH);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
       }
@@ -121,26 +118,27 @@ int enemiesPrediction() {
       cur_plan.plans_config = 3;
       //double multiplier = 1.;
       bool main_fly_on_prefix = !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
-      for (int sim_tick = 0; sim_tick < C::ENEMY_SIMULATION_DEPTH / grid_tpt; sim_tick++) {
+      for (int sim_tick = 0; sim_tick < C::ENEMY_SIMULATION_DEPTH; sim_tick++) {
         simulator.tickDynamic(sim_tick);
         main_fly_on_prefix &= !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
 
         double x = simulator.main_robot->state.position.x + 30.;
         double y = simulator.main_robot->state.position.y;
         double z = simulator.main_robot->state.position.z + 50.;
-        int cell_x = (int) ((x) / 2.);
-        int cell_y = (int) ((y) / 2.);
-        int cell_z = (int) ((z) / 2.);
+        int cell_x = (int) (x / 2.);
+        int cell_y = (int) (y / 2.);
 
-        addCell(cell_x + 1, cell_y, cell_z, sim_tick, grid_tpt);
-        addCell(cell_x, cell_y + 1, cell_z, sim_tick, grid_tpt);
-        addCell(cell_x, cell_y, cell_z + 1, sim_tick, grid_tpt);
-        addCell(cell_x - 1, cell_y, cell_z, sim_tick, grid_tpt);
-        addCell(cell_x, cell_y - 1, cell_z, sim_tick, grid_tpt);
-        addCell(cell_x, cell_y, cell_z - 1, sim_tick, grid_tpt);
+        int cell_z = (int) (z / 2.);
+
+        addCell(cell_x + 1, cell_y, cell_z, sim_tick, 1);
+        addCell(cell_x, cell_y + 1, cell_z, sim_tick, 1);
+        addCell(cell_x, cell_y, cell_z + 1, sim_tick, 1);
+        addCell(cell_x - 1, cell_y, cell_z, sim_tick, 1);
+        addCell(cell_x, cell_y - 1, cell_z, sim_tick, 1);
+        addCell(cell_x, cell_y, cell_z - 1, sim_tick, 1);
 
         if (!main_fly_on_prefix && simulator.main_robot->collide_with_ball) {
-          min_time_for_enemy_to_hit_the_ball = std::min(min_time_for_enemy_to_hit_the_ball, sim_tick * grid_tpt);
+          min_time_for_enemy_to_hit_the_ball = std::min(min_time_for_enemy_to_hit_the_ball, sim_tick);
         }
 
         /*
@@ -175,9 +173,9 @@ int enemiesPrediction() {
       }
     }*/
   }
-  //H::t[0].cur(true, true);
-  //P::logn(H::t[0].avg());
-  //P::logn("mtfethtb: ", min_time_for_enemy_to_hit_the_ball);
+  H::t[1].cur(true, true);
+  P::logn(H::t[1].avg());
+  P::logn("mtfethtb: ", min_time_for_enemy_to_hit_the_ball);
   return min_time_for_enemy_to_hit_the_ball;
 }
 
@@ -253,20 +251,23 @@ void doStrategy() {
 
   //todo saving packs collisions
 
-  //for (int i = 0; i < 100; ++i) {
-  //  auto& t = H::t[i];
-  //  t.clearCur();
-  //}
-  //for (int i = 0; i < 100; ++i) {
-  //  auto& c = H::c[i];
-  //  c.init_calls();
-  //}
 
 #ifdef LOCAL
   H::cur_tick_timer.start();
 #endif
 
   if (H::tick % C::TPT == 0) {
+
+    for (int i = 0; i < 100; ++i) {
+      auto& t = H::t[i];
+      t.clearCur();
+    }
+    for (int i = 0; i < 100; ++i) {
+      auto& c = H::c[i];
+      c.init_calls();
+    }
+
+    H::t[0].start();
 
     updateRoles();
 
@@ -295,7 +296,7 @@ void doStrategy() {
               //available_time[i] = 0.1 * H::cur_tick_remaining_time;
               iterations[i] = 50 * 2;
             } else {
-              iterations[i] = 275 * 2;
+              iterations[i] = 275;
               //available_time[i] = 0.45 * H::cur_tick_remaining_time;
             }
           }
@@ -480,6 +481,19 @@ void doStrategy() {
       }
     }
 #endif
+
+    H::t[0].cur(true);
+    for (int i = 0; i < 1; ++i) {
+      auto& t = H::t[i];
+      t.cur(false, true);
+      P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
+    }
+
+    for (int i = 0; i < 5; ++i) {
+      auto& c = H::c[i];
+      c.capture();
+      P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
+    }
   }
 
   for (auto& robot : H::game.robots) {
@@ -488,18 +502,6 @@ void doStrategy() {
     H::prev_position[id] = {robot.x, robot.y, robot.z};
   }
 
-  //H::t[0].cur(true);
-  //for (int i = 0; i < 1; ++i) {
-  //  auto& t = H::t[i];
-  //  t.cur(false, true);
-  //  P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
-  //}
-
-  //for (int i = 0; i < 5; ++i) {
-  //  auto& c = H::c[i];
-  //  c.capture();
-  //  P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
-  //}
 #ifdef LOCAL
   H::cur_tick_timer.cur(true, true);
   std::cerr << H::cur_tick_timer.avg() << std::endl;
