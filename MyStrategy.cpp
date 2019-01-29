@@ -262,7 +262,10 @@ void doStrategy() {
   //  c.init_calls();
   //}
 
+#ifdef LOCAL
   H::cur_tick_timer.start();
+#endif
+
   if (H::tick % C::TPT == 0) {
 
     updateRoles();
@@ -497,9 +500,10 @@ void doStrategy() {
   //  c.capture();
   //  P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
   //}
-
+#ifdef LOCAL
   H::cur_tick_timer.cur(true, true);
   std::cerr << H::cur_tick_timer.avg() << std::endl;
+#endif
 }
 
 MyStrategy::MyStrategy() {}

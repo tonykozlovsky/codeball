@@ -93,8 +93,6 @@ struct Entity {
   bool collide_with_ball;
   bool collide_with_entity_in_air;
   bool additional_jump;
-  bool accelerate_trigger_on_cur_tick;
-  bool accelerate_trigger_on_prev_tick = false;
 
   bool is_robot, is_ball, is_pack;
 
