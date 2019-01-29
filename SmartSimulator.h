@@ -529,8 +529,9 @@ struct SmartSimulator {
             const double& coef = number_of_microticks > 1 ? (1 - (number_of_microticks + 1) / (2. * number_of_microticks)) : 0.; // todo optimise ?
             robot->state.position -= robot_acceleration * (coef * delta_time);
           } else {
-            if (robot->state.touch_surface_id == 1) {
-              acceleration_trigger = true;
+            if (robot->state.touch_surface_id == 1 && robot->is_teammate) {
+              acceleration_trigger = true; // todo fix overflow
+              //H::c[4].call();
             }
             robot->state.velocity += target_velocity_change;
           }
@@ -587,12 +588,15 @@ struct SmartSimulator {
         }
       }
       if (!collideWithArenaDynamic(robot, collision_normal, touch_surface_id)) {
-        if (robot->state.touch) {
+        if (robot->is_teammate && robot->state.touch) {
+          //H::c[7].call();
           entity_arena_collision_trigger = true;
         }
         robot->state.touch = false;
       } else {
-        if (!robot->state.touch || robot->state.touch_surface_id != touch_surface_id) {
+        if (robot->is_teammate && touch_surface_id == 1
+            && (!robot->state.touch || robot->state.touch_surface_id != touch_surface_id)) {
+          //H::c[8].call();
           entity_arena_collision_trigger = true;
         }
         if (robot->is_teammate && touch_surface_id != 1) {
@@ -646,12 +650,14 @@ struct SmartSimulator {
       if (!collideWithArenaDynamic(ball, collision_normal, touch_surface_id)) {
         if (ball->state.touch) {
           if (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap) {
+            //H::c[9].call();
             ball_arena_collision_trigger = true;
             ball->state.touch = false;
           }
         }
       } else {
         if (!ball->state.touch || ball->state.touch_surface_id != touch_surface_id) {
+          //H::c[10].call();
           ball_arena_collision_trigger = true;
         }
         ball->state.touch_surface_id = touch_surface_id;
@@ -791,7 +797,19 @@ struct SmartSimulator {
     }
   }
 
+  inline bool checkCollideWithBallInAirDynamic() {
+    for (int i = 0; i < dynamic_robots_size; ++i) {
+      if (dynamic_robots[i]->collide_with_entity_in_air ||
+          dynamic_robots[i]->collide_with_ball ||
+          dynamic_robots[i]->additional_jump) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   inline bool tryTickWithJumpsDynamic(const int& tick_number, int& main_robot_additional_jump_type, GoalInfo& cur_goal_info) {
+    //H::c[0].call();
     clearCollideWithBallInAirDynamic();
     main_robot_additional_jump_type = 0;
     bool sbd_become_dynamic = tickDihaDynamic(tick_number, cur_goal_info); // todo check need return here
@@ -813,10 +831,11 @@ struct SmartSimulator {
       }
     }
     if (needs_rollback) {
+      clearCollideWithBallInAirDynamic();
       for (int i = 0; i < dynamic_entities_size; ++i) {
         dynamic_entities[i]->fromPrevState();
       }
-      sbd_become_dynamic = tickDihaDynamic(tick_number, cur_goal_info);
+      sbd_become_dynamic = tickDihaDynamic(tick_number, cur_goal_info, true);
     }
     return sbd_become_dynamic;
   }
@@ -844,27 +863,30 @@ struct SmartSimulator {
     return false;
   }
 
-  inline bool tickMicroticksDynamic(const int& number_of_tick, const int& number_of_microticks, GoalInfo& cur_goal_info) {
+  inline bool tickMicroticksDynamic(const int& number_of_tick, const int& number_of_microticks, GoalInfo& cur_goal_info, const bool& after_rollback) {
     clearTriggers();
     if (number_of_microticks == 0) {
+      return false;
+    }
+    if (!after_rollback && checkCollideWithBallInAirDynamic()) {
       return false;
     }
     return updateDynamic((double) number_of_microticks / C::rules.TICKS_PER_SECOND / C::rules.MICROTICKS_PER_TICK, number_of_tick, number_of_microticks, cur_goal_info);
   }
 
-  inline bool tickDihaDynamic(const int& tick_number, GoalInfo& cur_goal_info) {
+  inline bool tickDihaDynamic(const int& tick_number, GoalInfo& cur_goal_info, const bool after_rollback = false) {
     bool sbd_wants_to_become_dynamic = false;
     GoalInfo goal_info = {false, false, -1};
     cur_goal_info = {false, false, -1};
 #ifdef LOCAL
     if (accurate) {
       for (int i = 0; i < 100 * tpt; ++i) {
-        sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1, goal_info);
+        sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1, goal_info, after_rollback);
         cur_goal_info |= goal_info;
       }
       return sbd_wants_to_become_dynamic;
     } else if (unaccurate) {
-      sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 100 * tpt, goal_info);
+      sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 100 * tpt, goal_info, after_rollback);
       cur_goal_info |= goal_info;
       return sbd_wants_to_become_dynamic;
     }
@@ -872,14 +894,14 @@ struct SmartSimulator {
     int remaining_microticks = 100 * tpt;
     const bool& flag = somebodyJumpThisTickDynamic();
     if (flag) {
-      sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1, goal_info);
+      sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1, goal_info, after_rollback);
       remaining_microticks--;
       cur_goal_info |= goal_info;
-      sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1, goal_info);
+      sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1, goal_info, after_rollback);
       remaining_microticks--;
       cur_goal_info |= goal_info;
     } else if (tick_number == 0) {
-      sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1, goal_info); //todo do single initialisation (low prior)
+      sbd_wants_to_become_dynamic |= tickMicroticksDynamic(tick_number, 1, goal_info, after_rollback); //todo do single initialisation (low prior)
       remaining_microticks--;
       cur_goal_info |= goal_info;
     }
@@ -890,12 +912,14 @@ struct SmartSimulator {
     clearTriggerFires();
 
     int iteration = 0;
+    //H::c[1].call();
     while (true) {
       iteration++;
       for (int i = 0; i < dynamic_entities_size; ++i) { // 3/2 time of diha!!!!
         dynamic_entities[i]->savePrevMicroState();
       }
-      sbd_wants_to_become_dynamic = tickMicroticksDynamic(tick_number, remaining_microticks, goal_info);
+      sbd_wants_to_become_dynamic = tickMicroticksDynamic(tick_number, remaining_microticks, goal_info, after_rollback);
+      //H::c[2].call();
       if (iteration == 1 && sbd_wants_to_become_dynamic) {
         return true;
       }
@@ -903,7 +927,8 @@ struct SmartSimulator {
         for (int i = 0; i < dynamic_entities_size; ++i) {
           dynamic_entities[i]->fromPrevMicroState();
         }
-        tickMicroticksDynamic(tick_number, 1, goal_info);
+        //H::c[3].call();
+        tickMicroticksDynamic(tick_number, 1, goal_info, after_rollback);
         int l;
         int r;
         if (anyTriggersActive()) {
@@ -916,7 +941,8 @@ struct SmartSimulator {
             for (int i = 0; i < dynamic_entities_size; ++i) {
               dynamic_entities[i]->fromPrevMicroState();
             }
-            tickMicroticksDynamic(tick_number, mid, goal_info);
+            //H::c[3].call();
+            tickMicroticksDynamic(tick_number, mid, goal_info, after_rollback);
             if (anyTriggersActive()) {
               r = mid;
             } else {
@@ -928,11 +954,13 @@ struct SmartSimulator {
           dynamic_entities[i]->fromPrevMicroState();
         }
         if (l > 0) {
-          tickMicroticksDynamic(tick_number, l, goal_info);
+          //H::c[3].call();
+          tickMicroticksDynamic(tick_number, l, goal_info, after_rollback);
           cur_goal_info |= goal_info;
           remaining_microticks -= l;
         }
-        tickMicroticksDynamic(tick_number, 1, goal_info); // todo maybe not need
+        //H::c[3].call();
+        tickMicroticksDynamic(tick_number, 1, goal_info, after_rollback); // todo maybe not need
         cur_goal_info |= goal_info;
         setTriggersFired();
         remaining_microticks--;
@@ -1082,13 +1110,15 @@ struct SmartSimulator {
       a->state.position -= normal * (penetration * k_a);
       b->state.position += normal * (penetration * k_b);
       const double& delta_velocity = (b->state.velocity - a->state.velocity).dot(normal) - (b->radius_change_speed + a->radius_change_speed);
-      if (check_with_ball) {
+      if (check_with_ball && a->is_teammate) {
         //if (!accurate && main_robot->id == 4) {
         //  //H::t[18].call();
         //}
         entity_ball_collision_trigger = true;
-      } else if (!a->state.touch && !b->state.touch) { // todo my on ground accurate if radius change speed > 0
+        //H::c[5].call();
+      } else if (a->radius_change_speed > 0 || b->radius_change_speed > 0) { // todo my on ground accurate if radius change speed > 0
         entity_entity_collision_trigger = true;
+        //H::c[6].call();
       }
       if (delta_velocity < 0) {
         const Point& impulse = normal * ((1. + hit_e) * delta_velocity);
@@ -2183,7 +2213,6 @@ struct SmartSimulator {
     //H::t[1].cur(true);
     //H::t[3].start();
     for (int i = 0; i < dynamic_robots_size; ++i) {
-      //H::c[1].call();
       const auto& robot = dynamic_robots[i];
       if (robot->is_teammate && !(robot->state.nitro < C::rules.MAX_NITRO_AMOUNT)) {
         continue;
