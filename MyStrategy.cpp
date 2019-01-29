@@ -229,10 +229,6 @@ void updateRoles() {
   //P::logn("fi: ", closest_to_ball);
   H::role[H::getRobotLocalIdByGlobal(other)] = H::SEMI;
   //P::logn("semi: ", other);
-
-  H::role[0] = H::DEFENDER;
-  H::role[1] = H::FIGHTER;
-  H::role[2] = H::SEMI;
 }
 
 void doStrategy() {
@@ -332,7 +328,8 @@ void doStrategy() {
 
         double multiplier = 1.;
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
-          bool main_touch = simulator.main_robot->state.touch;
+
+          bool main_touch = simulator.main_robot->state.touch || simulator.main_robot->state.position.y < C::NITRO_TOUCH_EPSILON;
 
           int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
 
