@@ -62,9 +62,7 @@ int enemiesPrediction() {
 
           Point p0 = H::prev_position[id];
           Point p1 = {robot.x, robot.y, robot.z};
-          //if (!robot.is_teammate) {
-          //  P::drawLine(p1, {p1.x + dvx * 30, 1, p1.z + dvz * 30}, 0x0000FF);
-          //}
+          //P::drawLine(p1, {p1.x + dvx * 30, 1, p1.z + dvz * 30}, 0x0000FF);
           Point crossing;
           //P::drawLine({p0.x, 1, p0.z}, {p0.x + prev.x, 1, p0.z + prev.y}, 0xFF0000);
           //P::drawLine({p1.x, 1, p1.z}, {p1.x + cur.x, 1, p1.z + cur.y}, 0xFF0000);
@@ -75,10 +73,8 @@ int enemiesPrediction() {
               {p1.x + cur.x, p1.z + cur.y},
               crossing)) {
             //P::logn("kek");
-            //if (!robot.is_teammate) {
-            //  P::drawLine(p0, crossing, 0xFF0000);
-            //  P::drawLine(p1, crossing, 0xFF0000);
-            //}
+            //P::drawLine(p0, crossing, 0xFF0000);
+            //P::drawLine(p1, crossing, 0xFF0000);
             H::last_action_plan[id] = Plan(5, C::MAX_SIMULATION_DEPTH, ax, az, crossing.x, crossing.z);
           } else {
 
@@ -110,7 +106,7 @@ int enemiesPrediction() {
 
   int grid_tpt = 1;
 
-  H::t[0].start();
+  //H::t[0].start();
   for (int enemy_id : {3, 4, 5}) {
     continue;
     SmartSimulator simulator(true, grid_tpt, C::ENEMY_SIMULATION_DEPTH / grid_tpt, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
@@ -179,9 +175,9 @@ int enemiesPrediction() {
       }
     }*/
   }
-  H::t[0].cur(true, true);
-  P::logn(H::t[0].avg());
-  P::logn("mtfethtb: ", min_time_for_enemy_to_hit_the_ball);
+  //H::t[0].cur(true, true);
+  //P::logn(H::t[0].avg());
+  //P::logn("mtfethtb: ", min_time_for_enemy_to_hit_the_ball);
   return min_time_for_enemy_to_hit_the_ball;
 }
 
@@ -229,11 +225,11 @@ void updateRoles() {
     }
   }
   H::role[H::getRobotLocalIdByGlobal(closest_to_goal)] = H::DEFENDER;
-  P::logn("def: ", closest_to_goal);
+  //P::logn("def: ", closest_to_goal);
   H::role[H::getRobotLocalIdByGlobal(closest_to_ball)] = H::FIGHTER;
-  P::logn("fi: ", closest_to_ball);
+  //P::logn("fi: ", closest_to_ball);
   H::role[H::getRobotLocalIdByGlobal(other)] = H::SEMI;
-  P::logn("semi: ", other);
+  //P::logn("semi: ", other);
 }
 
 void doStrategy() {
@@ -264,8 +260,8 @@ void doStrategy() {
   //  auto& c = H::c[i];
   //  c.init_calls();
   //}
-  //H::t[0].start();
 
+  H::t[0].start();
   if (H::tick % C::TPT == 0) {
 
     updateRoles();
@@ -290,10 +286,12 @@ void doStrategy() {
           cur_plan.mutate(1, C::MAX_SIMULATION_DEPTH);
         }
 
-        if (id != 0) {
+        if (H::role[id] == H::FIGHTER) {
           cur_plan.score.start_fighter();
-        } else {
+        } else if (H::role[id] == H::SEMI) {
           cur_plan.score.start_fighter();
+        } else if (H::role[id] == H::DEFENDER) {
+          cur_plan.score.start_defender();
         }
 
         simulator.initIteration(iteration, cur_plan);
@@ -339,24 +337,24 @@ void doStrategy() {
 
           if (H::role[id] == H::FIGHTER) {
             cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
+            cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
             cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-            //cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
             if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-              cur_plan.score.sum_score += simulator.goalInFuture();
+              cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
             }
           } else if (H::role[id] == H::DEFENDER) {
             cur_plan.score.sum_score += simulator.getSumScoreDefender(sim_tick) * multiplier;
-            //cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-            //cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
-            //if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-              //cur_plan.score.sum_score += simulator.goalInFuture();
-            //}
-          } else if (H::role[id] == H::SEMI) {
-            cur_plan.score.sum_score += simulator.getSumScoreSemiFighter(sim_tick) * multiplier;
-            cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-            //cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
+            cur_plan.score.defender_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreDefender() * multiplier, cur_plan.score.defender_min_dist_to_ball);
+            cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
             if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-              cur_plan.score.sum_score += simulator.goalInFuture();
+              cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
+            }
+          } else if (H::role[id] == H::SEMI) {
+            cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
+            cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
+            cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
+            if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+              cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
             }
           }
 
@@ -462,7 +460,7 @@ void doStrategy() {
   }
 
   //H::t[0].cur(true);
-  //for (int i = 0; i < 12; ++i) {
+  //for (int i = 0; i < 1; ++i) {
   //  auto& t = H::t[i];
   //  t.cur(false, true);
   //  P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");

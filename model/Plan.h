@@ -127,8 +127,13 @@ struct Plan {
       time_change = C::rand_int(0, simulation_depth);
       time_jump = C::rand_int(0, simulation_depth);
 
-      speed1 = C::rand_double(0, 1);
-      speed2 = C::rand_double(0, 1);
+      speed1 = speed2 = 1;
+      if (C::rand_double(0, 1) < 0.01) {
+        speed1 = 0;
+      }
+      if (C::rand_double(0, 1) < 0.01) {
+        speed2 = 0;
+      }
 
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
 
@@ -143,7 +148,7 @@ struct Plan {
       sangle1 = sin(angle1);
       time_change = C::NEVER;
       time_jump = C::rand_int(0, simulation_depth);
-      speed1 = C::rand_double(0, 1);
+      speed1 = 1.;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       max_jump_speed = 15;
       time_nitro_on = C::NEVER;
@@ -182,24 +187,22 @@ struct Plan {
       time_nitro_on = C::NEVER;
       time_nitro_off = C::NEVER;
     } else if (configuration == 6) {
-      angle1 = C::rand_double(0, 2 * M_PI);
-      cangle1 = cos(angle1);
-      sangle1 = sin(angle1);
-      y1 = C::rand_double(-C::rules.MAX_ENTITY_SPEED, C::rules.MAX_ENTITY_SPEED);
-      cos_lat1 = cos(asin(y1 / C::rules.MAX_ENTITY_SPEED));
+
+      crossing = {C::rand_double(-30, 30), C::rand_double(0, 20), C::rand_double(-50, 50)};
 
       time_change = C::NEVER;
       time_jump = C::rand_int(0, simulation_depth);
 
-      speed1 = C::rand_double(0, 1);
+      speed1 = 1;
+      if (C::rand_double(0, 1) < 0.01) {
+        speed1 = 0;
+      }
 
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
 
       max_jump_speed = C::rand_int(0, 15);
-
       time_nitro_on = C::rand_int(0, simulation_depth);
       time_nitro_off = C::rand_int(0, simulation_depth);
-
     } else if (configuration == 7) {
 
       crossing = {C::rand_double(-30, 30), C::rand_double(0, 20), C::rand_double(-50, 50)};
@@ -320,7 +323,7 @@ struct Plan {
         }
       }
 
-      speed1 += C::rand_double(-speed_mutation, speed_mutation); // todo change speed mutation
+      /*speed1 += C::rand_double(-speed_mutation, speed_mutation); // todo change speed mutation
       if (speed1 > 1) {
         speed1 = 1;
       }
@@ -334,7 +337,7 @@ struct Plan {
       }
       if (speed2 < 0) {
         speed2 = 0;
-      }
+      }*/
 
       max_jump_speed += C::rand_int(-jump_mutation, jump_mutation);
       if (max_jump_speed < 0) {
