@@ -261,7 +261,7 @@ void doStrategy() {
   //  c.init_calls();
   //}
 
-  H::t[0].start();
+  //H::t[0].start();
   if (H::tick % C::TPT == 0) {
 
     updateRoles();
