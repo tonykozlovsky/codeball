@@ -954,17 +954,17 @@ struct SmartSimulator {
         for (int i = 0; i < dynamic_entities_size; ++i) {
           dynamic_entities[i]->fromPrevMicroState();
         }
-        if (l > 0) {
+        //if (l > 0) {
           //H::c[3].call();
-          tickMicroticksDynamic(tick_number, l, goal_info, after_rollback);
+          tickMicroticksDynamic(tick_number, l + 1, goal_info, after_rollback);
           cur_goal_info |= goal_info;
-          remaining_microticks -= l;
-        }
+          remaining_microticks -= l + 1;
+        //}
         //H::c[3].call();
-        tickMicroticksDynamic(tick_number, 1, goal_info, after_rollback); // todo maybe not need
-        cur_goal_info |= goal_info;
+        //tickMicroticksDynamic(tick_number, 1, goal_info, after_rollback); // todo maybe not need
+        //cur_goal_info |= goal_info;
         setTriggersFired();
-        remaining_microticks--;
+        //remaining_microticks--;
       } else {
         cur_goal_info |= goal_info;
         break;
