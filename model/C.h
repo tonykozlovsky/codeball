@@ -34,6 +34,7 @@
 #include <iomanip>
 #include <random>
 #include <string>
+#include <set>
 
 struct DGState {
   int x, y, z, t;
@@ -47,9 +48,9 @@ struct C {
   static constexpr int MAX_SIMULATION_DEPTH = 100 / TPT;
   static constexpr int ENEMY_SIMULATION_DEPTH = 100;
   static constexpr double ball_antiflap = 0.1; // todo check
-  static constexpr double MIN_WALL_JUMP = 15.;
+  static constexpr double MIN_WALL_JUMP = 2.;
   static constexpr int NEVER = 1000000000;
-  static constexpr int ENEMY_LIVE_TICKS = 100 / TPT;
+  static constexpr int ENEMY_LIVE_TICKS = 20 / TPT;
   static constexpr double NITRO_TOUCH_EPSILON = 1.01;
 
 #ifdef LOCAL

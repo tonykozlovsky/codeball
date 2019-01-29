@@ -30,12 +30,16 @@ struct H {
   static double sum_iterations;
   static double iterations_k;
 
-  static int danger_grid[60][20][100][100];
+  static int danger_grid[60][20][100][C::MAX_SIMULATION_DEPTH];
   static DGState used_cells[1000007];
   static int used_cells_size;
 
   static Point prev_velocity[7];
   static Point prev_position[7];
+
+  enum ROLE {FIGHTER, SEMI, DEFENDER};
+
+  static ROLE role[6];
 
   static bool tryInit(
       const model::Robot& _me,

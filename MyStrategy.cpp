@@ -62,7 +62,9 @@ int enemiesPrediction() {
 
           Point p0 = H::prev_position[id];
           Point p1 = {robot.x, robot.y, robot.z};
-          //P::drawLine(p1, {p1.x + dvx * 30, 1, p1.z + dvz * 30}, 0x0000FF);
+          //if (!robot.is_teammate) {
+          //  P::drawLine(p1, {p1.x + dvx * 30, 1, p1.z + dvz * 30}, 0x0000FF);
+          //}
           Point crossing;
           //P::drawLine({p0.x, 1, p0.z}, {p0.x + prev.x, 1, p0.z + prev.y}, 0xFF0000);
           //P::drawLine({p1.x, 1, p1.z}, {p1.x + cur.x, 1, p1.z + cur.y}, 0xFF0000);
@@ -73,8 +75,10 @@ int enemiesPrediction() {
               {p1.x + cur.x, p1.z + cur.y},
               crossing)) {
             //P::logn("kek");
-            //P::drawLine(p0, crossing, 0xFF0000);
-            //P::drawLine(p1, crossing, 0xFF0000);
+            //if (!robot.is_teammate) {
+            //  P::drawLine(p0, crossing, 0xFF0000);
+            //  P::drawLine(p1, crossing, 0xFF0000);
+            //}
             H::last_action_plan[id] = Plan(5, C::MAX_SIMULATION_DEPTH, ax, az, crossing.x, crossing.z);
           } else {
 
@@ -97,7 +101,7 @@ int enemiesPrediction() {
     const auto& cell = H::used_cells[i];
     H::danger_grid[cell.x][cell.y][cell.z][cell.t] = 0;
 
-    // P::drawSphere({cell.x * 2 + 1 - 30, cell.y * 2 + 1, cell.z * 2 + 1 - 50}, 1, 0x00AA00);
+    //P::drawSphere({cell.x * 2 + 1 - 30, cell.y * 2 + 1, cell.z * 2 + 1 - 50}, 1, 0x00AA00);
 
   }
   H::used_cells_size = 0;
@@ -110,7 +114,7 @@ int enemiesPrediction() {
   for (int enemy_id : {3, 4, 5}) {
     continue;
     SmartSimulator simulator(true, grid_tpt, C::ENEMY_SIMULATION_DEPTH / grid_tpt, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
-    for (int iteration = 0; iteration < 100; iteration++) {
+    for (int iteration = 0; iteration < 333; iteration++) {
       Plan cur_plan(2, C::ENEMY_SIMULATION_DEPTH / grid_tpt);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
@@ -120,14 +124,17 @@ int enemiesPrediction() {
 
       cur_plan.plans_config = 3;
       //double multiplier = 1.;
-      bool main_fly_on_prefix = !simulator.main_robot->state.touch;
+      bool main_fly_on_prefix = !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
       for (int sim_tick = 0; sim_tick < C::ENEMY_SIMULATION_DEPTH / grid_tpt; sim_tick++) {
         simulator.tickDynamic(sim_tick);
-        main_fly_on_prefix &= !simulator.main_robot->state.touch;
+        main_fly_on_prefix &= !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
 
-        int cell_x = (int) ((simulator.main_robot->state.position.x + 30.) / 2.);
-        int cell_y = (int) ((simulator.main_robot->state.position.y) / 2.);
-        int cell_z = (int) ((simulator.main_robot->state.position.z + 50.) / 2.);
+        double x = simulator.main_robot->state.position.x + 30.;
+        double y = simulator.main_robot->state.position.y;
+        double z = simulator.main_robot->state.position.z + 50.;
+        int cell_x = (int) ((x) / 2.);
+        int cell_y = (int) ((y) / 2.);
+        int cell_z = (int) ((z) / 2.);
 
         addCell(cell_x + 1, cell_y, cell_z, sim_tick, grid_tpt);
         addCell(cell_x, cell_y + 1, cell_z, sim_tick, grid_tpt);
@@ -178,6 +185,57 @@ int enemiesPrediction() {
   return min_time_for_enemy_to_hit_the_ball;
 }
 
+void updateRoles() {
+
+
+  int closest_to_goal;
+  double closest_distance_to_goal = 1e9;
+  for (auto& robot : H::game.robots) {
+    if (robot.is_teammate) {
+      Entity e;
+      e.fromRobot(robot);
+      double dist = (Point{0, 1, -42} - e.state.position).length();
+      if (dist < closest_distance_to_goal) {
+        closest_distance_to_goal = dist;
+        closest_to_goal = robot.id;
+      }
+    }
+  }
+
+  int closest_to_ball;
+  double closest_distance_to_ball = 1e9;
+  Entity ball;
+  ball.fromBall(H::game.ball);
+  for (auto& robot : H::game.robots) {
+    if (robot.is_teammate) {
+      Entity e;
+      e.fromRobot(robot);
+      double dist = (Point{0,
+          1,
+          42} - e.state.position).length();
+      if (robot.id != closest_to_goal && dist < closest_distance_to_ball) {
+        closest_distance_to_ball = dist;
+        closest_to_ball = robot.id;
+      }
+    }
+  }
+
+  int other;
+  for (auto& robot : H::game.robots) {
+    if (robot.is_teammate) {
+      if (robot.id != closest_to_ball && robot.id != closest_to_goal) {
+        other = robot.id;
+      }
+    }
+  }
+  H::role[H::getRobotLocalIdByGlobal(closest_to_goal)] = H::DEFENDER;
+  P::logn("def: ", closest_to_goal);
+  H::role[H::getRobotLocalIdByGlobal(closest_to_ball)] = H::FIGHTER;
+  P::logn("fi: ", closest_to_ball);
+  H::role[H::getRobotLocalIdByGlobal(other)] = H::SEMI;
+  P::logn("semi: ", other);
+}
+
 void doStrategy() {
 #ifdef FROM_LOG
   for (auto& robot: H::game.robots) {
@@ -210,12 +268,14 @@ void doStrategy() {
 
   if (H::tick % C::TPT == 0) {
 
+    updateRoles();
+
     clearBestPlans();
 
     int min_time_for_enemy_to_hit_the_ball = enemiesPrediction();
 
-    int iterations[3] = {100 + 1, 100 + 1, 100 + 1};
-    for (int id = 0; id >= 0; id--) {
+    int iterations[3] = {250 + 1, 250 + 1, 250 + 1};
+    for (int id = 2; id >= 0; id--) {
       int iteration = 0;
       SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
       for (;; iteration++) {
@@ -233,7 +293,7 @@ void doStrategy() {
         if (id != 0) {
           cur_plan.score.start_fighter();
         } else {
-          cur_plan.score.start_defender();
+          cur_plan.score.start_fighter();
         }
 
         simulator.initIteration(iteration, cur_plan);
@@ -256,9 +316,9 @@ void doStrategy() {
                 && cur_plan.was_jumping
                 && !cur_plan.was_on_ground_after_jumping) {
               cur_plan.collide_with_entity_before_on_ground_after_jumping = true;
-              if (main_robot_additional_jump_type == 1
+              if (H::role[id] == H::DEFENDER && main_robot_additional_jump_type == 1
                   && min_time_for_enemy_to_hit_the_ball < sim_tick
-                  && cur_plan.time_jump < min_time_for_enemy_to_hit_the_ball) {
+                  && cur_plan.time_jump <= min_time_for_enemy_to_hit_the_ball) {
                 cur_plan.score.minimal();
                 break;
               }
@@ -277,19 +337,26 @@ void doStrategy() {
             }
           }
 
-          if (id != 0) {
+          if (H::role[id] == H::FIGHTER) {
             cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
-            cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
             cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
+            //cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
             if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-              cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
+              cur_plan.score.sum_score += simulator.goalInFuture();
             }
-          } else {
+          } else if (H::role[id] == H::DEFENDER) {
             cur_plan.score.sum_score += simulator.getSumScoreDefender(sim_tick) * multiplier;
-            cur_plan.score.defender_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreDefender() * multiplier, cur_plan.score.defender_min_dist_to_ball);
-            cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
+            //cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
+            //cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
+            //if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+              //cur_plan.score.sum_score += simulator.goalInFuture();
+            //}
+          } else if (H::role[id] == H::SEMI) {
+            cur_plan.score.sum_score += simulator.getSumScoreSemiFighter(sim_tick) * multiplier;
+            cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
+            //cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
             if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-              cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
+              cur_plan.score.sum_score += simulator.goalInFuture();
             }
           }
 
