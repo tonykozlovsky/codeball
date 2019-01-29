@@ -289,7 +289,7 @@ void doStrategy() {
           if (simulator.ball->states[i].position.z < -0.01) {
             ball_on_my_side = true;
           }
-        }
+        } 
         if (!ball_on_my_side) {
           for (int i = 0; i < 3; ++i) {
             if (H::role[i] == H::DEFENDER) {
