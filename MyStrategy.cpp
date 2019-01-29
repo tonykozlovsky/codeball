@@ -183,7 +183,6 @@ int enemiesPrediction() {
 
 void updateRoles() {
 
-
   int closest_to_goal;
   double closest_distance_to_goal = 1e9;
   for (auto& robot : H::game.robots) {
@@ -246,7 +245,9 @@ void doStrategy() {
   for (auto& nitro_pack : H::game.nitro_packs) {
     Entity e;
     e.fromPack(nitro_pack);
-    P::drawEntities({e.state}, 0, 0x0000FF);
+    if (e.state.alive) {
+      P::drawEntities({e.state}, 0, 0x0000FF);
+    }
   }
   Entity e;
   e.fromBall(H::game.ball);
@@ -432,13 +433,12 @@ void doStrategy() {
         P::logn("collide_with_entity_before_on_ground_after_jumping: ", H::best_plan[id].collide_with_entity_before_on_ground_after_jumping);
         P::logn("was_on_ground_after_jumping: ", H::best_plan[id].was_on_ground_after_jumping);
 
-
         Plan cur_plan = H::best_plan[id];
 
-        SmartSimulator simulator(false, 1, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, false, H::getRobotGlobalIdByLocal(id));
+        SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, false, H::getRobotGlobalIdByLocal(id));
         simulator.initIteration(iteration, cur_plan);
 
-        SmartSimulator accurate_simulator(false, 1, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, true, H::getRobotGlobalIdByLocal(id));
+        SmartSimulator accurate_simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, true, H::getRobotGlobalIdByLocal(id));
         accurate_simulator.initIteration(iteration, cur_plan);
 
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
@@ -465,23 +465,22 @@ void doStrategy() {
 #endif
     }
     H::iterations_k += 1;
-  }
-
 
 #ifndef FROM_LOG
-  for (auto& robot : H::game.robots) {
-    if (robot.is_teammate) {
-      Entity e;
-      e.fromRobot(robot);
-      e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, true, e.state.position);
-      e.nitroCheck();
-      if (!e.action.use_nitro) {
-        e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, false, e.state.position);
+    for (auto& robot : H::game.robots) {
+      if (robot.is_teammate) {
+        Entity e;
+        e.fromRobot(robot);
+        e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, true, e.state.position);
+        e.nitroCheck();
+        if (!e.action.use_nitro) {
+          e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, false, e.state.position);
+        }
+        H::actions[robot.id] = e.action.toAction();
       }
-      H::actions[robot.id] = e.action.toAction();
     }
-  }
 #endif
+  }
 
   for (auto& robot : H::game.robots) {
     int id = H::getRobotLocalIdByGlobal(robot.id);
@@ -984,7 +983,11 @@ std::string MyStrategy::custom_rendering() {
     P::lines_to_draw.clear();
     P::spheres_to_draw.clear();
   }
-  return buf.GetString();
+  //if (H::tick == 3900) {
+    return buf.GetString();
+  //} else {
+  //  return {};
+  //}
 }
 
 #endif

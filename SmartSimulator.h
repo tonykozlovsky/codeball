@@ -594,9 +594,7 @@ struct SmartSimulator {
         }
         robot->state.touch = false;
       } else {
-        if (robot->is_teammate && touch_surface_id == 1
-            && (!robot->state.touch || robot->state.touch_surface_id != touch_surface_id)) {
-          //H::c[8].call();
+        if (!robot->state.touch || robot->state.touch_surface_id != touch_surface_id) {
           entity_arena_collision_trigger = true;
         }
         if (robot->is_teammate && touch_surface_id != 1) {
