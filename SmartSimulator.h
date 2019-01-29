@@ -249,7 +249,7 @@ struct SmartSimulator {
         continue;
       }
       if (!unaccurate && !robot->is_teammate) {
-        if (robot->did_not_touch_on_prefix && robot->state.touch) {
+        if (robot->did_not_touch_on_prefix && robot->state.touch && robot->state.touch_surface_id == 1) {
           robot->did_not_touch_on_prefix = false;
         }
         if (tick_number > C::ENEMY_LIVE_TICKS && !robot->did_not_touch_on_prefix) {
