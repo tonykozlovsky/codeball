@@ -65,23 +65,23 @@ struct SmartSimulator {
 
   bool acceleration_trigger;
   int acceleration_trigger_fires;
-  const int acceleration_trigger_limit = 200;
+  const int acceleration_trigger_limit = 1;
 
   bool entity_entity_collision_trigger;
   int entity_entity_collision_trigger_fires;
-  const int entity_entity_collision_limit = 200;
+  const int entity_entity_collision_limit = 1;
 
   bool entity_ball_collision_trigger;
   int entity_ball_collision_trigger_fires;
-  const int entity_ball_collision_limit = 200;
+  const int entity_ball_collision_limit = 1;
 
   bool entity_arena_collision_trigger;
   int entity_arena_collision_trigger_fires;
-  const int entity_arena_collision_limit = 200;
+  const int entity_arena_collision_limit = 1;
 
   bool ball_arena_collision_trigger;
   int ball_arena_collision_trigger_fires;
-  const int ball_arena_collision_limit = 200;
+  const int ball_arena_collision_limit = 1;
 
   int simulation_depth, tpt;
 
