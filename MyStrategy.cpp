@@ -892,12 +892,22 @@ void MyStrategy::act(
     const model::Game& game,
     model::Action& action) {
 #ifndef LOCAL
-  if (Frozen::H::tryInit(me, rules, game)) {
-    Frozen::doStrategy();
-    action = Frozen::H::getCurrentAction();
+  if (rules.team_size == 3) {
+    if (H::tryInit(me, rules, game)) {
+      doStrategy();
+      action = H::getCurrentAction();
+    } else {
+      action = H::getCurrentAction();
+      H::global_timer.cur(true, true);
+    }
   } else {
-    action = Frozen::H::getCurrentAction();
-    Frozen::H::global_timer.cur(true, true);
+      if (Frozen::H::tryInit(me, rules, game)) {
+      Frozen::doStrategy();
+      action = Frozen::H::getCurrentAction();
+    } else {
+      action = Frozen::H::getCurrentAction();
+      Frozen::H::global_timer.cur(true, true);
+    }
   }
 #else
   if (H::tryInit(me, rules, game)) {
