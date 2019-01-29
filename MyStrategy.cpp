@@ -331,8 +331,7 @@ void doStrategy() {
 
         double multiplier = 1.;
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
-
-          bool main_touch = simulator.main_robot->state.touch || simulator.main_robot->state.position.y < C::NITRO_TOUCH_EPSILON;
+          bool main_touch = simulator.main_robot->state.touch;
 
           int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
 
@@ -392,7 +391,7 @@ void doStrategy() {
           multiplier *= 0.999;
         }
 
-        if (!cur_plan.was_jumping || (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping)) {
+        if (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping) {
           cur_plan.time_jump = C::NEVER;
         } else {
 
