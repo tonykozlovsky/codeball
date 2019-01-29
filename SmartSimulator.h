@@ -1350,9 +1350,10 @@ struct SmartSimulator {
     if (goal_info.goal_to_me) {
       score += tick_number == goal_info.goal_tick ? -1e3 : 0;
     } else if (goal_info.goal_to_enemy) {
-      const double& height = ball->getState().position.y;
-      const double& height_score = 1e3 + 1e3 * ((height - 2) / 6.);
-      score += tick_number == goal_info.goal_tick ? height_score : 0;
+      //const double& height = ball->getState().position.y;
+      //const double& height_score = 1e3 + 1e3 * ((height - 2) / 6.);
+      //score += tick_number == goal_info.goal_tick ? height_score : 0;
+      score += tick_number == goal_info.goal_tick ? 1e3 : 0;
     }
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
