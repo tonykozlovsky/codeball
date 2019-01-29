@@ -40,7 +40,7 @@ struct DGState {
   int x, y, z, t;
 };
 
-struct C {
+struct C { 
 
   static int unique_plan_id;
   static model::Rules rules;
