@@ -592,12 +592,18 @@ struct SmartSimulator {
       if (!collideWithArenaDynamic(robot, collision_normal, touch_surface_id)) {
         if (robot->is_teammate && robot->state.touch) {
           //H::c[7].call();
-          entity_arena_collision_trigger = true;
+          if (!robot->entity_arena_collision_on_prev_tick) {
+            entity_arena_collision_trigger = true;
+          }
+          robot->entity_arena_collision_on_cur_tick = true;
         }
         robot->state.touch = false;
       } else {
         if (!robot->state.touch || robot->state.touch_surface_id != touch_surface_id) {
-          entity_arena_collision_trigger = true;
+          if (!robot->entity_arena_collision_on_prev_tick) {
+            entity_arena_collision_trigger = true;
+          }
+          robot->entity_arena_collision_on_cur_tick = true;
         }
         if (robot->is_teammate && touch_surface_id != 1) {
           robot->additional_jump = true;
@@ -651,14 +657,21 @@ struct SmartSimulator {
         if (ball->state.touch) {
           if (ball->state.touch_surface_id != 1 || ball->state.velocity.y > C::ball_antiflap) {
             //H::c[9].call();
-            ball_arena_collision_trigger = true;
+
+            if (!ball->ball_arena_collision_on_prev_tick) {
+              ball_arena_collision_trigger = true;
+            }
+            ball->ball_arena_collision_on_cur_tick = true;
             ball->state.touch = false;
           }
         }
       } else {
         if (!ball->state.touch || ball->state.touch_surface_id != touch_surface_id) {
           //H::c[10].call();
-          ball_arena_collision_trigger = true;
+          if (!ball->ball_arena_collision_on_prev_tick) {
+            ball_arena_collision_trigger = true;
+          }
+          ball->ball_arena_collision_on_cur_tick = true;
         }
         ball->state.touch_surface_id = touch_surface_id;
         ball->state.touch = true;
@@ -795,6 +808,10 @@ struct SmartSimulator {
       dynamic_robots[i]->additional_jump = false;
       dynamic_robots[i]->taken_nitro = 0;
       dynamic_robots[i]->accelerate_trigger_on_cur_tick = false;
+      dynamic_robots[i]->entity_ball_collision_on_cur_tick = false;
+      dynamic_robots[i]->entity_arena_collision_on_cur_tick = false;
+      dynamic_robots[i]->entity_entity_collision_on_cur_tick = false;
+      dynamic_robots[i]->ball_arena_collision_on_cur_tick = false;
     }
   }
 
@@ -1054,6 +1071,10 @@ struct SmartSimulator {
 
     for (int i = 0; i < dynamic_robots_size; ++i) {
       dynamic_robots[i]->accelerate_trigger_on_prev_tick = dynamic_robots[i]->accelerate_trigger_on_cur_tick;
+      dynamic_robots[i]->entity_arena_collision_on_prev_tick = dynamic_robots[i]->entity_arena_collision_on_cur_tick;
+      dynamic_robots[i]->entity_ball_collision_on_prev_tick = dynamic_robots[i]->entity_ball_collision_on_cur_tick;
+      dynamic_robots[i]->ball_arena_collision_on_prev_tick = dynamic_robots[i]->ball_arena_collision_on_cur_tick;
+      dynamic_robots[i]->entity_entity_collision_on_prev_tick = dynamic_robots[i]->entity_entity_collision_on_cur_tick;
     }
 
     for (int i = 0; i < dynamic_packs_size; ++i) {
@@ -1119,10 +1140,18 @@ struct SmartSimulator {
         //if (!accurate && main_robot->id == 4) {
         //  //H::t[18].call();
         //}
-        entity_ball_collision_trigger = true;
+        if (!a->entity_ball_collision_on_prev_tick) {
+          entity_ball_collision_trigger = true;
+        }
+        a->entity_ball_collision_on_cur_tick = true;
         //H::c[5].call();
       } else if (a->radius_change_speed > 0 || b->radius_change_speed > 0) { // todo my on ground accurate if radius change speed > 0
-        entity_entity_collision_trigger = true;
+        if (!a->entity_entity_collision_on_prev_tick
+            && !b->entity_entity_collision_on_prev_tick) {
+          entity_entity_collision_trigger = true;
+        }
+        a->entity_entity_collision_on_cur_tick = true;
+        b->entity_entity_collision_on_cur_tick = true;
         //H::c[6].call();
       }
       if (delta_velocity < 0) {
