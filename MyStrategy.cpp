@@ -230,6 +230,10 @@ void updateRoles() {
   //P::logn("fi: ", closest_to_ball);
   H::role[H::getRobotLocalIdByGlobal(other)] = H::SEMI;
   //P::logn("semi: ", other);
+
+  H::role[0] = H::DEFENDER;
+  H::role[1] = H::FIGHTER;
+  H::role[2] = H::SEMI;
 }
 
 void doStrategy() {
@@ -278,7 +282,7 @@ void doStrategy() {
       int iteration = 0;
       SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
 
-      bool ball_on_my_side = false;
+      /*bool ball_on_my_side = false;
       if (id == 0) {
         for (int i = 0; i < C::MAX_SIMULATION_DEPTH; ++i) {
           if (simulator.ball->states[i].position.z < -0.01) {
@@ -299,7 +303,7 @@ void doStrategy() {
           //  available_time_prefix[i] = i == 0 ? H::global_timer.getCumulative() + available_time[i] : available_time[i] + available_time_prefix[i - 1];
           //}
         }
-      }
+      }*/
       for (;; iteration++) {
         if (iteration > iterations[id]) {
           break;
@@ -462,7 +466,6 @@ void doStrategy() {
 #endif
     }
     H::iterations_k += 1;
-    P::logn((double)H::sum_iterations / H::iterations_k);
   }
 
 
