@@ -274,7 +274,7 @@ void doStrategy() {
 
     int min_time_for_enemy_to_hit_the_ball = enemiesPrediction();
 
-    int iterations[3] = {250, 250, 250};
+    int iterations[3] = {200, 200, 200};
     //P::logn(H::cur_tick_remaining_time);
     //double available_time[3] = {0, 0, 0};
     //double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
@@ -282,7 +282,7 @@ void doStrategy() {
       int iteration = 0;
       SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
 
-      /*bool ball_on_my_side = false;
+      bool ball_on_my_side = false;
       if (id == 0) {
         for (int i = 0; i < C::MAX_SIMULATION_DEPTH; ++i) {
           if (simulator.ball->states[i].position.z < -0.01) {
@@ -295,7 +295,7 @@ void doStrategy() {
               //available_time[i] = 0.1 * H::cur_tick_remaining_time;
               iterations[i] = 50;
             } else {
-              iterations[i] = 350;
+              iterations[i] = 275;
               //available_time[i] = 0.45 * H::cur_tick_remaining_time;
             }
           }
@@ -303,7 +303,7 @@ void doStrategy() {
           //  available_time_prefix[i] = i == 0 ? H::global_timer.getCumulative() + available_time[i] : available_time[i] + available_time_prefix[i - 1];
           //}
         }
-      }*/
+      }
       for (;; iteration++) {
         if (iteration > iterations[id]) {
           break;
@@ -391,7 +391,7 @@ void doStrategy() {
           multiplier *= 0.999;
         }
 
-        if (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping) {
+        if (!cur_plan.was_jumping || (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping)) {
           cur_plan.time_jump = C::NEVER;
         } else {
 
@@ -443,7 +443,7 @@ void doStrategy() {
 
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
           simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(id), true);
-          if (sim_tick < C::ENEMY_SIMULATION_DEPTH) {
+          /*if (sim_tick < C::ENEMY_SIMULATION_DEPTH) {
             const int cell_x = std::clamp((int) ((simulator.ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
             const int cell_y = std::clamp((int) ((simulator.ball->getState().position.y - 1.) / 2.), 0, 18);
             const int cell_z = std::clamp((int) ((simulator.ball->getState().position.z + 50. - 1.) / 2.), 0, 98);
@@ -458,7 +458,7 @@ void doStrategy() {
             if (sum > 0) {
               P::drawEntities(simulator.ball->getState());
             }
-          }
+          }*/
           accurate_simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(id), true);
         }
       }

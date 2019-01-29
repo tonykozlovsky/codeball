@@ -1068,9 +1068,9 @@ struct SmartSimulator {
     }
 
 #ifdef DEBUG
-    if (!unaccurate && ball->is_dynamic) {
-      P::drawLine(ball->state.position, ball->prev_state.position, 0x00FFFF);
-    }
+    //if (!unaccurate && ball->is_dynamic) {
+    //  P::drawLine(ball->state.position, ball->prev_state.position, 0x00FFFF);
+    //}
     if (main_robot->id == viz_id && viz) {
       for (int i = 0; i < dynamic_entities_size; ++i) {
         auto& e = dynamic_entities[i];
