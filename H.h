@@ -56,7 +56,9 @@ struct H {
     });
     C::rules = _rules;
     tick = game.current_tick;
-    actions[1] = actions[2] = actions[3] = model::Action();
+    if (tick % C::TPT == 0) {
+      actions[1] = actions[2] = actions[3] = model::Action();
+    }
     if (tick == 0) { // init on tick 0
       for (auto& player : game.players) {
         if (player.me) {

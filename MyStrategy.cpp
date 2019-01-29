@@ -183,7 +183,6 @@ int enemiesPrediction() {
 
 void updateRoles() {
 
-
   int closest_to_goal;
   double closest_distance_to_goal = 1e9;
   for (auto& robot : H::game.robots) {
@@ -274,7 +273,7 @@ void doStrategy() {
 
     int min_time_for_enemy_to_hit_the_ball = enemiesPrediction();
 
-    int iterations[3] = {200, 200, 200};
+    int iterations[3] = {200 * 2, 200 * 2, 200 * 2};
     //P::logn(H::cur_tick_remaining_time);
     //double available_time[3] = {0, 0, 0};
     //double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
@@ -293,9 +292,9 @@ void doStrategy() {
           for (int i = 0; i < 3; ++i) {
             if (H::role[i] == H::DEFENDER) {
               //available_time[i] = 0.1 * H::cur_tick_remaining_time;
-              iterations[i] = 50;
+              iterations[i] = 50 * 2;
             } else {
-              iterations[i] = 275;
+              iterations[i] = 275 * 2;
               //available_time[i] = 0.45 * H::cur_tick_remaining_time;
             }
           }
@@ -308,7 +307,7 @@ void doStrategy() {
         if (iteration > iterations[id]) {
           break;
         }
-      //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
+        //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         Plan cur_plan(1, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan = H::best_plan[id];
@@ -432,13 +431,12 @@ void doStrategy() {
         P::logn("collide_with_entity_before_on_ground_after_jumping: ", H::best_plan[id].collide_with_entity_before_on_ground_after_jumping);
         P::logn("was_on_ground_after_jumping: ", H::best_plan[id].was_on_ground_after_jumping);
 
-
         Plan cur_plan = H::best_plan[id];
 
-        SmartSimulator simulator(false, 1, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, false, H::getRobotGlobalIdByLocal(id));
+        SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, false, H::getRobotGlobalIdByLocal(id));
         simulator.initIteration(iteration, cur_plan);
 
-        SmartSimulator accurate_simulator(false, 1, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, true, H::getRobotGlobalIdByLocal(id));
+        SmartSimulator accurate_simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), cur_plan.plans_config, H::game.robots, H::game.ball, H::game.nitro_packs, true, H::getRobotGlobalIdByLocal(id));
         accurate_simulator.initIteration(iteration, cur_plan);
 
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
@@ -465,23 +463,22 @@ void doStrategy() {
 #endif
     }
     H::iterations_k += 1;
-  }
-
 
 #ifndef FROM_LOG
-  for (auto& robot : H::game.robots) {
-    if (robot.is_teammate) {
-      Entity e;
-      e.fromRobot(robot);
-      e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, true, e.state.position);
-      e.nitroCheck();
-      if (!e.action.use_nitro) {
-        e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, false, e.state.position);
+    for (auto& robot : H::game.robots) {
+      if (robot.is_teammate) {
+        Entity e;
+        e.fromRobot(robot);
+        e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, true, e.state.position);
+        e.nitroCheck();
+        if (!e.action.use_nitro) {
+          e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, false, e.state.position);
+        }
+        H::actions[robot.id] = e.action.toAction();
       }
-      H::actions[robot.id] = e.action.toAction();
     }
-  }
 #endif
+  }
 
   for (auto& robot : H::game.robots) {
     int id = H::getRobotLocalIdByGlobal(robot.id);
