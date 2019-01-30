@@ -445,7 +445,7 @@ void doStrategy() {
 
         if (!cur_plan.was_jumping || (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping)) {
           cur_plan.time_jump = C::NEVER;
-        } else { 
+        } else {
 
           if (cur_plan.oncoming_jump == C::NEVER) {
             cur_plan.oncoming_jump = cur_plan.time_jump;
