@@ -69,7 +69,11 @@ int enemiesPrediction() {
             Point best;
             for (double x = -1; x < 1; x += 0.01) {
               for (double y = -1; y < 1; y += 0.01) {
-                for (double z : {sqrt(x * x + y * y), -sqrt(x * x + y * y)}) {
+                if (x * x + y * y > 1) {
+                  continue;
+                }
+                for (double z : {sqrt(1 - (x * x + y * y)), -sqrt(1 - (x * x + y * y))}) {
+                  //P::logn(x * x + y * y + z * z);
                   Point target_velocity{x, y, z};
                   target_velocity = target_velocity.normalize() * 100;
                   const auto& target_velocity_change = target_velocity - v0;
@@ -89,9 +93,10 @@ int enemiesPrediction() {
               }
             }
             if (min_error < 1e9) {
-              //P::logn(min_error);
-              //Point p0 = H::prev_position[id];
-              //Point p1 = {robot.x, robot.y, robot.z};
+              //P::logn("me: ", min_error);
+              //P::logn("acc: ", (v1 - v0).length());
+              Point p0 = H::prev_position[id];
+              Point p1 = {robot.x, robot.y, robot.z};
               //P::drawLine(p0, p0 + best, 0xFFF000);
               H::last_action_plan[id] = Plan(26, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best);
             }
