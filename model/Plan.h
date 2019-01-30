@@ -162,9 +162,11 @@ struct Plan {
     if (configuration == 21) { // me 2 vec
       rand_angle1();
       rand_angle2();
+      rand_time_jump(simulation_depth);
       rand_time_change(simulation_depth);
       speed1_1_or_0();
       speed2_1_or_0();
+      max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 11) {
       rand_angle1();
@@ -329,6 +331,7 @@ struct Plan {
     if (configuration == 21) {
       mutate_angle1();
       mutate_angle2();
+      mutate_time_jump(simulation_depth);
       mutate_time_change(simulation_depth);
     } else if (configuration == 11) {
       mutate_angle1();
