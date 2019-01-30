@@ -152,7 +152,7 @@ struct Plan {
 
       time_change = C::NEVER;
       time_jump = C::rand_int(0, simulation_depth);
-      speed1 = 1.; //todo check maybe rand
+      speed1 = C::rand_double(0, 1);
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       max_jump_speed = 15;
       time_nitro_on = C::rand_int(0, C::ENEMY_LIVE_TICKS);
@@ -179,7 +179,7 @@ struct Plan {
       time_jump = C::NEVER;
       speed1 = 1;
       max_speed = Point2d{initial_vx, initial_vz}.length();
-      max_jump_speed = 0;  // todo keep in mind !
+      max_jump_speed = 15;  // todo keep in mind !
       // todo last action nitro !
       time_nitro_on = C::NEVER;
       time_nitro_off = C::NEVER;
