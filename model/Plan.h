@@ -248,7 +248,21 @@ struct Plan {
         // todo last action nitro !
         time_nitro_on = 0;
         time_nitro_off = simulation_depth;
-      }
+      } else if (configuration == 27) {
+        angle1 = atan2(nitro_acceleration.z, nitro_acceleration.x);
+        cangle1 = cos(angle1);
+        sangle1 = sin(angle1);
+        y1 = nitro_acceleration.y;
+        cos_lat1 = cos(asin(y1 / 100.));
+        time_change = C::NEVER;
+        time_jump = C::NEVER;
+        speed1 = 1;
+        max_speed = 100.;
+        max_jump_speed = 15;  // todo keep in mind !
+        // todo last action nitro !
+        time_nitro_on = 0;
+        time_nitro_off = simulation_depth;
+      } else
       /*else
       if (configuration == 5) {
       time_change = C::NEVER;
