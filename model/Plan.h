@@ -167,19 +167,19 @@ struct Plan {
       rand_time_change(simulation_depth);
       speed1_1_or_0();
       speed2_1_or_0();
-      max_jump_speed = 15;
+      max_jump_speed = C::rand_int(0, 1) * 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 11) {
       rand_angle1();
       rand_time_jump(simulation_depth);
       speed1_1_or_0();
-      max_jump_speed = 15;
+      max_jump_speed = C::rand_int(0, 1) * 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 12) {
       rand_angle1();
       rand_time_jump(simulation_depth);
       speed1_1_or_0();
-      max_jump_speed = 15;
+      max_jump_speed = C::rand_int(0, 1) * 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
@@ -188,7 +188,7 @@ struct Plan {
       rand_angle1();
       rand_time_jump(simulation_depth);
       speed1_1_or_0();
-      max_jump_speed = 15;
+      max_jump_speed = C::rand_int(0, 1) * 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
