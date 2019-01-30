@@ -539,7 +539,7 @@ struct SmartSimulator {
           }
         }
       } else {
-        if (robot->is_teammate && robot->action.use_nitro && robot->state.nitro > 0) {
+        if (robot->action.use_nitro && robot->state.nitro > 0) {
           const auto& target_velocity_change = (robot->action.target_velocity - robot->state.velocity);
           const auto& tvc_length_sq = target_velocity_change.length_sq();
           if (tvc_length_sq > 0) {
@@ -1229,7 +1229,7 @@ struct SmartSimulator {
           }
         }
       } else {
-        if (robot->is_teammate && robot->action.use_nitro && robot->state.nitro > 0) {
+        if (robot->action.use_nitro && robot->state.nitro > 0) {
           const auto& target_velocity_change = (robot->action.target_velocity - robot->state.velocity);
           const auto& tvc_length_sq = target_velocity_change.length_sq();
           if (tvc_length_sq > 0) {

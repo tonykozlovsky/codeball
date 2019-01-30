@@ -154,7 +154,7 @@ struct Plan {
       time_jump = C::rand_int(0, simulation_depth);
       speed1 = 1.; //todo check maybe rand
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
-      max_jump_speed = 15; //initial 15 but can mutate
+      max_jump_speed = 15;
       time_nitro_on = C::rand_int(0, C::ENEMY_LIVE_TICKS);
       time_nitro_off = C::rand_int(0, C::ENEMY_LIVE_TICKS);
 

@@ -97,7 +97,7 @@ int enemiesPrediction() {
     const auto& cell = H::used_cells[i];
     H::danger_grid[cell.x][cell.y][cell.z][cell.t] = 0;
 
-    // P::drawSphere({cell.x * 2 + 1 - 30, cell.y * 2 + 1, cell.z * 2 + 1 - 50}, 1, 0x00AA00);
+    P::drawSphere({cell.x * 2 + 1 - 30, cell.y * 2 + 1, cell.z * 2 + 1 - 50}, 1, 0x00AA00);
 
   }
   H::used_cells_size = 0;
