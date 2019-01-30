@@ -21,7 +21,7 @@ struct Plan {
   int plans_config;
   int unique_id;
   int parent_id;
-  double speed1, speed2;
+  double speed1 = 1., speed2 = 1.;
 
   int oncoming_jump;
 
@@ -94,7 +94,8 @@ struct Plan {
     }
 
   } score;
-  Plan() : Plan(3, 0) {}
+
+  Plan() {}
 
   bool nitro_as_velocity = false, nitro_up = false;
 
