@@ -98,7 +98,7 @@ struct Plan {
   } score;
   Plan() : Plan(3, 0) {}
 
-  bool nitro_as_velocity;
+  bool nitro_as_velocity, nitro_up;
 
   Plan(int configuration,
        const int simulation_depth,
@@ -115,6 +115,7 @@ struct Plan {
     collide_with_entity_before_on_ground_after_jumping = false;
     oncoming_jump = C::NEVER;
     nitro_as_velocity = false;
+    nitro_up = false;
 
     if (configuration == 1) { // me 2 vec
       angle1 = C::rand_double(0, 2 * M_PI);
@@ -181,7 +182,7 @@ struct Plan {
       time_change = C::NEVER;
       time_jump = C::rand_int(0, simulation_depth);
 
-      speed1 = speed2 = 1;
+      speed1 = 1;
 
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
 
@@ -190,7 +191,28 @@ struct Plan {
       time_nitro_on = 0;
       time_nitro_off = C::NEVER;
       nitro_as_velocity = true;
-    } else if (configuration == 2) { // smart enemy
+    } else if (configuration == 13) {
+      angle1 = C::rand_double(0, 2 * M_PI);
+      cangle1 = cos(angle1);
+      sangle1 = sin(angle1);
+      y1 = C::rand_double(-C::rules.MAX_ENTITY_SPEED, C::rules.MAX_ENTITY_SPEED);
+      cos_lat1 = cos(asin(y1 / C::rules.MAX_ENTITY_SPEED));
+
+      time_change = C::NEVER;
+      time_jump = C::rand_int(0, simulation_depth);
+
+      speed1 = 1;
+
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+
+      max_jump_speed = C::rand_int(0, 15);
+
+      time_nitro_on = 0;
+      time_nitro_off = C::NEVER;
+      nitro_up = true;
+    } else
+
+    if (configuration == 2) { // smart enemy
 
       angle1 = C::rand_double(0, 2 * M_PI);
       cangle1 = cos(angle1);
@@ -779,7 +801,15 @@ struct Plan {
     const double& jump_speed = simulation ?  (simulation_tick == time_jump ? max_jump_speed : 0) : (simulation_tick == oncoming_jump ? oncoming_jump_speed : 0);
     const bool& now_use_nitro = can_use_nitro && simulation_tick >= time_nitro_on && simulation_tick < time_nitro_off;
     if (now_use_nitro) {
-      if (nitro_as_velocity) {
+      if (nitro_up) {
+        const double& x = velocity.x;
+        const double& z = velocity.z;
+        const double& y = sqrt(10000 - x * x - z * z);
+        return MyAction{{x, y, z},
+            jump_speed,
+            max_jump_speed,
+            now_use_nitro};
+      } else if (nitro_as_velocity) {
         return MyAction{velocity.normalize() * 100,
             jump_speed,
             max_jump_speed,

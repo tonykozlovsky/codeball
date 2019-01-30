@@ -95,10 +95,29 @@ int enemiesPrediction() {
             if (min_error < 1e9) {
               //P::logn("me: ", min_error);
               //P::logn("acc: ", (v1 - v0).length());
-              //Point p0 = H::prev_position[id];
-              //Point p1 = {robot.x, robot.y, robot.z};
-              //P::drawLine(p0, p0 + best, 0xFFF000);
+              Point p0 = H::prev_position[id];
+              Point p1 = {robot.x, robot.y, robot.z};
+              //P::drawLine(p1, p1 + best, 0xFFF000);
+              //P::logn(best.x - robot.velocity_x, " ", best.y - robot.velocity_y, " ",  best.z - robot.velocity_z);
+              //P::logn(best.x, " ",  best.y, " ",  best.z);
               H::last_action_plan[id] = Plan(26, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best);
+              /*Point target_velocity = best;
+              target_velocity = target_velocity.normalize() * 100;
+              const auto& target_velocity_change = target_velocity - v0;
+              const auto& tvc_length_sq = target_velocity_change.length_sq();
+              if (tvc_length_sq > 0) {
+                const auto& ac_per_dt = C::rules.ROBOT_NITRO_ACCELERATION / 60.;
+                const auto& robot_acceleration = target_velocity_change * (ac_per_dt / sqrt(tvc_length_sq));
+                P::logn(robot_acceleration.x, " ", robot_acceleration.y," ",  robot_acceleration.z);
+                Point velocity = v0 + robot_acceleration;
+                velocity.y -= 1. / 2.;
+                double cur_error = (velocity - v1).length_sq();
+                if (cur_error < min_error) {
+                  min_error = cur_error;
+                  best = target_velocity;
+                }
+              }*/
+
             }
           }
         } else if (H::solve(v0.x, v0.z, v1.x, v1.z, dvx, dvz, ax, az)) {
@@ -112,7 +131,7 @@ int enemiesPrediction() {
           Point crossing;
           //P::drawLine({p0.x, 1, p0.z}, {p0.x + prev.x, 1, p0.z + prev.y}, 0xFF0000);
           //P::drawLine({p1.x, 1, p1.z}, {p1.x + cur.x, 1, p1.z + cur.y}, 0xFF0000);
-          if (0 && H::solve2( 
+          if (0 && H::solve2(
               {p0.x, p0.z},
               {p0.x + prev.x, p0.z + prev.y},
               {p1.x, p1.z},
@@ -362,6 +381,8 @@ void doStrategy() {
           plan_type = 12;
         } else if (rd < 0.1 + 0.1) {
           plan_type = 11;
+        } else if (rd < 0.1 + 0.1 + 0.1) {
+          plan_type = 13;
         } else {
           plan_type = 1;
         }
