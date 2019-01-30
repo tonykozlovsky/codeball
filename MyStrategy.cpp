@@ -42,7 +42,7 @@ int enemiesPrediction() {
   for (int id = 0; id < 6; ++id) {
     for (auto& robot : H::game.robots) {
       if (robot.id == H::getRobotGlobalIdByLocal(id)) {
-        H::last_action_plan[id] = Plan(4, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z);
+        H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z);
       }
     }
   }
@@ -100,7 +100,7 @@ int enemiesPrediction() {
               //P::drawLine(p1, p1 + best, 0xFFF000);
               //P::logn(best.x - robot.velocity_x, " ", best.y - robot.velocity_y, " ",  best.z - robot.velocity_z);
               //P::logn(best.x, " ",  best.y, " ",  best.z);
-              H::last_action_plan[id] = Plan(26, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best);
+              H::last_action_plan[id] = Plan(72, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best);
               /*Point target_velocity = best;
               target_velocity = target_velocity.normalize() * 100;
               const auto& target_velocity_change = target_velocity - v0;
@@ -143,7 +143,7 @@ int enemiesPrediction() {
             H::last_action_plan[id] = Plan(5, C::MAX_SIMULATION_DEPTH, ax, az, crossing.x, crossing.z);
           } else {
 
-            H::last_action_plan[id] = Plan(4, C::MAX_SIMULATION_DEPTH, ax, az);
+            H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, ax, az);
 
           }
           //if (!robot.is_teammate) {
@@ -173,7 +173,7 @@ int enemiesPrediction() {
   for (int enemy_id : {3, 4, 5}) {
     SmartSimulator simulator(true, C::TPT, C::ENEMY_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
     for (int iteration = 0; iteration < 100; iteration++) {
-      Plan cur_plan(2, C::ENEMY_SIMULATION_DEPTH);
+      Plan cur_plan(61, C::ENEMY_SIMULATION_DEPTH);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
       }
@@ -377,14 +377,14 @@ void doStrategy() {
       //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
-        if (rd < 0.1) {
-          plan_type = 12;
-        } else if (rd < 0.1 + 0.1) {
+        if (rd < 0.25) {
+          plan_type = 21;
+        } else if (rd < 0.25 + 0.25) {
           plan_type = 11;
-        } else if (rd < 0.1 + 0.1 + 0.1) {
-          plan_type = 13;
+        } else if (rd < 0.25 + 0.25 + 0.25) {
+          plan_type = 12;
         } else {
-          plan_type = 1;
+          plan_type = 13;
         }
         Plan cur_plan(plan_type, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {

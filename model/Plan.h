@@ -14,10 +14,10 @@ struct Plan {
   double cos_lat2;
   double max_jump_speed;
   double max_speed;
-  int time_nitro_on;
-  int time_nitro_off;
-  int time_change;
-  int time_jump;
+  int time_nitro_on = C::NEVER;
+  int time_nitro_off = C::NEVER;
+  int time_change = C::NEVER;
+  int time_jump = C::NEVER;
   int plans_config;
   int unique_id;
   int parent_id;
@@ -96,7 +96,7 @@ struct Plan {
   } score;
   Plan() : Plan(3, 0) {}
 
-  bool nitro_as_velocity, nitro_up;
+  bool nitro_as_velocity = false, nitro_up = false;
 
   void rand_angle1() {
     angle1 = C::rand_double(0, 2 * M_PI);
@@ -138,6 +138,10 @@ struct Plan {
     }
   }
 
+  void rand_time_jump(int simulation_depth) {
+    time_jump = C::rand_int(0, simulation_depth);
+  }
+
   Plan(int configuration,
        const int simulation_depth,
        const double initial_vx = 0,
@@ -156,29 +160,59 @@ struct Plan {
     nitro_up = false;
 
     if (configuration == 21) { // me 2 vec
-
+      rand_angle1();
+      rand_angle2();
+      rand_time_change(simulation_depth);
+      speed1_1_or_0();
+      speed2_1_or_0();
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 11) {
-
+      rand_angle1();
+      rand_time_jump(simulation_depth);
+      speed1_1_or_0();
+      max_jump_speed = 15;
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 12) {
-
+      rand_angle1();
+      rand_time_jump(simulation_depth);
+      speed1_1_or_0();
+      max_jump_speed = 15;
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+      time_nitro_on = 0;
+      time_nitro_off = simulation_depth;
+      nitro_as_velocity = true;
     } else if (configuration == 13) {
-
+      rand_angle1();
+      rand_time_jump(simulation_depth);
+      speed1_1_or_0();
+      max_jump_speed = 15;
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+      time_nitro_on = 0;
+      time_nitro_off = simulation_depth;
+      nitro_up = true;
     } else if (configuration == 61) { // smart enemy
+      rand_angle1();
+      rand_time_jump(simulation_depth);
+      max_jump_speed = 15;
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+    } else if (configuration == 71) { // last action
 
-    } else if (configuration == 62) { // last action
+      angle1 = atan2(initial_vz, initial_vx);
+      cangle1 = cos(angle1);
+      sangle1 = sin(angle1);
 
-    } else if (configuration == 63) {
+      max_speed = Point2d{initial_vx, initial_vz}.length();
+      max_jump_speed = 15;  // todo keep in mind !
+    } else if (configuration == 72) { // last action nitro
       angle1 = atan2(nitro_acceleration.z, nitro_acceleration.x);
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
       y1 = nitro_acceleration.y;
       cos_lat1 = cos(asin(y1 / 100.));
-      time_change = C::NEVER;
-      time_jump = C::NEVER;
-      speed1 = 1;
+
       max_speed = 100.;
-      max_jump_speed = 15;  // todo keep in mind !
-      // todo last action nitro !
+      max_jump_speed = 15;
+
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
     }
