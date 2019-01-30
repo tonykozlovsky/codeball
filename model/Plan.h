@@ -151,7 +151,7 @@ struct Plan {
       cos_lat1 = cos(asin(y1 / C::rules.MAX_ENTITY_SPEED));
 
       time_change = C::NEVER;
-      time_jump = C::rand_int(0, C::ENEMY_LIVE_TICKS);
+      time_jump = C::rand_int(0, simulation_depth);
       speed1 = 1.; //todo check maybe rand
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       max_jump_speed = 15; //initial 15 but can mutate
@@ -398,8 +398,8 @@ struct Plan {
         if (time_jump < 0) {
           time_jump = 0;
         }
-        if (time_jump > C::ENEMY_LIVE_TICKS) {
-          time_jump = C::ENEMY_LIVE_TICKS;
+        if (time_jump > simulation_depth) {
+          time_jump = simulation_depth;
         }
       }
 
@@ -411,13 +411,13 @@ struct Plan {
         speed1 = 0;
       }*/
 
-      max_jump_speed += C::rand_int(-jump_mutation, jump_mutation);
+      /*max_jump_speed += C::rand_int(-jump_mutation, jump_mutation);
       if (max_jump_speed < 0) {
         max_jump_speed = 0;
       }
       if (max_jump_speed > 15) {
         max_jump_speed = 15;
-      }
+      }*/
 
       if (time_nitro_on != C::NEVER) {
         time_nitro_on += C::rand_int(-nitro_mutation, nitro_mutation);
