@@ -1524,7 +1524,7 @@ struct SmartSimulator {
     }
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
       if (!main_robot->state.touch) {
-        score -= 0.5 * C::TPT; 
+        score -= 0.5 * C::TPT;
       }
       score += 0.01 * main_robot->taken_nitro;
 
