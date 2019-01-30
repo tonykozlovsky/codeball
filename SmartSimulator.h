@@ -262,10 +262,14 @@ struct SmartSimulator {
       if (!robot->state.alive) {
         continue;
       }
-      robot->action = robot->plan.toMyAction(tick_number, true, true, robot->state.position);
-      robot->nitroCheck();
-      if (!robot->action.use_nitro) {
-        robot->action = robot->plan.toMyAction(tick_number, true, false, robot->state.position);
+      if (!robot->state.touch) {
+        robot->action = robot->plan.toMyAction(tick_number, true, true, robot->state.position, robot->state.velocity);
+        robot->nitroCheck();
+        if (!robot->action.use_nitro) {
+          robot->action = robot->plan.toMyAction(tick_number, true, false, robot->state.position, robot->state.velocity);
+        }
+      } else {
+        robot->action = robot->plan.toMyAction(tick_number, true, false, robot->state.position, robot->state.velocity);
       }
     }
     for (int i = 0; i < initial_static_entities_size; ++i) { // save state
@@ -844,10 +848,14 @@ struct SmartSimulator {
   inline bool tryDoTickWithoutAnybodyBecomingDynamic(const int tick_number, int& main_robot_additional_jump_type, GoalInfo& cur_goal_info) {
     for (int i = 0; i < dynamic_robots_size; ++i) {
       auto& robot = dynamic_robots[i];
-      robot->action = robot->plan.toMyAction(tick_number, true, true, robot->state.position);
-      robot->nitroCheck();
-      if (!robot->action.use_nitro) {
-        robot->action = robot->plan.toMyAction(tick_number, true, false, robot->state.position);
+      if (!robot->state.touch) {
+        robot->action = robot->plan.toMyAction(tick_number, true, true, robot->state.position, robot->state.velocity);
+        robot->nitroCheck();
+        if (!robot->action.use_nitro) {
+          robot->action = robot->plan.toMyAction(tick_number, true, false, robot->state.position, robot->state.velocity);
+        }
+      } else {
+        robot->action = robot->plan.toMyAction(tick_number, true, false, robot->state.position, robot->state.velocity);
       }
     }
 
@@ -1372,7 +1380,11 @@ struct SmartSimulator {
       //if (main_robot->action.use_nitro) {
       //  //score -= 0.1 * C::TPT;
       //}
+
       score += 0.01 * main_robot->taken_nitro;
+      if (main_robot->action.use_nitro) {
+        score -= 0.01 * C::TPT;
+      }
 
       /*for (int i = 0; i < static_robots_size; ++i) {
         auto& e = static_robots[i];
@@ -1516,11 +1528,12 @@ struct SmartSimulator {
       }
       score += 0.01 * main_robot->taken_nitro;
 
+      if (main_robot->action.use_nitro) {
+        score -= 0.01 * C::TPT;
+      }
+
       //if (main_robot->collide_with_ball) {
       //  score += 1;
-      //}
-      //if (main_robot->action.use_nitro) {
-      //score -= 0.1 * C::TPT;
       //}
 
       /*for (int i = 0; i < static_robots_size; ++i) {
