@@ -95,8 +95,8 @@ int enemiesPrediction() {
             if (min_error < 1e9) {
               //P::logn("me: ", min_error);
               //P::logn("acc: ", (v1 - v0).length());
-              Point p0 = H::prev_position[id];
-              Point p1 = {robot.x, robot.y, robot.z};
+              //Point p0 = H::prev_position[id];
+              //Point p1 = {robot.x, robot.y, robot.z};
               //P::drawLine(p0, p0 + best, 0xFFF000);
               H::last_action_plan[id] = Plan(26, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best);
             }
