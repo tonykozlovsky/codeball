@@ -104,7 +104,8 @@ struct Plan {
        const double initial_vz = 0,
        const double crossing_x = 0,
        const double crossing_z = 0,
-       const Point& nitro_acceleration = {0, 0, 0}) : configuration(configuration) {
+       const Point& nitro_acceleration = {0, 0, 0},
+       const double jump_speed = 0) : configuration(configuration) {
     unique_id = C::unique_plan_id++;
     parent_id = unique_id;
 
@@ -182,7 +183,7 @@ struct Plan {
       time_jump = C::NEVER;
       speed1 = 1;
       max_speed = Point2d{initial_vx, initial_vz}.length();
-      max_jump_speed = 15;  // todo keep in mind !
+      max_jump_speed = jump_speed;  // todo keep in mind !
       // todo last action nitro !
       time_nitro_on = C::NEVER;
       time_nitro_off = C::NEVER;
@@ -196,7 +197,7 @@ struct Plan {
         time_jump = C::NEVER;
         speed1 = 1;
         max_speed = 100.;
-        max_jump_speed = 15;  // todo keep in mind !
+        max_jump_speed = jump_speed;  // todo keep in mind !
         // todo last action nitro !
         time_nitro_on = 0;
         time_nitro_off = simulation_depth;

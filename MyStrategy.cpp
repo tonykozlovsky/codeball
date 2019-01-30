@@ -42,7 +42,12 @@ int enemiesPrediction() {
   for (int id = 0; id < 6; ++id) {
     for (auto& robot : H::game.robots) {
       if (robot.id == H::getRobotGlobalIdByLocal(id)) {
-        H::last_action_plan[id] = Plan(4, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z);
+        static constexpr double jr = 0.0033333333333333333333333333333;
+        double jump_speed = 0;
+        if (!robot.touch) {
+          jump_speed = (robot.radius - 1) / jr;
+        }
+        H::last_action_plan[id] = Plan(4, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z, 0, 0, {0, 0, 0}, jump_speed);
       }
     }
   }
@@ -57,6 +62,11 @@ int enemiesPrediction() {
         double dvy = (v1.y - v0.y);
         double dvz = (v1.z - v0.z);
         double ax, az;
+        static constexpr double jr = 0.0033333333333333333333333333333;
+        double jump_speed = 0;
+        if (!robot.touch) {
+          jump_speed = (robot.radius - 1) / jr;
+        }
         if (!robot.touch && !robot.is_teammate) {
           bool using_nitro = true;
           double eps = 1e-9;
@@ -93,7 +103,7 @@ int enemiesPrediction() {
               //Point p0 = H::prev_position[id];
               //Point p1 = {robot.x, robot.y, robot.z};
               //P::drawLine(p0, p0 + best, 0xFFF000);
-              H::last_action_plan[id] = Plan(26, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best);
+              H::last_action_plan[id] = Plan(26, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best, jump_speed);
             }
           }
         } else if (H::solve(v0.x, v0.z, v1.x, v1.z, dvx, dvz, ax, az)) {
@@ -119,7 +129,7 @@ int enemiesPrediction() {
             H::last_action_plan[id] = Plan(5, C::MAX_SIMULATION_DEPTH, ax, az, crossing.x, crossing.z);
           } else {
 
-            H::last_action_plan[id] = Plan(4, C::MAX_SIMULATION_DEPTH, ax, az);
+            H::last_action_plan[id] = Plan(4, C::MAX_SIMULATION_DEPTH, ax, az, 0, 0, {0, 0, 0}, jump_speed);
 
           }
           //if (!robot.is_teammate) {
