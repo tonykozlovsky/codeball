@@ -103,7 +103,8 @@ struct Plan {
        const double initial_vx = 0,
        const double initial_vz = 0,
        const double crossing_x = 0,
-       const double crossing_z = 0) : configuration(configuration) {
+       const double crossing_z = 0,
+       const Point& nitro_acceleration = {0, 0, 0}) : configuration(configuration) {
     unique_id = C::unique_plan_id++;
     parent_id = unique_id;
 
@@ -152,12 +153,14 @@ struct Plan {
 
       time_change = C::NEVER;
       time_jump = C::rand_int(0, simulation_depth);
-      speed1 = C::rand_double(0, 1);
+      //speed1 = C::rand_double(0, 1);
+      speed1 = 1.;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       max_jump_speed = 15;
-      time_nitro_on = C::rand_int(0, C::ENEMY_LIVE_TICKS);
-      time_nitro_off = C::rand_int(0, C::ENEMY_LIVE_TICKS);
-
+      //time_nitro_on = C::rand_int(0, C::ENEMY_LIVE_TICKS);
+      //time_nitro_off = C::rand_int(0, C::ENEMY_LIVE_TICKS);
+      time_nitro_on = C::NEVER;
+      time_nitro_off = C::NEVER;
     } else
       /*if (configuration == 3) { // dont need
       angle1 = 0;
@@ -183,7 +186,21 @@ struct Plan {
       // todo last action nitro !
       time_nitro_on = C::NEVER;
       time_nitro_off = C::NEVER;
-    }
+    } else if (configuration == 26) {
+        angle1 = atan2(nitro_acceleration.z, nitro_acceleration.x);
+        cangle1 = cos(angle1);
+        sangle1 = sin(angle1);
+        y1 = nitro_acceleration.y;
+        cos_lat1 = cos(asin(y1 / 100.));
+        time_change = C::NEVER;
+        time_jump = C::NEVER;
+        speed1 = 1;
+        max_speed = 100.;
+        max_jump_speed = 15;  // todo keep in mind !
+        // todo last action nitro !
+        time_nitro_on = 0;
+        time_nitro_off = simulation_depth;
+      }
       /*else
       if (configuration == 5) {
       time_change = C::NEVER;
@@ -385,14 +402,14 @@ struct Plan {
       cangle1 = cos(angle1);
       sangle1 = sin(angle1);
 
-      y1 += C::rand_double(-z_mutation, z_mutation);
+      /*y1 += C::rand_double(-z_mutation, z_mutation);
       if (y1 > C::rules.MAX_ENTITY_SPEED) {
         y1 = C::rules.MAX_ENTITY_SPEED;
       } else if (y1 < -C::rules.MAX_ENTITY_SPEED) {
         y1 = -C::rules.MAX_ENTITY_SPEED;
       }
       cos_lat1 = cos(asin(y1 / C::rules.MAX_ENTITY_SPEED));
-
+      */
       if (time_jump != C::NEVER) {
         time_jump += C::rand_int(-time_mutation, time_mutation);
         if (time_jump < 0) {
@@ -419,7 +436,7 @@ struct Plan {
         max_jump_speed = 15;
       }*/
 
-      if (time_nitro_on != C::NEVER) {
+      /*if (time_nitro_on != C::NEVER) {
         time_nitro_on += C::rand_int(-nitro_mutation, nitro_mutation);
         if (time_nitro_on < 0) {
           time_nitro_on = 0;
@@ -436,7 +453,7 @@ struct Plan {
         if (time_nitro_off > C::ENEMY_LIVE_TICKS) {
           time_nitro_off = C::ENEMY_LIVE_TICKS;
         }
-      }
+      }*/
 
     } else if (configuration == 6) {
       crossing.x += C::rand_double(-crossing_mutation, crossing_mutation);

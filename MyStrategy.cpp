@@ -47,15 +47,56 @@ int enemiesPrediction() {
     }
   }
 
+  //H::t[2].start();
   for (int id = 0; id < 6; ++id) {
     for (auto& robot : H::game.robots) {
       if (robot.id == H::getRobotGlobalIdByLocal(id)) {
         Point v0 = H::prev_velocity[id];
         Point v1 = {robot.velocity_x, robot.velocity_y, robot.velocity_z};
-        double dvx = v1.x - v0.x;
-        double dvz = v1.z - v0.z;
+        double dvx = (v1.x - v0.x);
+        double dvy = (v1.y - v0.y);
+        double dvz = (v1.z - v0.z);
         double ax, az;
-        if (H::solve(v0.x, v0.z, v1.x, v1.z, dvx, dvz, ax, az)) {
+        if (!robot.touch && !robot.is_teammate) {
+          bool using_nitro = true;
+          double eps = 1e-9;
+          if (fabs(dvx) < eps && fabs(dvz) < eps && fabs(dvy - (-1./2)) < eps) {
+            using_nitro = false;
+          }
+          if (using_nitro) {
+            //P::logn(dvy);
+            double min_error = 1e9;
+            Point best;
+            for (double x = -1; x < 1; x += 0.01) {
+              for (double y = -1; y < 1; y += 0.01) {
+                for (double z : {sqrt(x * x + y * y), -sqrt(x * x + y * y)}) {
+                  Point target_velocity{x, y, z};
+                  target_velocity = target_velocity.normalize() * 100;
+                  const auto& target_velocity_change = target_velocity - v0;
+                  const auto& tvc_length_sq = target_velocity_change.length_sq();
+                  if (tvc_length_sq > 0) {
+                    const auto& ac_per_dt = C::rules.ROBOT_NITRO_ACCELERATION / 60.;
+                    const auto& robot_acceleration = target_velocity_change * (ac_per_dt / sqrt(tvc_length_sq));
+                    Point velocity = v0 + robot_acceleration;
+                    velocity.y -= 1. / 2.;
+                    double cur_error = (velocity - v1).length_sq();
+                    if (cur_error < min_error) {
+                      min_error = cur_error;
+                      best = target_velocity;
+                    }
+                  }
+                }
+              }
+            }
+            if (min_error < 1e9) {
+              //P::logn(min_error);
+              //Point p0 = H::prev_position[id];
+              //Point p1 = {robot.x, robot.y, robot.z};
+              //P::drawLine(p0, p0 + best, 0xFFF000);
+              H::last_action_plan[id] = Plan(26, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best);
+            }
+          }
+        } else if (H::solve(v0.x, v0.z, v1.x, v1.z, dvx, dvz, ax, az)) {
 
           Point2d cur{ax, az};
           Point2d prev = H::prev_last_action[H::getRobotLocalIdByGlobal(robot.id)];
@@ -92,7 +133,7 @@ int enemiesPrediction() {
       }
     }
   }
-
+  //H::t[2].cur(true);
   for (int i = 0; i < H::used_cells_size; ++i) {
     const auto& cell = H::used_cells[i];
     H::danger_grid[cell.x][cell.y][cell.z][cell.t] = 0;
@@ -107,19 +148,16 @@ int enemiesPrediction() {
   H::t[1].start();
   for (int enemy_id : {3, 4, 5}) {
     SmartSimulator simulator(true, C::TPT, C::ENEMY_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
-    for (int iteration = 0; iteration < 200; iteration++) {
+    for (int iteration = 0; iteration < 100; iteration++) {
       Plan cur_plan(2, C::ENEMY_SIMULATION_DEPTH);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
-      } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
-        cur_plan = H::best_plan[enemy_id];
-        cur_plan.mutate(2, C::ENEMY_SIMULATION_DEPTH);
       }
       cur_plan.score.start_fighter();
       simulator.initIteration(iteration, cur_plan);
 
       cur_plan.plans_config = 3;
-      double multiplier = 1.;
+      //double multiplier = 1.;
       bool main_fly_on_prefix = !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
       for (int sim_tick = 0; sim_tick < C::ENEMY_SIMULATION_DEPTH; sim_tick++) {
         simulator.tickDynamic(sim_tick);
@@ -144,17 +182,18 @@ int enemiesPrediction() {
           min_time_for_enemy_to_hit_the_ball = std::min(min_time_for_enemy_to_hit_the_ball, sim_tick);
         }
 
-
+        /*
         cur_plan.score.sum_score += simulator.getSumScoreEnemy(sim_tick) * multiplier;
         cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
         cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-        if (sim_tick == C::ENEMY_SIMULATION_DEPTH - 1) {
-          cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreEnemy();
-        }
+        if (sim_tick == enemy_depth - 1) {
 
-        multiplier *= 0.999;
+          cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreEnemy();
+        }*/
+
+        //multiplier *= 0.999;
       }
-      H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
+      //H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
     }
     /*if (enemy_id == 3) {
       Plan cur_plan = H::best_plan[enemy_id];
@@ -485,7 +524,7 @@ void doStrategy() {
 #endif
 
     H::t[0].cur(true);
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < 5; ++i) {
       auto& t = H::t[i];
       t.cur(false, true);
       P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
