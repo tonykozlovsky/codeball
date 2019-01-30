@@ -112,7 +112,7 @@ int enemiesPrediction() {
           Point crossing;
           //P::drawLine({p0.x, 1, p0.z}, {p0.x + prev.x, 1, p0.z + prev.y}, 0xFF0000);
           //P::drawLine({p1.x, 1, p1.z}, {p1.x + cur.x, 1, p1.z + cur.y}, 0xFF0000);
-          if (0 && H::solve2(
+          if (0 && H::solve2( 
               {p0.x, p0.z},
               {p0.x + prev.x, p0.z + prev.y},
               {p1.x, p1.z},
