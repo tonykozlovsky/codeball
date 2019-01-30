@@ -361,12 +361,21 @@ void doStrategy() {
           break;
         }
       //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
-        Plan cur_plan(1, C::MAX_SIMULATION_DEPTH);
+        int plan_type;
+        double rd = C::rand_double(0, 1);
+        if (rd < 0.1) {
+          plan_type = 12;
+        } else if (rd < 0.1 + 0.1) {
+          plan_type = 11;
+        } else {
+          plan_type = 1;
+        }
+        Plan cur_plan(plan_type, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan = H::best_plan[id];
         } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
           cur_plan = H::best_plan[id];
-          cur_plan.mutate(1, C::MAX_SIMULATION_DEPTH);
+          cur_plan.mutate(cur_plan.configuration, C::MAX_SIMULATION_DEPTH);
         }
 
         if (H::role[id] == H::FIGHTER) {
@@ -523,10 +532,14 @@ void doStrategy() {
       if (robot.is_teammate) {
         Entity e;
         e.fromRobot(robot);
-        e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, true, e.state.position);
-        e.nitroCheck();
-        if (!e.action.use_nitro) {
-          e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, false, e.state.position);
+        if (!robot.touch) {
+          e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, true, e.state.position, e.state.velocity);
+          e.nitroCheck();
+          if (!e.action.use_nitro) {
+            e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, false, e.state.position, e.state.velocity);
+          }
+        } else {
+          e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, false, e.state.position, e.state.velocity);
         }
         H::actions[robot.id] = e.action.toAction();
       }
