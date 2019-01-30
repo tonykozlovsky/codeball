@@ -148,7 +148,7 @@ struct SmartSimulator {
       for (int i = 0; i < initial_static_robots_size; ++i) {
         if (initial_static_robots[i]->is_teammate) {
           initial_static_robots[i]->plan = H::best_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
-        } else {
+        } else { 
           initial_static_robots[i]->plan = H::last_action_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
         }
       }
