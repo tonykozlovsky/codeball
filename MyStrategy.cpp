@@ -1133,7 +1133,7 @@ std::string MyStrategy::custom_rendering() {
   rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
   document.Accept(writer);
 
-  if (H::tick % C::TPT == C::TPT - 1) {
+  if (H::cur_round_tick % C::TPT == C::TPT - 1) {
     P::logs.clear();
     P::lines_to_draw.clear();
     P::spheres_to_draw.clear();
