@@ -458,7 +458,7 @@ void doStrategy() {
 
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
 
-          bool main_touch = simulator.main_robot->state.touch || simulator.main_robot->state.position.y < C::NITRO_TOUCH_EPSILON;
+          bool main_touch = (simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1) || simulator.main_robot->state.position.y < C::NITRO_TOUCH_EPSILON;
 
           int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
 
