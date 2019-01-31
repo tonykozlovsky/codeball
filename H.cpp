@@ -11,6 +11,7 @@
 
 model::Game H::game;
 
+int H::cur_round_tick = -1;
 int H::tick = -1;
 model::Action H::actions[7];
 int H::global_id;

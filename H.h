@@ -13,6 +13,7 @@
 struct H {
   static model::Game game;
 
+  static int cur_round_tick;
   static int tick;
   static model::Action actions[7];
   static int global_id;
@@ -57,6 +58,7 @@ struct H {
     });
     C::rules = _rules;
     tick = game.current_tick;
+    cur_round_tick++;
     if (tick % C::TPT == 0) {
       actions[1] = actions[2] = actions[3] = model::Action();
     }
@@ -69,12 +71,14 @@ struct H {
       }
       player_score[0] = player_score[1] = 0;
       waiting_ticks = 0;
+      cur_round_tick = 0;
       C::rd.seed(229);
     }
     for (auto& player : game.players) {
       if (player_score[player.id - 1] != player.score) {
         player_score[player.id - 1] = player.score;
         waiting_ticks = 119;
+        cur_round_tick = -119;
         std::cout << int(sum_iterations / iterations_k) << " ?_?" << std::endl;
       }
     }
