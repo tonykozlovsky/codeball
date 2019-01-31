@@ -454,7 +454,6 @@ void doStrategy() {
         double goal_multiplier = 1.;
 
         bool collide_with_smth = false;
-        bool used_nitro = false;
         bool fly_on_prefix = (!simulator.main_robot->state.touch || simulator.main_robot->state.touch_surface_id != 1);
 
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
@@ -463,7 +462,6 @@ void doStrategy() {
 
           int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
 
-          used_nitro |= simulator.main_robot->action.use_nitro;
           fly_on_prefix &= (!simulator.main_robot->state.touch || simulator.main_robot->state.touch_surface_id != 1);
 
           if (main_robot_additional_jump_type == 0 && simulator.main_robot->action.jump_speed > 0 && main_touch) {
@@ -477,11 +475,16 @@ void doStrategy() {
             }
             if ((main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2)
                 && cur_plan.was_jumping
-                && !cur_plan.was_on_ground_after_jumping) {
+                && !cur_plan.was_on_ground_after_jumping
+                && !cur_plan.collide_with_entity_before_on_ground_after_jumping) {
               cur_plan.collide_with_entity_before_on_ground_after_jumping = true;
               if (H::role[id] == H::DEFENDER && main_robot_additional_jump_type == 1
                   && min_time_for_enemy_to_hit_the_ball < sim_tick
                   && cur_plan.time_jump <= min_time_for_enemy_to_hit_the_ball) {
+                cur_plan.score.minimal();
+                break;
+              }
+              if (sim_tick - cur_plan.time_jump > C::LONGEST_JUMP) {
                 cur_plan.score.minimal();
                 break;
               }
@@ -529,14 +532,16 @@ void doStrategy() {
           goal_multiplier *= g_mult * g_mult;
         }
 
-        if (!collide_with_smth && used_nitro) {
-          cur_plan.score.minimal();
+        if (!collide_with_smth) {
+          cur_plan.time_nitro_on = C::NEVER;
+          cur_plan.time_nitro_off = C::NEVER;
         }
 
-        if (!cur_plan.was_jumping || (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping)) {
+        if (!cur_plan.was_jumping) {
+          cur_plan.time_jump = C::NEVER;
+        } else if (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping) {
           cur_plan.score.minimal();
-        } else { 
-
+        } else {
           if (cur_plan.oncoming_jump == C::NEVER) {
             cur_plan.oncoming_jump = cur_plan.time_jump;
             cur_plan.oncoming_jump_speed = cur_plan.max_jump_speed;

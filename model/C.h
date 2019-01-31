@@ -52,6 +52,7 @@ struct C {
   static constexpr int NEVER = 1000000000;
   static constexpr int ENEMY_LIVE_TICKS = 30 / TPT;
   static constexpr double NITRO_TOUCH_EPSILON = 1.01;
+  static constexpr int LONGEST_JUMP = 30 / TPT;
 
 #ifdef LOCAL
   static constexpr double time_limit = 330. * 1.5;
