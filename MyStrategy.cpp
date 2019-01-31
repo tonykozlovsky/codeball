@@ -206,7 +206,7 @@ int enemiesPrediction() {
         main_fly_on_prefix &= !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
 
         double x = simulator.main_robot->state.position.x + 30.;
-        double y = simulator.main_robot->state.position.y;
+        double y = simulator.main_robot->state.position.y - 1;
         double z = simulator.main_robot->state.position.z + 50.;
         int cell_x = (int) (x / 2.);
         int cell_y = (int) (y / 2.);
