@@ -1139,7 +1139,7 @@ std::string MyStrategy::custom_rendering() {
     P::spheres_to_draw.clear();
   }
   //if (H::tick == 3900) {
-    return buf.GetString();
+  return buf.GetString();
   //} else {
   //  return {};
   //}

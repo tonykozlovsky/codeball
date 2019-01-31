@@ -59,7 +59,7 @@ struct H {
     C::rules = _rules;
     tick = game.current_tick;
     cur_round_tick++;
-    if (tick % C::TPT == 0) {
+    if (cur_round_tick % C::TPT == 0) {
       actions[1] = actions[2] = actions[3] = model::Action();
     }
     if (tick == 0) { // init on tick 0
