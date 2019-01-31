@@ -480,7 +480,7 @@ void doStrategy() {
                   && cur_plan.time_jump <= min_time_for_enemy_to_hit_the_ball) {
                 cur_plan.score.minimal();
                 break;
-              }
+              } 
             }
             if (cur_plan.oncoming_jump == C::NEVER) {
               cur_plan.oncoming_jump = sim_tick;
