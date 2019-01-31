@@ -1577,10 +1577,10 @@ struct SmartSimulator {
       double t = (-40 - ball->states[0].position.x) / ball->states[0].velocity.z;
       if (t > 0) {
         where_x = ball->states[0].position.x + ball->states[0].velocity.x * t;
-        if (where_x > 10) {
-          where_x = 10;
-        } else if (where_x < -10) {
-          where_x = -10;
+        if (where_x > 8) {
+          where_x = 8;
+        } else if (where_x < -8) {
+          where_x = -8;
         }
       }
     }
