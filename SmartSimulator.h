@@ -1515,7 +1515,7 @@ struct SmartSimulator {
     return 0;
   }
 
-  double getSumScoreDefender(const int tick_number) {
+  double getSumScoreDefender(const int tick_number, const bool ball_on_my_side) {
     double score = 0;
     if (H::cur_round_tick >= 45) {
       if (goal_info.goal_to_me) {
@@ -1527,7 +1527,13 @@ struct SmartSimulator {
         if (!main_robot->state.touch) {
           score -= 0.5 * C::TPT;
         }
-        score += 0.01 * main_robot->taken_nitro;
+        if (!ball_on_my_side) {
+          double delta_nitro =
+              main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
+          score += 1e9 * delta_nitro;
+        } else {
+          score += 0.01 * main_robot->taken_nitro;
+        }
 
         if (main_robot->action.use_nitro) {
           score -= 0.01 * C::TPT;

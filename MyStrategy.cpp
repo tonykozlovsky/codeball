@@ -362,11 +362,12 @@ void doStrategy() {
     //P::logn(H::cur_tick_remaining_time);
     //double available_time[3] = {0, 0, 0};
     //double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
+
+    bool ball_on_my_side = false;
     for (int id = 0; id < 3; id++) {
       int iteration = 0;
       SmartSimulator simulator(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 2, H::game.robots, H::game.ball, H::game.nitro_packs);
 
-      bool ball_on_my_side = false;
       if (id == 0) {
         for (int i = 0; i < C::MAX_SIMULATION_DEPTH; ++i) {
           if (simulator.ball->states[i].position.z < -0.01) {
@@ -480,7 +481,7 @@ void doStrategy() {
                   && cur_plan.time_jump <= min_time_for_enemy_to_hit_the_ball) {
                 cur_plan.score.minimal();
                 break;
-              } 
+              }
             }
             if (cur_plan.oncoming_jump == C::NEVER) {
               cur_plan.oncoming_jump = sim_tick;
@@ -504,7 +505,7 @@ void doStrategy() {
               cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
             }
           } else if (H::role[id] == H::DEFENDER) {
-            cur_plan.score.sum_score += simulator.getSumScoreDefender(sim_tick) * multiplier;
+            cur_plan.score.sum_score += simulator.getSumScoreDefender(sim_tick, ball_on_my_side) * multiplier;
             cur_plan.score.defender_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreDefender() * multiplier, cur_plan.score.defender_min_dist_to_ball);
             cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
             if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
