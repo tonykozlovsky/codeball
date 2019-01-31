@@ -205,7 +205,7 @@ int enemiesPrediction() {
         simulator.tickDynamic(sim_tick);
         main_fly_on_prefix &= !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
 
-        if (simulator.main_robot->state.position.z < 20) {
+        if (simulator.main_robot->state.position.z < 40) {
           double x = simulator.main_robot->state.position.x + 30.;
           double y = simulator.main_robot->state.position.y;
           double z = simulator.main_robot->state.position.z + 50.;
