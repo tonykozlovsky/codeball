@@ -407,6 +407,12 @@ struct Plan {
       mutate_jump_speed();
     } else if (configuration == 32) {
       mutate_jump_speed();
+    } else if (configuration == 20) {
+      mutate_angle1();
+      mutate_angle2();
+      mutate_speed1();
+      mutate_speed2();
+      mutate_time_change(simulation_depth);
     } else if (configuration == 21) {
       mutate_angle1();
       mutate_angle2();
