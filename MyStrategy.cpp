@@ -52,6 +52,7 @@ int enemiesPrediction() {
         Entity ball;
         ball.fromBall(H::game.ball);
         bool is_dribler = (e.state.position - ball.state.position).length() < 3.05;
+
         H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z, 0, 0, {0, 0, 0}, jump_speed, is_dribler);
       }
     }
@@ -413,7 +414,7 @@ void doStrategy() {
             plan_type = 11;
           }
         } else {
-          if (rd < 0.5) {
+          if (rd < 0.8) {
             plan_type = 31;
           } else {
             plan_type = 32;
