@@ -1371,7 +1371,7 @@ struct SmartSimulator {
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
       if (!main_robot->state.touch) {
-        score -= 0.5 * C::TPT;
+        score -= 1 * C::TPT;
       }
 
       //if (main_robot->collide_with_ball) {
@@ -1381,10 +1381,10 @@ struct SmartSimulator {
       //  //score -= 0.1 * C::TPT;
       //}
 
-      score += 0.01 * main_robot->taken_nitro;
-      if (main_robot->action.use_nitro) {
-        score -= 0.01 * C::TPT;
-      }
+      double delta_nitro =
+          main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
+      score += 1e3 * delta_nitro;
+
 
       /*for (int i = 0; i < static_robots_size; ++i) {
         auto& e = static_robots[i];
@@ -1525,18 +1525,12 @@ struct SmartSimulator {
       }
       if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
         if (!main_robot->state.touch) {
-          score -= 0.5 * C::TPT;
+          score -= 1 * C::TPT;
         }
         if (!ball_on_my_side) {
           double delta_nitro =
               main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
           score += 1e9 * delta_nitro;
-        } else {
-          score += 0.01 * main_robot->taken_nitro;
-        }
-
-        if (main_robot->action.use_nitro) {
-          score -= 0.01 * C::TPT;
         }
 
         //if (main_robot->collide_with_ball) {
@@ -1572,10 +1566,11 @@ struct SmartSimulator {
         }
       }
     }
+
     score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
         0,
         1,
-        -C::rules.arena.depth / 2}).length();
+        -C::rules.arena.depth / 2 - 2}).length();
 
     return score;
   }
