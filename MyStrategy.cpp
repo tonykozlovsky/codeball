@@ -191,61 +191,51 @@ int enemiesPrediction() {
   for (int enemy_id : {3, 4, 5}) {
     SmartSimulator simulator(true, C::TPT, C::ENEMY_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
     for (int iteration = 0; iteration < 100; iteration++) {
-      int plan_type;
-      if (simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1) {
-        plan_type = 61;
-      } else {
-        plan_type = 81;
-      }
-      Plan cur_plan(plan_type, C::ENEMY_SIMULATION_DEPTH);
+      Plan cur_plan(61, C::ENEMY_SIMULATION_DEPTH);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
-      } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
-        cur_plan = H::best_plan[enemy_id];
-        cur_plan.mutate(cur_plan.configuration, C::MAX_SIMULATION_DEPTH);
       }
       cur_plan.score.start_fighter();
       simulator.initIteration(iteration, cur_plan);
 
       cur_plan.plans_config = 3;
-      double multiplier = 1.;
+      //double multiplier = 1.;
       bool main_fly_on_prefix = !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
       for (int sim_tick = 0; sim_tick < C::ENEMY_SIMULATION_DEPTH; sim_tick++) {
         simulator.tickDynamic(sim_tick);
         main_fly_on_prefix &= !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
 
-        if (1 || simulator.main_robot->state.position.z < 40) {
-          double x = simulator.main_robot->state.position.x + 30.;
-          double y = simulator.main_robot->state.position.y;
-          double z = simulator.main_robot->state.position.z + 50.;
-          int cell_x = (int) (x / 2.);
-          int cell_y = (int) (y / 2.);
-          int cell_z = (int) (z / 2.);
+        double x = simulator.main_robot->state.position.x + 30.;
+        double y = simulator.main_robot->state.position.y;
+        double z = simulator.main_robot->state.position.z + 50.;
+        int cell_x = (int) (x / 2.);
+        int cell_y = (int) (y / 2.);
 
-          addCell(cell_x + 1, cell_y, cell_z, sim_tick, 1);
-          addCell(cell_x, cell_y + 1, cell_z, sim_tick, 1);
-          addCell(cell_x, cell_y, cell_z + 1, sim_tick, 1);
-          addCell(cell_x - 1, cell_y, cell_z, sim_tick, 1);
-          addCell(cell_x, cell_y - 1, cell_z, sim_tick, 1);
-          addCell(cell_x, cell_y, cell_z - 1, sim_tick, 1);
-        }
+        int cell_z = (int) (z / 2.);
+
+        addCell(cell_x + 1, cell_y, cell_z, sim_tick, 1);
+        addCell(cell_x, cell_y + 1, cell_z, sim_tick, 1);
+        addCell(cell_x, cell_y, cell_z + 1, sim_tick, 1);
+        addCell(cell_x - 1, cell_y, cell_z, sim_tick, 1);
+        addCell(cell_x, cell_y - 1, cell_z, sim_tick, 1);
+        addCell(cell_x, cell_y, cell_z - 1, sim_tick, 1);
 
         if (!main_fly_on_prefix && simulator.main_robot->collide_with_ball) {
           min_time_for_enemy_to_hit_the_ball = std::min(min_time_for_enemy_to_hit_the_ball, sim_tick);
         }
 
-
+        /*
         cur_plan.score.sum_score += simulator.getSumScoreEnemy(sim_tick) * multiplier;
         cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
         cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-        if (sim_tick == C::ENEMY_SIMULATION_DEPTH - 1) {
+        if (sim_tick == enemy_depth - 1) {
 
           cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreEnemy();
-        }
+        }*/
 
-        multiplier *= 0.999;
+        //multiplier *= 0.999;
       }
-      H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
+      //H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
     }
     /*if (enemy_id == 3) {
       Plan cur_plan = H::best_plan[enemy_id];
