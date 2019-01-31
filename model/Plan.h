@@ -149,7 +149,9 @@ struct Plan {
        const double initial_vz = 0,
        const double crossing_x = 0,
        const double crossing_z = 0,
-       const Point& nitro_acceleration = {0, 0, 0}) : configuration(configuration) {
+       const Point& nitro_acceleration = {0, 0, 0},
+       const double jump_speed = 0,
+       const bool is_dribler = false) : configuration(configuration) {
     unique_id = C::unique_plan_id++;
     parent_id = unique_id;
 
@@ -248,7 +250,7 @@ struct Plan {
       sangle1 = sin(angle1);
 
       max_speed = Point2d{initial_vx, initial_vz}.length();
-      max_jump_speed = 15;  // todo keep in mind !
+      max_jump_speed = (jump_speed == 0) ? (is_dribler ? 0 : 15) : jump_speed;
     } else if (configuration == 72) { // last action nitro
       angle1 = atan2(nitro_acceleration.z, nitro_acceleration.x);
       cangle1 = cos(angle1);
@@ -257,7 +259,7 @@ struct Plan {
       cos_lat1 = cos(asin(y1 / 100.));
 
       max_speed = 100.;
-      max_jump_speed = 15; // todo current if radius not 1
+      max_jump_speed = (jump_speed == 0) ? (is_dribler ? 0 : 15) : jump_speed;
 
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;

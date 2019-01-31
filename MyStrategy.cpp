@@ -42,7 +42,17 @@ int enemiesPrediction() {
   for (int id = 0; id < 6; ++id) {
     for (auto& robot : H::game.robots) {
       if (robot.id == H::getRobotGlobalIdByLocal(id)) {
-        H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z);
+        static constexpr double jr = 0.0033333333333333333333333333333;
+        double jump_speed = 0;
+        if (!robot.touch) {
+          jump_speed = (robot.radius - 1) / jr;
+        }
+        Entity e;
+        e.fromRobot(robot);
+        Entity ball;
+        ball.fromBall(H::game.ball);
+        bool is_dribler = (e.state.position - ball.state.position).length() < 3.05;
+        H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z, 0, 0, {0, 0, 0}, jump_speed, is_dribler);
       }
     }
   }
@@ -57,6 +67,16 @@ int enemiesPrediction() {
         double dvy = (v1.y - v0.y);
         double dvz = (v1.z - v0.z);
         double ax, az;
+        static constexpr double jr = 0.0033333333333333333333333333333;
+        double jump_speed = 0;
+        if (!robot.touch) {
+          jump_speed = (robot.radius - 1) / jr;
+        }
+        Entity e;
+        e.fromRobot(robot);
+        Entity ball;
+        ball.fromBall(H::game.ball);
+        bool is_dribler = (e.state.position - ball.state.position).length() < 3.05;
         if (!robot.touch && !robot.is_teammate) {
           bool using_nitro = true;
           double eps = 1e-9;
@@ -100,7 +120,7 @@ int enemiesPrediction() {
               //P::drawLine(p1, p1 + best, 0xFFF000);
               //P::logn(best.x - robot.velocity_x, " ", best.y - robot.velocity_y, " ",  best.z - robot.velocity_z);
               //P::logn(best.x, " ",  best.y, " ",  best.z);
-              H::last_action_plan[id] = Plan(72, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best);
+              H::last_action_plan[id] = Plan(72, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best, jump_speed, is_dribler);
               /*Point target_velocity = best;
               target_velocity = target_velocity.normalize() * 100;
               const auto& target_velocity_change = target_velocity - v0;
@@ -142,9 +162,7 @@ int enemiesPrediction() {
             //P::drawLine(p1, crossing, 0xFF0000);
             H::last_action_plan[id] = Plan(5, C::MAX_SIMULATION_DEPTH, ax, az, crossing.x, crossing.z);
           } else {
-
-            H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, ax, az);
-
+            H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, ax, az, 0, 0, {0, 0, 0}, jump_speed, is_dribler);
           }
           //if (!robot.is_teammate) {
           //  P::logn(robot.id, " ", sqrt(ax * ax + az * az));
@@ -589,6 +607,10 @@ void doStrategy() {
         H::best_plan_type[H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].configuration]++;
         Entity e;
         e.fromRobot(robot);
+        Entity ball;
+        ball.fromBall(H::game.ball);
+        //P::logn(robot.id, ": ", (e.state.position - ball.state.position).length() - (e.state.radius + ball.state.radius));
+
         if (!robot.touch) {
           e.action = H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].toMyAction(0, false, true, e.state.position, e.state.velocity);
           e.nitroCheck();
