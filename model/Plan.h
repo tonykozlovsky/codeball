@@ -242,12 +242,22 @@ struct Plan {
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
       nitro_up = true;
-    } else if (configuration == 61) { // smart enemy
+    } else if (configuration == 81) { // smart enemy in air
+      rand_angle1();
+      rand_y1();
+      max_jump_speed = C::rand_double(0, 15);
+      time_nitro_on = 0;
+      time_nitro_off = simulation_depth;
+    } else if (configuration == 61) { // smart enemy on ground
       rand_angle1();
       rand_time_jump(simulation_depth);
-      //rand_speed1();
       max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+      speed1_1_or_0();
+      speed2_1_or_0();
+      time_nitro_on = 0;
+      time_nitro_off = simulation_depth;
+      nitro_up = true;
     } else if (configuration == 71) { // last action
 
       angle1 = atan2(initial_vz, initial_vx);
@@ -408,7 +418,16 @@ struct Plan {
     was_on_ground_after_jumping = false;
     collide_with_entity_before_on_ground_after_jumping = false;
     oncoming_jump = C::NEVER;
-    if (configuration == 31) {
+    if (configuration == 81) {
+      mutate_angle1();
+      mutate_y1();
+      mutate_jump_speed();
+    } else if (configuration == 61) {
+      mutate_angle1();
+      mutate_speed1();
+      mutate_time_jump(simulation_depth);
+      mutate_jump_speed();
+    } else if (configuration == 31) {
       mutate_angle1();
       mutate_y1();
       mutate_jump_speed();

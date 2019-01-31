@@ -191,21 +191,30 @@ int enemiesPrediction() {
   for (int enemy_id : {3, 4, 5}) {
     SmartSimulator simulator(true, C::TPT, C::ENEMY_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
     for (int iteration = 0; iteration < 100; iteration++) {
-      Plan cur_plan(61, C::ENEMY_SIMULATION_DEPTH);
+      int plan_type;
+      if (simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1) {
+        plan_type = 61;
+      } else {
+        plan_type = 81;
+      }
+      Plan cur_plan(plan_type, C::ENEMY_SIMULATION_DEPTH);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
+      } else if (C::rand_double(0, 1) < 1. / 10.) { // todo check coefficient
+        cur_plan = H::best_plan[enemy_id];
+        cur_plan.mutate(cur_plan.configuration, C::MAX_SIMULATION_DEPTH);
       }
       cur_plan.score.start_fighter();
       simulator.initIteration(iteration, cur_plan);
 
       cur_plan.plans_config = 3;
-      //double multiplier = 1.;
+      double multiplier = 1.;
       bool main_fly_on_prefix = !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
       for (int sim_tick = 0; sim_tick < C::ENEMY_SIMULATION_DEPTH; sim_tick++) {
         simulator.tickDynamic(sim_tick);
         main_fly_on_prefix &= !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
 
-        if (simulator.main_robot->state.position.z < 40) {
+        if (1 || simulator.main_robot->state.position.z < 40) {
           double x = simulator.main_robot->state.position.x + 30.;
           double y = simulator.main_robot->state.position.y;
           double z = simulator.main_robot->state.position.z + 50.;
@@ -398,7 +407,7 @@ void doStrategy() {
         int plan_type;
         double rd = C::rand_double(0, 1);
 
-        if (simulator.main_robot->state.touch) {
+        if (simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1) {
           if (rd < 1./ 7) {
             plan_type = 20;
           } else if (rd < 2. / 7) {
