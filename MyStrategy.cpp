@@ -189,9 +189,8 @@ int enemiesPrediction() {
 
   H::t[1].start();
   for (int enemy_id : {3, 4, 5}) {
-    continue;
     SmartSimulator simulator(true, C::TPT, C::ENEMY_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
-    for (int iteration = 0; iteration < 100; iteration++) {
+    for (int iteration = 0; iteration < 200; iteration++) {
       Plan cur_plan(61, C::ENEMY_SIMULATION_DEPTH);
       if (iteration == 0) {
         cur_plan = H::best_plan[enemy_id];
@@ -414,7 +413,7 @@ void doStrategy() {
             plan_type = 11;
           }
         } else {
-          if (rd < 0.8) {
+          if (rd < 0.5) {
             plan_type = 31;
           } else {
             plan_type = 32;

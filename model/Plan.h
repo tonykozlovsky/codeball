@@ -139,6 +139,10 @@ struct Plan {
     }
   }
 
+  void rand_speed1() {
+    speed1 = C::rand_double(0, 1);
+  }
+
   void rand_time_jump(int simulation_depth, int start_at = 0) {
     time_jump = C::rand_int(start_at, simulation_depth);
   }
@@ -241,6 +245,7 @@ struct Plan {
     } else if (configuration == 61) { // smart enemy
       rand_angle1();
       rand_time_jump(simulation_depth);
+      rand_speed1();
       max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 71) { // last action
