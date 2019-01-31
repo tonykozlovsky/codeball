@@ -205,20 +205,21 @@ int enemiesPrediction() {
         simulator.tickDynamic(sim_tick);
         main_fly_on_prefix &= !(simulator.main_robot->state.touch && simulator.main_robot->state.touch_surface_id == 1);
 
-        double x = simulator.main_robot->state.position.x + 30.;
-        double y = simulator.main_robot->state.position.y;
-        double z = simulator.main_robot->state.position.z + 50.;
-        int cell_x = (int) (x / 2.);
-        int cell_y = (int) (y / 2.);
+        if (simulator.main_robot->state.position.z < 20) {
+          double x = simulator.main_robot->state.position.x + 30.;
+          double y = simulator.main_robot->state.position.y;
+          double z = simulator.main_robot->state.position.z + 50.;
+          int cell_x = (int) (x / 2.);
+          int cell_y = (int) (y / 2.);
+          int cell_z = (int) (z / 2.);
 
-        int cell_z = (int) (z / 2.);
-
-        addCell(cell_x + 1, cell_y, cell_z, sim_tick, 1);
-        addCell(cell_x, cell_y + 1, cell_z, sim_tick, 1);
-        addCell(cell_x, cell_y, cell_z + 1, sim_tick, 1);
-        addCell(cell_x - 1, cell_y, cell_z, sim_tick, 1);
-        addCell(cell_x, cell_y - 1, cell_z, sim_tick, 1);
-        addCell(cell_x, cell_y, cell_z - 1, sim_tick, 1);
+          addCell(cell_x + 1, cell_y, cell_z, sim_tick, 1);
+          addCell(cell_x, cell_y + 1, cell_z, sim_tick, 1);
+          addCell(cell_x, cell_y, cell_z + 1, sim_tick, 1);
+          addCell(cell_x - 1, cell_y, cell_z, sim_tick, 1);
+          addCell(cell_x, cell_y - 1, cell_z, sim_tick, 1);
+          addCell(cell_x, cell_y, cell_z - 1, sim_tick, 1);
+        }
 
         if (!main_fly_on_prefix && simulator.main_robot->collide_with_ball) {
           min_time_for_enemy_to_hit_the_ball = std::min(min_time_for_enemy_to_hit_the_ball, sim_tick);
