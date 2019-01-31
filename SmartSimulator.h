@@ -1032,7 +1032,11 @@ struct SmartSimulator {
     int main_robot_additional_jump_type = 0;
 
     for (int i = 0; i < static_entities_size; ++i) { // a lot of time, but sleep will help
-      static_entities[i]->fromStateStatic(tick_number + 1);
+      if (static_entities[i]->is_pack) {
+        static_entities[i]->fromStateStatic(tick_number);
+      } else {
+        static_entities[i]->fromStateStatic(tick_number + 1);
+      }
     }
 
     if (!unaccurate) {
@@ -1366,8 +1370,8 @@ struct SmartSimulator {
       //const double& height = ball->getState().position.y;
       //const double& height_score = 1e3 + 1e3 * ((height - 2) / 6.);
       //score += tick_number == goal_info.goal_tick ? height_score : 0;
-      score += (tick_number == goal_info.goal_tick) ?  1e9 * goal_multiplier : 0;
-      //score += tick_number == goal_info.goal_tick ? 1e3 : 0;
+      //score += (tick_number == goal_info.goal_tick) ?  1e9 * goal_multiplier : 0;
+      score += tick_number == goal_info.goal_tick ? 1e3 : 0;
     }
     if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 

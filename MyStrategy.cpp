@@ -339,7 +339,7 @@ void doStrategy() {
   H::cur_tick_timer.start();
 #endif
 
-  if (H::tick % C::TPT == 0) {
+  if (H::cur_round_tick % C::TPT == 0) {
 
     for (int i = 0; i < 100; ++i) {
       auto& t = H::t[i];
@@ -522,7 +522,7 @@ void doStrategy() {
           }
 
           multiplier *= 0.999;
-          const double g_mult = 0.8;
+          const double g_mult = 0.9;
           goal_multiplier *= g_mult * g_mult;
         }
 
