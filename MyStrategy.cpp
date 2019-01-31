@@ -414,7 +414,7 @@ void doStrategy() {
             plan_type = 11;
           }
         } else {
-          if (rd < 0.5) {
+          if (rd < 0.8) {
             plan_type = 31;
           } else {
             plan_type = 32;
@@ -476,7 +476,7 @@ void doStrategy() {
                 && cur_plan.was_jumping
                 && !cur_plan.was_on_ground_after_jumping) {
               cur_plan.collide_with_entity_before_on_ground_after_jumping = true;
-              if (main_robot_additional_jump_type == 1
+              if (H::role[id] == H::DEFENDER && main_robot_additional_jump_type == 1
                   && min_time_for_enemy_to_hit_the_ball < sim_tick
                   && cur_plan.time_jump <= min_time_for_enemy_to_hit_the_ball) {
                 cur_plan.score.minimal();
