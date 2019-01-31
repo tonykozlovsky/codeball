@@ -1572,11 +1572,22 @@ struct SmartSimulator {
       }
     }
 
+    double where_x = 0;
+    if (ball->states[0].velocity.z != 0) {
+      double t = (-40 - ball->states[0].position.x) / ball->states[0].velocity.z;
+      if (t > 0) {
+        where_x = ball->states[0].position.x + ball->states[0].velocity.x * t;
+        if (where_x > 10) {
+          where_x = 10;
+        } else if (where_x < -10) {
+          where_x = -10;
+        }
+      }
+    }
     score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
-        0,
+        where_x,
         1,
         -C::rules.arena.depth / 2 - 2}).length();
-
     return score;
   }
 
