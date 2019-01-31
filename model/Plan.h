@@ -36,6 +36,7 @@ struct Plan {
 
   int configuration;
 
+  
   Point nitro_velocity1, nitro_velocity2;
   Point velocity1, velocity2;
 
