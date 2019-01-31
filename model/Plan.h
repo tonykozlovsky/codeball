@@ -139,8 +139,8 @@ struct Plan {
     }
   }
 
-  void rand_time_jump(int simulation_depth) {
-    time_jump = C::rand_int(0, simulation_depth);
+  void rand_time_jump(int simulation_depth, int start_at = 0) {
+    time_jump = C::rand_int(start_at, simulation_depth);
   }
 
   Plan(int configuration,
@@ -160,26 +160,56 @@ struct Plan {
     nitro_as_velocity = false;
     nitro_up = false;
 
-    if (configuration == 21) { // me 2 vec
+    if (configuration == 31) { // in jump nitro and hit power
+      rand_angle1();
+      rand_y1();
+      max_jump_speed = C::rand_double(0, 15);
+      time_nitro_on = 0;
+      time_nitro_off = simulation_depth;
+    } else if (configuration == 32) { // in jump only hit power without nitro
+      max_jump_speed = C::rand_double(0, 15);
+    } else if (configuration == 21) { // me 2 vec
       rand_angle1();
       rand_angle2();
-      rand_time_jump(simulation_depth);
       rand_time_change(simulation_depth);
+      rand_time_jump(simulation_depth, time_change + 1);
       speed1_1_or_0();
       speed2_1_or_0();
-      max_jump_speed = C::rand_int(0, 1) * 15;
+      max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+    } else if (configuration == 22) { // me 2 vec nitro up
+      rand_angle1();
+      rand_angle2();
+      rand_time_change(simulation_depth);
+      rand_time_jump(simulation_depth, time_change + 1);
+      speed1_1_or_0();
+      speed2_1_or_0();
+      max_jump_speed = 15;
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+      time_nitro_on = 0;
+      time_nitro_off = simulation_depth;
+      nitro_up = true;
+    } else if (configuration == 23) { // me 2 vec nitro vel
+      rand_angle1();
+      rand_angle2();
+      rand_time_change(simulation_depth);
+      rand_time_jump(simulation_depth, time_change + 1);
+      speed1_1_or_0();
+      speed2_1_or_0();
+      max_jump_speed = 15;
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+      time_nitro_on = 0;
+      time_nitro_off = simulation_depth;
+      nitro_as_velocity = true;
     } else if (configuration == 11) {
       rand_angle1();
       rand_time_jump(simulation_depth);
-      speed1_1_or_0();
-      max_jump_speed = C::rand_int(0, 1) * 15;
+      max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 12) {
       rand_angle1();
       rand_time_jump(simulation_depth);
-      speed1_1_or_0();
-      max_jump_speed = C::rand_int(0, 1) * 15;
+      max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
@@ -187,8 +217,7 @@ struct Plan {
     } else if (configuration == 13) {
       rand_angle1();
       rand_time_jump(simulation_depth);
-      speed1_1_or_0();
-      max_jump_speed = C::rand_int(0, 1) * 15;
+      max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
@@ -214,7 +243,7 @@ struct Plan {
       cos_lat1 = cos(asin(y1 / 100.));
 
       max_speed = 100.;
-      max_jump_speed = 15;
+      max_jump_speed = 15; // todo current if radius not 1
 
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
@@ -247,6 +276,7 @@ struct Plan {
   static constexpr double speed_mutation = 0.05;
   static constexpr double z_mutation = 1;
   static constexpr double crossing_mutation = 1;
+  static constexpr double jump_speed_mutation = 0.1;
 
   static constexpr int nitro_mutation = 1;
   static constexpr int jump_mutation = 1;
@@ -321,6 +351,35 @@ struct Plan {
     }
   }
 
+  void mutate_jump_speed() {
+    max_jump_speed += C::rand_double(-jump_speed_mutation, jump_speed_mutation);
+    if (max_jump_speed > 15) {
+      max_jump_speed = 15;
+    }
+    if (max_jump_speed < 0) {
+      max_jump_speed = 0;
+    }
+  }
+
+  void mutate_speed1() {
+    speed1 += C::rand_double(-speed_mutation, speed_mutation);
+    if (speed1 > 1) {
+      speed1 = 1;
+    }
+    if (speed1 < 0) {
+      speed1 = 0;
+    }
+  }
+  void mutate_speed2() {
+    speed2 += C::rand_double(-speed_mutation, speed_mutation);
+    if (speed2 > 1) {
+      speed2 = 1;
+    }
+    if (speed2 < 0) {
+      speed2 = 0;
+    }
+  }
+
   void mutate(int configuration, const int simulation_depth) {
     unique_id = C::unique_plan_id++;
 
@@ -328,21 +387,51 @@ struct Plan {
     was_on_ground_after_jumping = false;
     collide_with_entity_before_on_ground_after_jumping = false;
     oncoming_jump = C::NEVER;
-
-    if (configuration == 21) {
+    if (configuration == 31) {
+      mutate_angle1();
+      mutate_y1();
+      mutate_jump_speed();
+    } else if (configuration == 32) {
+      mutate_jump_speed();
+    } else if (configuration == 21) {
       mutate_angle1();
       mutate_angle2();
-      mutate_time_jump(simulation_depth);
+      mutate_speed1();
+      mutate_speed2();
       mutate_time_change(simulation_depth);
+      mutate_time_jump(simulation_depth);
+      mutate_jump_speed();
+    } else if (configuration == 22) {
+      mutate_angle1();
+      mutate_angle2();
+      mutate_speed1();
+      mutate_speed2();
+      mutate_time_change(simulation_depth);
+      mutate_time_jump(simulation_depth);
+      mutate_jump_speed();
+    } else if (configuration == 23) {
+      mutate_angle1();
+      mutate_angle2();
+      mutate_speed1();
+      mutate_speed2();
+      mutate_time_change(simulation_depth);
+      mutate_time_jump(simulation_depth);
+      mutate_jump_speed();
     } else if (configuration == 11) {
       mutate_angle1();
+      mutate_speed1();
       mutate_time_jump(simulation_depth);
+      mutate_jump_speed();
     } else if (configuration == 12) {
       mutate_angle1();
+      mutate_speed1();
       mutate_time_jump(simulation_depth);
+      mutate_jump_speed();
     } else if (configuration == 13) {
       mutate_angle1();
+      mutate_speed1();
       mutate_time_jump(simulation_depth);
+      mutate_jump_speed();
     }
 
     calcVelocities();

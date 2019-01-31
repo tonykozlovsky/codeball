@@ -377,15 +377,38 @@ void doStrategy() {
       //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
-        if (rd < 0.25) {
-          plan_type = 21;
-        } else if (rd < 0.25 + 0.25) {
-          plan_type = 11;
-        } else if (rd < 0.25 + 0.25 + 0.25) {
-          plan_type = 12;
+
+        if (simulator.main_robot->state.touch) {
+          if (rd < 1./ 6) {
+            plan_type = 21;
+          } else if (rd < 2. / 6) {
+            plan_type = 22;
+          } else if (rd < 3. / 6) {
+            plan_type = 23;
+          } else if (rd < 4. / 6) {
+            plan_type = 11;
+          } else if (rd < 5. / 6) {
+            plan_type = 12;
+          } else if (rd < 6. / 6) {
+            plan_type = 13;
+          }
         } else {
-          plan_type = 13;
+          if (rd < 0.5) {
+            plan_type = 31;
+          } else {
+            plan_type = 32;
+          }
         }
+        //if (rd < 0.25) {
+        //  plan_type = 21;
+        //} else if (rd < 0.25 + 0.25) {
+        //  plan_type = 11;
+        //} else if (rd < 0.25 + 0.25 + 0.25) {
+        //  plan_type = 12;
+        //} else {
+        //  plan_type = 13;
+        //}
+
         Plan cur_plan(plan_type, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
           cur_plan = H::best_plan[id];
@@ -407,17 +430,27 @@ void doStrategy() {
         cur_plan.plans_config = 2;
 
         double multiplier = 1.;
+
+        bool collide_with_smth = false;
+        bool fly_on_prefix = (!simulator.main_robot->state.touch || simulator.main_robot->state.touch_surface_id != 1);
+
         for (int sim_tick = 0; sim_tick < C::MAX_SIMULATION_DEPTH; sim_tick++) {
 
           bool main_touch = simulator.main_robot->state.touch || simulator.main_robot->state.position.y < C::NITRO_TOUCH_EPSILON;
 
           int main_robot_additional_jump_type = simulator.tickDynamic(sim_tick, H::getRobotGlobalIdByLocal(0), false);
 
+          fly_on_prefix &= (!simulator.main_robot->state.touch || simulator.main_robot->state.touch_surface_id != 1);
+
           if (main_robot_additional_jump_type == 0 && simulator.main_robot->action.jump_speed > 0 && main_touch) {
             cur_plan.was_jumping = true;
           }
 
           if (main_robot_additional_jump_type > 0) { // 1 - with ball, 2 - with entity, 3 - additional
+            if (fly_on_prefix &&
+              (main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2)) {
+              collide_with_smth = true;
+            }
             if ((main_robot_additional_jump_type == 1 || main_robot_additional_jump_type == 2)
                 && cur_plan.was_jumping
                 && !cur_plan.was_on_ground_after_jumping) {
@@ -467,6 +500,11 @@ void doStrategy() {
           }
 
           multiplier *= 0.999;
+        }
+
+        if (!collide_with_smth) {
+          cur_plan.time_nitro_on = C::NEVER;
+          cur_plan.time_nitro_off = C::NEVER;
         }
 
         if (!cur_plan.was_jumping || (cur_plan.was_jumping && !cur_plan.collide_with_entity_before_on_ground_after_jumping)) {

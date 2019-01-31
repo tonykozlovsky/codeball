@@ -66,6 +66,9 @@ struct C {
   }
 
   static int rand_int(int a, int b) {
+    if (a > b) {
+      std::swap(a, b);
+    }
     return (int) (a + rd() % (b - a + 1));
   }
 
