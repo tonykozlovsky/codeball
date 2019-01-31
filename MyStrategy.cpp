@@ -522,7 +522,8 @@ void doStrategy() {
           }
 
           multiplier *= 0.999;
-          goal_multiplier *= (0.5 * 0.5);
+          const double g_mult = 1;
+          goal_multiplier *= g_mult * g_mult;
         }
 
         if (!collide_with_smth) {
