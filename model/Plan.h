@@ -255,9 +255,9 @@ struct Plan {
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       speed1_1_or_0();
       speed2_1_or_0();
-      time_nitro_on = 0;
-      time_nitro_off = simulation_depth;
-      nitro_up = true;
+      //time_nitro_on = 0;
+      //time_nitro_off = simulation_depth;
+      //nitro_up = true;
     } else if (configuration == 71) { // last action
 
       angle1 = atan2(initial_vz, initial_vx);
