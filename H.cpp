@@ -34,6 +34,8 @@ int H::danger_grid[60][20][100][C::MAX_SIMULATION_DEPTH];
 DGState H::used_cells[1000007];
 int H::used_cells_size = 0;
 
+std::map<int, int> H::best_plan_type;
+
 
 H::ROLE H::role[6];
 

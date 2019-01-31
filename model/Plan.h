@@ -168,6 +168,14 @@ struct Plan {
       time_nitro_off = simulation_depth;
     } else if (configuration == 32) { // in jump only hit power without nitro
       max_jump_speed = C::rand_double(0, 15);
+    } else if (configuration == 20) { // me 2 vec no jump
+      rand_angle1();
+      rand_angle2();
+      rand_time_change(simulation_depth);
+      speed1_1_or_0();
+      speed2_1_or_0();
+      max_jump_speed = 0;
+      max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 21) { // me 2 vec
       rand_angle1();
       rand_angle2();
@@ -204,11 +212,15 @@ struct Plan {
     } else if (configuration == 11) {
       rand_angle1();
       rand_time_jump(simulation_depth);
+      speed1_1_or_0();
+      speed2_1_or_0();
       max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 12) {
       rand_angle1();
       rand_time_jump(simulation_depth);
+      speed1_1_or_0();
+      speed2_1_or_0();
       max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
       time_nitro_on = 0;
@@ -219,6 +231,8 @@ struct Plan {
       rand_time_jump(simulation_depth);
       max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
+      speed1_1_or_0();
+      speed2_1_or_0();
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
       nitro_up = true;

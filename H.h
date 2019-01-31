@@ -36,6 +36,7 @@ struct H {
 
   static Point prev_velocity[7];
   static Point prev_position[7];
+  static std::map<int, int> best_plan_type;
 
   enum ROLE {FIGHTER, SEMI, DEFENDER};
 

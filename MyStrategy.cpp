@@ -379,18 +379,20 @@ void doStrategy() {
         double rd = C::rand_double(0, 1);
 
         if (simulator.main_robot->state.touch) {
-          if (rd < 1./ 6) {
+          if (rd < 1./ 7) {
+            plan_type = 20;
+          } else if (rd < 2. / 7) {
             plan_type = 21;
-          } else if (rd < 2. / 6) {
+          } else if (rd < 3. / 7) {
             plan_type = 22;
-          } else if (rd < 3. / 6) {
+          } else if (rd < 4. / 7) {
             plan_type = 23;
-          } else if (rd < 4. / 6) {
+          } else if (rd < 5. / 7) {
             plan_type = 11;
-          } else if (rd < 5. / 6) {
+          } else if (rd < 6. / 7) {
             plan_type = 12;
-          } else if (rd < 6. / 6) {
-            plan_type = 13;
+          } else {
+            plan_type = 11;
           }
         } else {
           if (rd < 0.5) {
@@ -584,6 +586,7 @@ void doStrategy() {
 #ifndef FROM_LOG
     for (auto& robot : H::game.robots) {
       if (robot.is_teammate) {
+        H::best_plan_type[H::best_plan[H::getRobotLocalIdByGlobal(robot.id)].configuration]++;
         Entity e;
         e.fromRobot(robot);
         if (!robot.touch) {
@@ -597,6 +600,9 @@ void doStrategy() {
         }
         H::actions[robot.id] = e.action.toAction();
       }
+    }
+    for (auto& it : H::best_plan_type) {
+      P::logn(it.first, " ", it.second);
     }
 #endif
 
