@@ -522,7 +522,7 @@ void doStrategy() {
           }
 
           multiplier *= 0.999;
-          const double g_mult = 0.9;
+          const double g_mult = 0.8;
           goal_multiplier *= g_mult * g_mult;
         }
 
