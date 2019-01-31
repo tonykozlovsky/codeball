@@ -451,6 +451,7 @@ void doStrategy() {
         cur_plan.plans_config = 2;
 
         double multiplier = 1.;
+        double goal_multiplier = 1.;
 
         bool collide_with_smth = false;
         bool fly_on_prefix = (!simulator.main_robot->state.touch || simulator.main_robot->state.touch_surface_id != 1);
@@ -498,7 +499,7 @@ void doStrategy() {
           }
 
           if (H::role[id] == H::FIGHTER) {
-            cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
+            cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick, goal_multiplier) * multiplier;
             cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
             cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
             if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
@@ -512,7 +513,7 @@ void doStrategy() {
               cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
             }
           } else if (H::role[id] == H::SEMI) {
-            cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick) * multiplier;
+            cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick, goal_multiplier) * multiplier;
             cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
             cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
             if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
@@ -521,6 +522,7 @@ void doStrategy() {
           }
 
           multiplier *= 0.999;
+          goal_multiplier *= (0.5 * 0.5);
         }
 
         if (!collide_with_smth) {
