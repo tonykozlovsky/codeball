@@ -180,7 +180,7 @@ int enemiesPrediction() {
     const auto& cell = H::used_cells[i];
     H::danger_grid[cell.x][cell.y][cell.z][cell.t] = 0;
 
-    //P::drawSphere({cell.x * 2 + 1 - 30, cell.y * 2 + 1, cell.z * 2 + 1 - 50}, 1, 0x00AA00);
+    // P::drawSphere({cell.x * 2 + 1 - 30, cell.y * 2 + 1, cell.z * 2 + 1 - 50}, 1, 0x00AA00);
 
   }
   H::used_cells_size = 0;
@@ -234,18 +234,18 @@ int enemiesPrediction() {
           min_time_for_enemy_to_hit_the_ball = std::min(min_time_for_enemy_to_hit_the_ball, sim_tick);
         }
 
-        /*
+
         cur_plan.score.sum_score += simulator.getSumScoreEnemy(sim_tick) * multiplier;
         cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
         cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreEnemy() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-        if (sim_tick == enemy_depth - 1) {
+        if (sim_tick == C::ENEMY_SIMULATION_DEPTH - 1) {
 
           cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreEnemy();
-        }*/
+        }
 
-        //multiplier *= 0.999;
+        multiplier *= 0.999;
       }
-      //H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
+      H::best_plan[enemy_id] = std::max(H::best_plan[enemy_id], cur_plan);
     }
     /*if (enemy_id == 3) {
       Plan cur_plan = H::best_plan[enemy_id];
