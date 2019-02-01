@@ -47,6 +47,8 @@ struct Plan {
     double defender_min_dist_to_ball;
     double defender_min_dist_from_goal;
     double defender_last_dist_from_goal;
+    double fighter_closest_enemy_ever;
+    double fighter_closest_enemy_last;
 
     bool operator<(const Score& other) const {
       return score() < other.score();
@@ -60,7 +62,9 @@ struct Plan {
               - fighter_last_dist_to_goal
               - defender_min_dist_to_ball
               + defender_min_dist_from_goal
-              + defender_last_dist_from_goal;
+              + defender_last_dist_from_goal
+              + fighter_closest_enemy_ever
+              + fighter_closest_enemy_last;
     }
 
     void minimal() {
@@ -71,6 +75,8 @@ struct Plan {
       defender_min_dist_to_ball = 1e9;
       defender_min_dist_from_goal = 1e9;
       defender_last_dist_from_goal = 1e9;
+      fighter_closest_enemy_ever = 1e9;
+      fighter_closest_enemy_last = 1e9;
     }
 
     void start_fighter() {
@@ -81,6 +87,8 @@ struct Plan {
       defender_min_dist_to_ball = 0;
       defender_min_dist_from_goal = 0;
       defender_last_dist_from_goal = 0;
+      fighter_closest_enemy_ever = 1e9;
+      fighter_closest_enemy_last = 1e9;
     }
 
     void start_defender() {
@@ -91,6 +99,8 @@ struct Plan {
       defender_min_dist_to_ball = 1e9;
       defender_min_dist_from_goal = 1e9;
       defender_last_dist_from_goal = 0;
+      fighter_closest_enemy_ever = 0;
+      fighter_closest_enemy_last = 0;
     }
 
   } score;

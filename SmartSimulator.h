@@ -1381,7 +1381,7 @@ struct SmartSimulator {
   double getSumScoreFighter(const int tick_number, const double goal_multiplier, const bool ball_on_my_side) {
     double score = 0;
 
-    if (H::cur_round_tick >= 45) {
+    if (H::cur_round_tick >= 50) {
       if (goal_info.goal_to_me) {
         score += tick_number == goal_info.goal_tick ? -1e9 : 0;
       } else if (goal_info.goal_to_enemy) {
@@ -1446,7 +1446,7 @@ struct SmartSimulator {
   }
 
   double getMinDistToGoalScoreFighter() {
-    if (H::cur_round_tick >= 45) {
+    if (H::cur_round_tick >= 50) {
       const double& d1 = (Point{
           -C::rules.arena.goal_width / 2 + 2,
           C::rules.arena.goal_height - 2,
@@ -1466,7 +1466,7 @@ struct SmartSimulator {
   }
 
   double getMinDistToBallScoreFighter() {
-    if (H::cur_round_tick >= 45) {
+    if (H::cur_round_tick >= 50) {
       return (main_robot->state.position - ball->getState().position).length();
     } else {
       return 0;
@@ -1622,20 +1622,24 @@ struct SmartSimulator {
   }
 
   double getMinDistToEnemyScore() {
-    double min_dist = 1e9;
-    for (int i = 0; i < static_robots_size; ++i) {
-      auto& e = static_robots[i];
-      if (!e->is_teammate) {
-        min_dist = std::min(min_dist, (e->getState().position - ball->getState().position).length_sq());
+    if (H::cur_round_tick >= 50) {
+      double min_dist = 1e9;
+      for (int i = 0; i < static_robots_size; ++i) {
+        auto& e = static_robots[i];
+        if (!e->is_teammate) {
+          min_dist = std::min(min_dist, (e->getState().position - ball->getState().position).length_sq());
+        }
       }
-    }
-    for (int i = 0; i < dynamic_robots_size; ++i) {
-      auto& e = dynamic_robots[i];
-      if (!e->is_teammate) {
-        min_dist = std::min(min_dist, (e->getState().position - ball->getState().position).length_sq());
+      for (int i = 0; i < dynamic_robots_size; ++i) {
+        auto& e = dynamic_robots[i];
+        if (!e->is_teammate) {
+          min_dist = std::min(min_dist, (e->getState().position - ball->getState().position).length_sq());
+        }
       }
+      return 100 * min_dist;
+    } else {
+      return 0;
     }
-    return sqrt(min_dist);
   }
 
   double getMinDistFromGoalScoreDefender() {
