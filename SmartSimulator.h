@@ -1606,7 +1606,6 @@ struct SmartSimulator {
               + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
           score -= 1e4 * sum;
         }
-        //score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
       }
     }
 
@@ -1652,7 +1651,7 @@ struct SmartSimulator {
 
   double getMinDistFromGoalScoreDefender() {
     if (H::cur_round_tick >= 45) {
-      return 100 * ball->getState().position.z;
+      return ball->getState().position.z;
     } else {
       return 0;
     }

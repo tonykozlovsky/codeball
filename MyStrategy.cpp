@@ -541,8 +541,12 @@ void doStrategy() {
               cur_plan.score.sum_score += simulator.getSumScoreDefender(sim_tick, ball_on_my_side) * multiplier;
               cur_plan.score.defender_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreDefender() * multiplier, cur_plan.score.defender_min_dist_to_ball);
               cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
+              cur_plan.score.fighter_closest_enemy_ever = std::min(simulator.getMinDistToEnemyScore() * multiplier, cur_plan.score.fighter_closest_enemy_ever);
               if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
                 cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
+              }
+              if (sim_tick == C::ENEMY_LIVE_TICKS - 1) {
+                cur_plan.score.fighter_closest_enemy_last = simulator.getMinDistToEnemyScore();
               }
             } else if (H::role[id] == H::SEMI) {
               cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick, goal_multiplier, ball_on_my_side) * multiplier;
