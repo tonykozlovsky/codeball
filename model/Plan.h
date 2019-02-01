@@ -155,7 +155,8 @@ struct Plan {
        const double crossing_z = 0,
        const Point& nitro_acceleration = {0, 0, 0},
        const double jump_speed = 0,
-       const bool is_dribler = false) : configuration(configuration) {
+       const bool is_dribler = false,
+       const bool in_air = false) : configuration(configuration) {
     unique_id = C::unique_plan_id++;
     parent_id = unique_id;
 
@@ -249,20 +250,22 @@ struct Plan {
       max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 71) { // last action
-
-      angle1 = atan2(initial_vz, initial_vx);
-      cangle1 = cos(angle1);
-      sangle1 = sin(angle1);
-
-      max_speed = Point2d{initial_vx, initial_vz}.length();
+      if (!in_air) {
+        angle1 = atan2(initial_vz, initial_vx);
+        cangle1 = cos(angle1);
+        sangle1 = sin(angle1);
+        max_speed = Point2d{initial_vx, initial_vz}.length();
+        time_jump = 0;
+      }
       max_jump_speed = (jump_speed == 0) ? (is_dribler ? 0 : 15) : jump_speed;
     } else if (configuration == 710) { // last action 0
 
-      angle1 = atan2(initial_vz, initial_vx);
-      cangle1 = cos(angle1);
-      sangle1 = sin(angle1);
-
-      max_speed = Point2d{initial_vx, initial_vz}.length();
+      if (!in_air) {
+        angle1 = atan2(initial_vz, initial_vx);
+        cangle1 = cos(angle1);
+        sangle1 = sin(angle1);
+        max_speed = Point2d{initial_vx, initial_vz}.length();
+      }
       max_jump_speed = (jump_speed == 0) ? (is_dribler ? 15 : 0) : 0;
     } else if (configuration == 72) { // last action nitro
       angle1 = atan2(nitro_acceleration.z, nitro_acceleration.x);

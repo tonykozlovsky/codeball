@@ -52,8 +52,8 @@ int enemiesPrediction() {
         Entity ball;
         ball.fromBall(H::game.ball);
         bool is_dribler = (e.state.position - ball.state.position).length() < 3.05;
-        H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z, 0, 0, {0, 0, 0}, jump_speed, is_dribler);
-        H::last_action0_plan[id] = Plan(710, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z, 0, 0, {0, 0, 0}, jump_speed, is_dribler);
+        H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z, 0, 0, {0, 0, 0}, jump_speed, is_dribler, !robot.touch);
+        H::last_action0_plan[id] = Plan(710, C::MAX_SIMULATION_DEPTH, robot.velocity_x, robot.velocity_z, 0, 0, {0, 0, 0}, jump_speed, is_dribler, !robot.touch);
       }
     }
   }
@@ -121,8 +121,8 @@ int enemiesPrediction() {
               //P::drawLine(p1, p1 + best, 0xFFF000);
               //P::logn(best.x - robot.velocity_x, " ", best.y - robot.velocity_y, " ",  best.z - robot.velocity_z);
               //P::logn(best.x, " ",  best.y, " ",  best.z);
-              H::last_action_plan[id] = Plan(72, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best, jump_speed, is_dribler);
-              H::last_action0_plan[id] = Plan(720, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best, jump_speed, is_dribler);
+              H::last_action_plan[id] = Plan(72, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best, jump_speed, is_dribler, !robot.touch);
+              H::last_action0_plan[id] = Plan(720, C::MAX_SIMULATION_DEPTH, 0, 0, 0, 0, best, jump_speed, is_dribler, !robot.touch);
               /*Point target_velocity = best;
               target_velocity = target_velocity.normalize() * 100;
               const auto& target_velocity_change = target_velocity - v0;
@@ -165,8 +165,8 @@ int enemiesPrediction() {
             H::last_action_plan[id] = Plan(5, C::MAX_SIMULATION_DEPTH, ax, az, crossing.x, crossing.z);
             H::last_action0_plan[id] = Plan(50, C::MAX_SIMULATION_DEPTH, ax, az, crossing.x, crossing.z);
           } else {
-            H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, ax, az, 0, 0, {0, 0, 0}, jump_speed, is_dribler);
-            H::last_action0_plan[id] = Plan(710, C::MAX_SIMULATION_DEPTH, ax, az, 0, 0, {0, 0, 0}, jump_speed, is_dribler);
+            H::last_action_plan[id] = Plan(71, C::MAX_SIMULATION_DEPTH, ax, az, 0, 0, {0, 0, 0}, jump_speed, is_dribler, !robot.touch);
+            H::last_action0_plan[id] = Plan(710, C::MAX_SIMULATION_DEPTH, ax, az, 0, 0, {0, 0, 0}, jump_speed, is_dribler, !robot.touch);
           }
           //if (!robot.is_teammate) {
           //  P::logn(robot.id, " ", sqrt(ax * ax + az * az));
