@@ -345,6 +345,9 @@ void doStrategy() {
 
   if (H::cur_round_tick % C::TPT == 0) {
 
+    //P::logn("cur: ", H::cur_tick_remaining_time);
+    //P::logn("sum: ", H::global_timer.getCumulative(true));
+
     //for (int i = 0; i < 100; ++i) {
     //  auto& t = H::t[i];
     //  t.clearCur();
@@ -403,11 +406,11 @@ void doStrategy() {
         }
       }
 
-      for (;; iteration++) {
-        if (iteration > iterations[id]) {
-          break;
-        }
-        //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
+      //for (;; iteration++) {
+      //  if (iteration > iterations[id]) {
+      //    break;
+      //  }
+        for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
 
@@ -586,7 +589,7 @@ void doStrategy() {
 
       H::sum_iterations += iteration;
 #ifdef DEBUG
-      if (id == 0) {
+      if (H::role[id] == H::DEFENDER) {
         P::logn("best plan id: ", H::best_plan[id].unique_id);
         P::logn("fighter score: ", H::best_plan[id].score.score());
         P::logn("sum_score: ", H::best_plan[id].score.sum_score);

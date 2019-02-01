@@ -95,14 +95,14 @@ struct H {
       waiting_ticks--;
       return 3;
     }
-    //double time_per_tick = C::time_limit / 18000.;
-    //double ticks_remaining = (18000 - tick);
-    //double half_ticks_remaining = ticks_remaining / 2.;
-    //double tick_end_balance = tick + half_ticks_remaining;
-    //double time_end_balance = C::time_limit - time_per_tick * (ticks_remaining - half_ticks_remaining);
+    double time_per_tick = C::time_limit / 9000.;
+    double ticks_remaining = (18000. - tick) / 2.;
+    double half_ticks_remaining = ticks_remaining / 2.;
+    double tick_end_balance = tick / 2 + half_ticks_remaining;
+    double time_end_balance = C::time_limit - time_per_tick * (ticks_remaining - half_ticks_remaining);
 
-    //cur_tick_remaining_time = (time_end_balance - global_timer.getCumulative()) / half_ticks_remaining;
-    cur_tick_remaining_time = (C::time_limit - global_timer.getCumulative(true)) / ((18000 - (double)tick) / 2);
+    cur_tick_remaining_time = std::min(10., (time_end_balance - global_timer.getCumulative()) / half_ticks_remaining);
+    //cur_tick_remaining_time = (C::time_limit - global_timer.getCumulative(true)) / ((18000 - (double)tick) / 2);
 
     flag = false;
     return 1;

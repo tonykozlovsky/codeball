@@ -55,9 +55,9 @@ struct C {
   static constexpr int LONGEST_JUMP = 50 / TPT;
 
 #ifdef LOCAL
-  static constexpr double time_limit = 330. * 1.5;
+  static constexpr double time_limit = 320. * 1.5;
 #else
-  static constexpr double time_limit = 330.;
+  static constexpr double time_limit = 320.;
 #endif
 
   static std::mt19937_64 rd;
