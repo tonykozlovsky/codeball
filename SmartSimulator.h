@@ -1630,7 +1630,6 @@ struct SmartSimulator {
   }
 
   double getMinDistToEnemyScore() {
-    return 0;
     if (H::cur_round_tick >= 50) {
       double min_dist = 1e9;
       for (int i = 0; i < static_robots_size; ++i) {
