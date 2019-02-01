@@ -1643,7 +1643,7 @@ struct SmartSimulator {
           min_dist = std::min(min_dist, (e->getState().position - ball->getState().position).length_sq());
         }
       }
-      return min_dist;
+      return 100 * min_dist;
     } else {
       return 0;
     }
