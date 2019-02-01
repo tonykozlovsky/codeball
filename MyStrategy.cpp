@@ -374,7 +374,7 @@ void doStrategy() {
       SmartSimulator simulator_two(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 7, H::game.robots, H::game.ball, H::game.nitro_packs);
 
       bool need_minimax = false;
-      if ((1 || simulator_one.static_goal_to_me
+      if ((simulator_one.static_goal_to_me
         || simulator_two.static_goal_to_me) &&
             (simulator_one.ball->state.position - simulator_two.ball->state.position).length() > 1e-9) {
         need_minimax = true;
@@ -552,7 +552,7 @@ void doStrategy() {
               cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
               if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
                 cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
-              } 
+              }
             }
 
             multiplier *= 0.999;
