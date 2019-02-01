@@ -191,7 +191,7 @@ int enemiesPrediction() {
 
   int min_time_for_enemy_to_hit_the_ball = C::NEVER;
 
-  H::t[1].start();
+  //H::t[1].start();
   for (int enemy_id : {3, 4, 5}) {
     SmartSimulator simulator(true, C::TPT, C::ENEMY_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(enemy_id), 3, H::game.robots, H::game.ball, {});
     for (int iteration = 0; iteration < 100; iteration++) {
@@ -260,9 +260,9 @@ int enemiesPrediction() {
       }
     }*/
   }
-  H::t[1].cur(true, true);
-  P::logn(H::t[1].avg());
-  P::logn("mtfethtb: ", min_time_for_enemy_to_hit_the_ball);
+  //H::t[1].cur(true, true);
+  //P::logn(H::t[1].avg());
+  //P::logn("mtfethtb: ", min_time_for_enemy_to_hit_the_ball);
   return min_time_for_enemy_to_hit_the_ball;
 }
 
@@ -345,16 +345,16 @@ void doStrategy() {
 
   if (H::cur_round_tick % C::TPT == 0) {
 
-    for (int i = 0; i < 100; ++i) {
-      auto& t = H::t[i];
-      t.clearCur();
-    }
-    for (int i = 0; i < 100; ++i) {
-      auto& c = H::c[i];
-      c.init_calls();
-    }
+    //for (int i = 0; i < 100; ++i) {
+    //  auto& t = H::t[i];
+    //  t.clearCur();
+    //}
+    //for (int i = 0; i < 100; ++i) {
+    //  auto& c = H::c[i];
+    //  c.init_calls();
+    //}
 
-    H::t[0].start();
+    //H::t[0].start();
 
     updateRoles();
 
@@ -364,8 +364,8 @@ void doStrategy() {
 
     int iterations[3] = {200 * 2, 200 * 2, 200 * 2};
     //P::logn(H::cur_tick_remaining_time);
-    //double available_time[3] = {0, 0, 0};
-    //double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
+    double available_time[3] = {0, 0, 0};
+    double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
 
     bool ball_on_my_side = false;
     for (int id = 0; id < 3; id++) {
@@ -390,24 +390,24 @@ void doStrategy() {
         if (!ball_on_my_side) {
           for (int i = 0; i < 3; ++i) {
             if (H::role[i] == H::DEFENDER) {
-              //available_time[i] = 0.1 * H::cur_tick_remaining_time;
+              available_time[i] = 0.1 * H::cur_tick_remaining_time;
               iterations[i] = 50 * 2;
             } else {
               iterations[i] = 275 * 2;
-              //available_time[i] = 0.45 * H::cur_tick_remaining_time;
+              available_time[i] = 0.45 * H::cur_tick_remaining_time;
             }
           }
-          //for (int i = 0; i < 3; ++i) {
-          //  available_time_prefix[i] = i == 0 ? H::global_timer.getCumulative() + available_time[i] : available_time[i] + available_time_prefix[i - 1];
-          //}
+          for (int i = 0; i < 3; ++i) {
+            available_time_prefix[i] = i == 0 ? H::global_timer.getCumulative() + available_time[i] : available_time[i] + available_time_prefix[i - 1];
+          }
         }
       }
 
-      for (;; iteration++) {
-        if (iteration > iterations[id]) {
-          break;
-        }
-        //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
+      //for (;; iteration++) {
+      //  if (iteration > iterations[id]) {
+      //    break;
+      //  }
+        for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
 
@@ -435,15 +435,6 @@ void doStrategy() {
             plan_type = 32;
           }
         }
-        //if (rd < 0.25) {
-        //  plan_type = 21;
-        //} else if (rd < 0.25 + 0.25) {
-        //  plan_type = 11;
-        //} else if (rd < 0.25 + 0.25 + 0.25) {
-        //  plan_type = 12;
-        //} else {
-        //  plan_type = 13;
-        //}
 
         Plan cur_plan_one(plan_type, C::MAX_SIMULATION_DEPTH);
         if (iteration == 0) {
@@ -671,23 +662,23 @@ void doStrategy() {
         H::actions[robot.id] = e.action.toAction();
       }
     }
-    for (auto& it : H::best_plan_type) {
-      P::logn(it.first, " ", it.second);
-    }
+    //for (auto& it : H::best_plan_type) {
+    //  P::logn(it.first, " ", it.second);
+    //}
 #endif
 
-    H::t[0].cur(true);
-    for (int i = 0; i < 5; ++i) {
-      auto& t = H::t[i];
-      t.cur(false, true);
-      P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
-    }
+    //H::t[0].cur(true);
+    //for (int i = 0; i < 5; ++i) {
+    //  auto& t = H::t[i];
+    //  t.cur(false, true);
+    //  P::logn("t", i, " avg: ", t.avg() * 1000, " cur: ", t.getCur() * 1000, " x", (int)(std::floor(t.getCur() / t.avg() * 100)), "%");
+    //}
 
-    for (int i = 0; i < 5; ++i) {
-      auto& c = H::c[i];
-      c.capture();
-      P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
-    }
+    //for (int i = 0; i < 5; ++i) {
+    //  auto& c = H::c[i];
+    //  c.capture();
+    //  P::logn("c", i, " avg: ", c.avg_(), " cur: ", c.last_(), " x", (int)(std::floor((double)c.last_() / c.avg_() * 100)), "%");
+    //}
   }
 
   for (auto& robot : H::game.robots) {

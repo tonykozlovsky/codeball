@@ -80,7 +80,9 @@ struct H {
         player_score[player.id - 1] = player.score;
         waiting_ticks = 119;
         cur_round_tick = -119;
-        std::cout << int(sum_iterations / iterations_k) << " ?_?" << std::endl;
+        std::cout << int(sum_iterations / iterations_k) << " ";
+        sum_iterations = 0;
+        iterations_k = 0;
       }
     }
     if (waiting_ticks > 0) {
@@ -94,7 +96,7 @@ struct H {
     //double time_end_balance = C::time_limit - time_per_tick * (ticks_remaining - half_ticks_remaining);
 
     //cur_tick_remaining_time = (time_end_balance - global_timer.getCumulative()) / half_ticks_remaining;
-    cur_tick_remaining_time = (C::time_limit - global_timer.getCumulative()) / (18001. - tick);
+    cur_tick_remaining_time = (C::time_limit - global_timer.getCumulative()) / (9000 - (double)tick);
     return true;
   }
 
