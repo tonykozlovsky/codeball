@@ -1380,83 +1380,96 @@ struct SmartSimulator {
 
   double getSumScoreFighter(const int tick_number, const double goal_multiplier) {
     double score = 0;
-    if (goal_info.goal_to_me) {
-      score += tick_number == goal_info.goal_tick ? -1e9 : 0;
-    } else if (goal_info.goal_to_enemy) {
-      //const double& height = ball->getState().position.y;
-      //const double& height_score = 1e3 + 1e3 * ((height - 2) / 6.);
-      //score += tick_number == goal_info.goal_tick ? height_score : 0;
-      //score += (tick_number == goal_info.goal_tick) ?  1e9 * goal_multiplier : 0;
-      score += tick_number == goal_info.goal_tick ? 1e3 : 0;
-    }
-    if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
-      if (!main_robot->state.touch) {
-        score -= 1 * C::TPT;
+    if (H::cur_round_tick >= 45) {
+      if (goal_info.goal_to_me) {
+        score += tick_number == goal_info.goal_tick ? -1e9 : 0;
+      } else if (goal_info.goal_to_enemy) {
+        //const double& height = ball->getState().position.y;
+        //const double& height_score = 1e3 + 1e3 * ((height - 2) / 6.);
+        //score += tick_number == goal_info.goal_tick ? height_score : 0;
+        //score += (tick_number == goal_info.goal_tick) ?  1e9 * goal_multiplier : 0;
+        score += tick_number == goal_info.goal_tick ? 1e3 : 0;
       }
+      if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
-      //if (main_robot->collide_with_ball) {
-      //  score += 1;
-      //}
-      //if (main_robot->action.use_nitro) {
-      //  //score -= 0.1 * C::TPT;
-      //}
+        if (!main_robot->state.touch) {
+          score -= 1 * C::TPT;
+        }
 
-      double delta_nitro =
-          main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
-      score += 1 *  delta_nitro;
+        //if (main_robot->collide_with_ball) {
+        //  score += 1;
+        //}
+        //if (main_robot->action.use_nitro) {
+        //  //score -= 0.1 * C::TPT;
+        //}
+
+        double delta_nitro =
+            main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
+        score += 1 * delta_nitro;
 
 
-      /*for (int i = 0; i < static_robots_size; ++i) {
-        auto& e = static_robots[i];
-        if (!e->is_teammate && e->static_event_ptr->collide_with_ball) {
-          score -= 10;
+        /*for (int i = 0; i < static_robots_size; ++i) {
+          auto& e = static_robots[i];
+          if (!e->is_teammate && e->static_event_ptr->collide_with_ball) {
+            score -= 10;
+          }
+        }
+        for (int i = 0; i < dynamic_robots_size; ++i) {
+          auto& e = dynamic_robots[i];
+          if (!e->is_teammate && e->collide_with_ball) {
+            score -= 10;
+          }
+        }*/
+
+        if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
+          const int cell_x = std::clamp((int) ((ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
+          const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
+          const int cell_z = std::clamp((int) ((ball->getState().position.z + 50. - 1.) / 2.), 0, 98);
+          const int sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
+              + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
+              + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
+              + H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number]
+              + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number]
+              + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
+              + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
+              + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
+          score -= 1e4 * sum;
         }
       }
-      for (int i = 0; i < dynamic_robots_size; ++i) {
-        auto& e = dynamic_robots[i];
-        if (!e->is_teammate && e->collide_with_ball) {
-          score -= 10;
-        }
-      }*/
-
-      if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
-        const int cell_x = std::clamp((int) ((ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
-        const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
-        const int cell_z = std::clamp((int) ((ball->getState().position.z + 50. - 1.) / 2.), 0, 98);
-        const int sum = H::danger_grid[cell_x][cell_y][cell_z][tick_number]
-            + H::danger_grid[cell_x + 1][cell_y][cell_z][tick_number]
-            + H::danger_grid[cell_x][cell_y + 1][cell_z][tick_number]
-            + H::danger_grid[cell_x][cell_y][cell_z + 1][tick_number]
-            + H::danger_grid[cell_x + 1][cell_y + 1][cell_z][tick_number]
-            + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
-            + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
-            + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-        score -= 1e4 * sum;
-      }
+    } else {
+      score += 1e9 * ball->getState().position.z;
     }
 
     return score;
   }
 
   double getMinDistToGoalScoreFighter() {
-    const double& d1 = (Point{
-        -C::rules.arena.goal_width / 2 + 2,
-        C::rules.arena.goal_height - 2,
-        C::rules.arena.depth / 2 + 2} - ball->getState().position).length_sq();
-    const double& d2 = (Point{
-        0,
-        C::rules.arena.goal_height - 2,
-        C::rules.arena.depth / 2 + 2} - ball->getState().position).length_sq();
-    const double& d3 = (Point{
-        C::rules.arena.goal_width / 2 - 2,
-        C::rules.arena.goal_height - 2,
-        C::rules.arena.depth / 2 + 2} - ball->getState().position).length_sq();
-    return sqrt(std::min(d1, std::min(d2, d3)));
+    if (H::cur_round_tick >= 45) {
+      const double& d1 = (Point{
+          -C::rules.arena.goal_width / 2 + 2,
+          C::rules.arena.goal_height - 2,
+          C::rules.arena.depth / 2 + 2} - ball->getState().position).length_sq();
+      const double& d2 = (Point{
+          0,
+          C::rules.arena.goal_height - 2,
+          C::rules.arena.depth / 2 + 2} - ball->getState().position).length_sq();
+      const double& d3 = (Point{
+          C::rules.arena.goal_width / 2 - 2,
+          C::rules.arena.goal_height - 2,
+          C::rules.arena.depth / 2 + 2} - ball->getState().position).length_sq();
+      return sqrt(std::min(d1, std::min(d2, d3)));
+    } else {
+      return 0;
+    }
   }
 
   double getMinDistToBallScoreFighter() {
-    return (main_robot->state.position - ball->getState().position).length();
+    if (H::cur_round_tick >= 45) {
+      return (main_robot->state.position - ball->getState().position).length();
+    } else {
+      return 0;
+    }
   }
 
   double getSumScoreEnemy(const int tick_number) {
