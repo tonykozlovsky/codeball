@@ -1465,7 +1465,7 @@ struct SmartSimulator {
           C::rules.arena.goal_width / 2 - 2,
           C::rules.arena.goal_height - 2,
           C::rules.arena.depth / 2 + 2} - ball->getState().position).length_sq();
-      return sqrt(std::min(d1, std::min(d2, d3)));
+      return 10 * sqrt(std::min(d1, std::min(d2, d3)));
     } else {
       return 0;
     }
