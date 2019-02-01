@@ -406,11 +406,11 @@ void doStrategy() {
         }
       }
 
-      //for (;; iteration++) {
-        //if (iteration > iterations[id]) {
-        //  break;
-        //}
-        for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
+      for (;; iteration++) {
+        if (iteration > iterations[id]) {
+          break;
+        }
+        //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
 
