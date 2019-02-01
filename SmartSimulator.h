@@ -1583,7 +1583,7 @@ struct SmartSimulator {
               + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
               + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
               + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-          score -= 1e4 * sum;
+          score -= sum > 0 ? 1e4 : 0;
         }
       }
     }
