@@ -1403,11 +1403,11 @@ struct SmartSimulator {
         //if (main_robot->action.use_nitro) {
         //  //score -= 0.1 * C::TPT;
         //}
-        if (!ball_on_my_side) {
+        //if (!ball_on_my_side) {
           double delta_nitro =
               main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
           score += 1 * delta_nitro;
-        }
+        //}
 
 
         /*for (int i = 0; i < static_robots_size; ++i) {
@@ -1440,6 +1440,9 @@ struct SmartSimulator {
       }
     } else {
       score += 1e9 * ball->getState().position.z;
+      if (main_robot->collide_with_ball) {
+        score += 1e9;
+      }
     }
 
     return score;
@@ -1622,6 +1625,7 @@ struct SmartSimulator {
   }
 
   double getMinDistToEnemyScore() {
+    return 0;
     if (H::cur_round_tick >= 50) {
       double min_dist = 1e9;
       for (int i = 0; i < static_robots_size; ++i) {
