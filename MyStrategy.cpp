@@ -552,7 +552,7 @@ void doStrategy() {
               cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
               if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
                 cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
-              }
+              } 
             }
 
             multiplier *= 0.999;
