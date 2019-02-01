@@ -1436,9 +1436,6 @@ struct SmartSimulator {
               + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
               + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
           score -= 1e4 * sum;
-          if (cell_y < 5 && cell_z < 10) {
-            score -= 1e4;
-          }
         }
         //score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
         //score += 1e3 * ball->getState().position.z;
@@ -1469,7 +1466,7 @@ struct SmartSimulator {
           C::rules.arena.goal_width / 2 - 2,
           C::rules.arena.goal_height - 2,
           C::rules.arena.depth / 2 + 2} - ball->getState().position).length_sq();
-      return 100 * sqrt(std::min(d1, std::min(d2, d3)));
+      return 10 * sqrt(std::min(d1, std::min(d2, d3)));
     } else {
       return 0;
     }
