@@ -1438,6 +1438,9 @@ struct SmartSimulator {
           score -= 1e4 * sum;
         }
       }
+
+      score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
+
     } else {
       score += 1e9 * ball->getState().position.z;
       if (main_robot->collide_with_ball) {
