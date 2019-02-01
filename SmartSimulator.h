@@ -1378,7 +1378,7 @@ struct SmartSimulator {
   // 1.2.6 try two vectors3d without nitro
 
 
-  double getSumScoreFighter(const int tick_number, const double goal_multiplier) {
+  double getSumScoreFighter(const int tick_number, const double goal_multiplier, const bool ball_on_my_side) {
     double score = 0;
 
     if (H::cur_round_tick >= 45) {
@@ -1403,10 +1403,11 @@ struct SmartSimulator {
         //if (main_robot->action.use_nitro) {
         //  //score -= 0.1 * C::TPT;
         //}
-
-        double delta_nitro =
-            main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
-        score += 1 * delta_nitro;
+        if (!ball_on_my_side) {
+          double delta_nitro =
+              main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
+          score += 10 * delta_nitro;
+        }
 
 
         /*for (int i = 0; i < static_robots_size; ++i) {
