@@ -534,25 +534,25 @@ void doStrategy() {
 
             if (H::role[id] == H::FIGHTER) {
               cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick, goal_multiplier) * multiplier;
-              cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
-              cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-              if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-                cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
-              }
+              //cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
+              //cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
+              //if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+              //  cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
+              //}
             } else if (H::role[id] == H::DEFENDER) {
               cur_plan.score.sum_score += simulator.getSumScoreDefender(sim_tick, ball_on_my_side) * multiplier;
-              cur_plan.score.defender_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreDefender() * multiplier, cur_plan.score.defender_min_dist_to_ball);
-              cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
-              if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-                cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
-              }
+              //cur_plan.score.defender_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreDefender() * multiplier, cur_plan.score.defender_min_dist_to_ball);
+              //cur_plan.score.defender_min_dist_from_goal = std::min(simulator.getMinDistFromGoalScoreDefender() * multiplier, cur_plan.score.defender_min_dist_from_goal);
+              //if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+              //  cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
+              //}
             } else if (H::role[id] == H::SEMI) {
               cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick, goal_multiplier) * multiplier;
-              cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
-              cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
-              if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
-                cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
-              }
+              //cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
+              //cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
+              //if (sim_tick == C::MAX_SIMULATION_DEPTH - 1) {
+              //  cur_plan.score.fighter_last_dist_to_goal = simulator.getMinDistToGoalScoreFighter();
+              //}
             }
 
             multiplier *= 0.999;
