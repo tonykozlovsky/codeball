@@ -362,7 +362,7 @@ void doStrategy() {
 
     int min_time_for_enemy_to_hit_the_ball = enemiesPrediction();
 
-    int iterations[3] = {200, 200, 200};
+    int iterations[3] = {200 * 2, 200 * 2, 200 * 2};
     //P::logn(H::cur_tick_remaining_time);
     //double available_time[3] = {0, 0, 0};
     //double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
@@ -391,9 +391,9 @@ void doStrategy() {
           for (int i = 0; i < 3; ++i) {
             if (H::role[i] == H::DEFENDER) {
               //available_time[i] = 0.1 * H::cur_tick_remaining_time;
-              iterations[i] = 50;
+              iterations[i] = 50 * 2;
             } else {
-              iterations[i] = 275;
+              iterations[i] = 275 * 2;
               //available_time[i] = 0.45 * H::cur_tick_remaining_time;
             }
           }

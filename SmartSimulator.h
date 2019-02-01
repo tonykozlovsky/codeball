@@ -1588,17 +1588,11 @@ struct SmartSimulator {
       }
     }
 
-    double where_x = 0;
-    if (ball->states[0].velocity.z != 0) {
-      double t = (-40 - ball->states[0].position.x) / ball->states[0].velocity.z;
-      if (t > 0) {
-        where_x = ball->states[0].position.x + ball->states[0].velocity.x * t;
-        if (where_x > 8) {
-          where_x = 8;
-        } else if (where_x < -8) {
-          where_x = -8;
-        }
-      }
+    double where_x = ball->states[0].position.x;
+    if (where_x > 8) {
+      where_x = 8;
+    } else if (where_x < -8) {
+      where_x = -8;
     }
     score -= (0.0025 * C::TPT) * (main_robot->state.position - Point{
         where_x,
