@@ -374,7 +374,7 @@ void doStrategy() {
       SmartSimulator simulator_two(false, C::TPT, C::MAX_SIMULATION_DEPTH, H::getRobotGlobalIdByLocal(id), 7, H::game.robots, H::game.ball, H::game.nitro_packs);
 
       bool need_minimax = false;
-      if ((simulator_one.static_goal_to_me
+      if ((1 || simulator_one.static_goal_to_me
         || simulator_two.static_goal_to_me) &&
             (simulator_one.ball->state.position - simulator_two.ball->state.position).length() > 1e-9) {
         need_minimax = true;
