@@ -44,13 +44,19 @@ struct H {
 
   static ROLE role[6];
 
-  static bool tryInit(
+  static bool flag;
+
+  static int tryInit(
       const model::Robot& _me,
       const model::Rules& _rules,
       const model::Game& _game) {
     global_id = _me.id;
     if (tick == _game.current_tick) {
-      return false;
+      if (!flag) {
+        flag = true;
+        return 2;
+      }
+      return 3;
     }
     H::global_timer.start();
     game = _game;
@@ -87,7 +93,7 @@ struct H {
     }
     if (waiting_ticks > 0) {
       waiting_ticks--;
-      return false;
+      return 3;
     }
     //double time_per_tick = C::time_limit / 18000.;
     //double ticks_remaining = (18000 - tick);
@@ -96,8 +102,10 @@ struct H {
     //double time_end_balance = C::time_limit - time_per_tick * (ticks_remaining - half_ticks_remaining);
 
     //cur_tick_remaining_time = (time_end_balance - global_timer.getCumulative()) / half_ticks_remaining;
-    cur_tick_remaining_time = (C::time_limit - global_timer.getCumulative()) / (9000 - (double)tick);
-    return true;
+    cur_tick_remaining_time = (C::time_limit - global_timer.getCumulative(true)) / ((18000 - (double)tick) / 2);
+
+    flag = false;
+    return 1;
   }
 
   static model::Action getCurrentAction() {

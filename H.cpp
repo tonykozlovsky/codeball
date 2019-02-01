@@ -40,6 +40,7 @@ std::map<int, int> H::best_plan_type;
 
 
 H::ROLE H::role[6];
+bool H::flag;
 
 Point2d H::prev_last_action[6];
 

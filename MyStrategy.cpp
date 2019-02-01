@@ -398,7 +398,7 @@ void doStrategy() {
             }
           }
           for (int i = 0; i < 3; ++i) {
-            available_time_prefix[i] = i == 0 ? H::global_timer.getCumulative() + available_time[i] : available_time[i] + available_time_prefix[i - 1];
+            available_time_prefix[i] = i == 0 ? (H::global_timer.getCumulative() + available_time[i]) : (available_time[i] + available_time_prefix[i - 1]);
           }
         }
       }
@@ -1082,13 +1082,16 @@ void MyStrategy::act(
     model::Action& action) {
 #ifndef LOCAL
   if (rules.team_size == 3) {
-    if (H::tryInit(me, rules, game)) {
-      doStrategy();
-      action = H::getCurrentAction();
-    } else {
-      action = H::getCurrentAction();
-      H::global_timer.cur(true, true);
-    }
+    int init = H::tryInit(me, rules, game);
+  if (init == 1) {
+    doStrategy();
+    action = H::getCurrentAction();
+  } else if (init == 2) {
+    action = H::getCurrentAction();
+  } else if (init == 3) {
+    action = H::getCurrentAction();
+    H::global_timer.cur(true, true);
+  }
   } else {
       if (Frozen::H::tryInit(me, rules, game)) {
       Frozen::doStrategy();
@@ -1099,10 +1102,13 @@ void MyStrategy::act(
     }
   }
 #else
-  if (H::tryInit(me, rules, game)) {
+  int init = H::tryInit(me, rules, game);
+  if (init == 1) {
     doStrategy();
     action = H::getCurrentAction();
-  } else {
+  } else if (init == 2) {
+    action = H::getCurrentAction();
+  } else if (init == 3) {
     action = H::getCurrentAction();
     H::global_timer.cur(true, true);
   }
