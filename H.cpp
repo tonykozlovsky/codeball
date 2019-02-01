@@ -18,6 +18,7 @@ int H::global_id;
 int H::my_id;
 Plan H::best_plan[6];
 Plan H::last_action_plan[6];
+Plan H::last_action0_plan[6];
 
 MyTimer H::t[100];
 MyTimer H::c[100];

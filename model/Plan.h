@@ -256,6 +256,14 @@ struct Plan {
 
       max_speed = Point2d{initial_vx, initial_vz}.length();
       max_jump_speed = (jump_speed == 0) ? (is_dribler ? 0 : 15) : jump_speed;
+    } else if (configuration == 710) { // last action 0
+
+      angle1 = atan2(initial_vz, initial_vx);
+      cangle1 = cos(angle1);
+      sangle1 = sin(angle1);
+
+      max_speed = Point2d{initial_vx, initial_vz}.length();
+      max_jump_speed = (jump_speed == 0) ? (is_dribler ? 15 : 0) : 0;
     } else if (configuration == 72) { // last action nitro
       angle1 = atan2(nitro_acceleration.z, nitro_acceleration.x);
       cangle1 = cos(angle1);
@@ -265,6 +273,18 @@ struct Plan {
 
       max_speed = 100.;
       max_jump_speed = (jump_speed == 0) ? (is_dribler ? 0 : 15) : jump_speed;
+
+      time_nitro_on = 0;
+      time_nitro_off = simulation_depth;
+    } else if (configuration == 720) { // last action nitro 0
+      angle1 = atan2(nitro_acceleration.z, nitro_acceleration.x);
+      cangle1 = cos(angle1);
+      sangle1 = sin(angle1);
+      y1 = nitro_acceleration.y;
+      cos_lat1 = cos(asin(y1 / 100.));
+
+      max_speed = 100.;
+      max_jump_speed = (jump_speed == 0) ? (is_dribler ? 15 : 0) : 0;
 
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;

@@ -92,6 +92,8 @@ struct SmartSimulator {
 
   bool collided_entities[7][7];
 
+  bool static_goal_to_me;
+
   // maybe we can have 4x-5x performance boost, and more when 3x3
   SmartSimulator(
       const bool unaccurate,
@@ -144,7 +146,7 @@ struct SmartSimulator {
       for (int i = 0; i < initial_static_robots_size; ++i) {
         initial_static_robots[i]->plan = H::best_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
       }
-    } else if (plans_configuration == 2) { // best action my, last action enemy
+    } else if (plans_configuration == 2) { // best action my, last action 15 enemy
       for (int i = 0; i < initial_static_robots_size; ++i) {
         if (initial_static_robots[i]->is_teammate) {
           initial_static_robots[i]->plan = H::best_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
@@ -156,7 +158,17 @@ struct SmartSimulator {
       for (int i = 0; i < initial_static_robots_size; ++i) {
         initial_static_robots[i]->plan = H::last_action_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
       }
+    } if (plans_configuration == 7) { // best action my, last action 0 enemy
+      for (int i = 0; i < initial_static_robots_size; ++i) {
+        if (initial_static_robots[i]->is_teammate) {
+          initial_static_robots[i]->plan = H::best_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
+        } else {
+          initial_static_robots[i]->plan = H::last_action0_plan[H::getRobotLocalIdByGlobal(initial_static_robots[i]->id)];
+        }
+      }
     }
+
+    static_goal_to_me = false;
 
     for (int sim_tick = 0; sim_tick < simulation_depth + 1; ++sim_tick) {
       tickWithJumpsStatic(sim_tick, true);
@@ -328,6 +340,10 @@ struct SmartSimulator {
           }
         }
       }
+    }
+
+    if (ball->state.position.z < -42) {
+      static_goal_to_me = true;
     }
   }
 
