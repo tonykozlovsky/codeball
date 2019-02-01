@@ -1626,6 +1626,14 @@ struct SmartSimulator {
     }
   }
 
+  double getMinDistToBallScoreDefender() {
+    if (H::cur_round_tick >= 45) {
+      return 0.1 * (main_robot->state.position - ball->getState().position).length();
+    } else {
+      return 0;
+    }
+  }
+
 };
 
 #ifndef LOCAL
