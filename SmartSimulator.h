@@ -1439,7 +1439,15 @@ struct SmartSimulator {
         }
         //score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
         //score += 1e3 * ball->getState().position.z;
-        score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
+        double my_dist =  (main_robot->state.position - Point{
+            0,
+            1,
+            -C::rules.arena.depth / 2 - 2}).length();
+        double ball_dist = (ball->getState().position - Point{
+            0,
+            1,
+            -C::rules.arena.depth / 2 - 2}).length();
+        score -= 10 * (std::max(0., my_dist - ball_dist));
       }
 
     } else {
@@ -1629,6 +1637,7 @@ struct SmartSimulator {
   }
 
   double getMinDistToEnemyScore() {
+    return 0;
     if (H::cur_round_tick >= 50) {
       double min_dist = 1e9;
       for (int i = 0; i < static_robots_size; ++i) {
@@ -1643,7 +1652,7 @@ struct SmartSimulator {
           min_dist = std::min(min_dist, (e->getState().position - ball->getState().position).length_sq());
         }
       }
-      return 100 * min_dist;
+      return min_dist;
     } else {
       return 0;
     }

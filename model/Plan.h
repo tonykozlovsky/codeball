@@ -99,8 +99,8 @@ struct Plan {
       defender_min_dist_to_ball = 1e9;
       defender_min_dist_from_goal = 1e9;
       defender_last_dist_from_goal = 0;
-      fighter_closest_enemy_ever = 1e9;
-      fighter_closest_enemy_last = 1e9;
+      fighter_closest_enemy_ever = 0;
+      fighter_closest_enemy_last = 0;
     }
 
   } score;
