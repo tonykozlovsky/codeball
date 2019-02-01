@@ -1548,7 +1548,7 @@ struct SmartSimulator {
         if (!main_robot->state.touch) {
           score -= 1 * C::TPT;
         }
-        if (!ball_on_my_side) {
+        if (!ball_on_my_side && main_robot->state.position.z < 0) {
           double delta_nitro =
               main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
           score += 1e9 * delta_nitro;
