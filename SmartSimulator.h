@@ -1439,15 +1439,7 @@ struct SmartSimulator {
         }
         //score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
         //score += 1e3 * ball->getState().position.z;
-        double my_dist =  (main_robot->state.position - Point{
-            0,
-            1,
-            -C::rules.arena.depth / 2 - 2}).length();
-        double ball_dist = (ball->getState().position - Point{
-            0,
-            1,
-            -C::rules.arena.depth / 2 - 2}).length();
-        score -= 10 * (std::max(0., my_dist - ball_dist));
+        score -= 10 * (main_robot->state.position - ball->states[C::MAX_SIMULATION_DEPTH].position).length();
       }
 
     } else {
