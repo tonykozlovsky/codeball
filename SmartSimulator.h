@@ -1437,8 +1437,9 @@ struct SmartSimulator {
               + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
           score -= 1e4 * sum;
         }
+        //score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
+        //score += 1e3 * ball->getState().position.z;
         score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
-        score += 1e4 * ball->getState().position.z;
       }
 
     } else {
