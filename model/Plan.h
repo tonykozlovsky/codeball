@@ -255,7 +255,7 @@ struct Plan {
     } else if (configuration == 61) { // smart enemy
       rand_angle1();
       rand_time_jump(simulation_depth);
-      //rand_speed1();
+      rand_speed1();
       max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 71) { // last action
