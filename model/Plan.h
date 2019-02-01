@@ -249,21 +249,37 @@ struct Plan {
       max_jump_speed = 15;
       max_speed = C::rules.ROBOT_MAX_GROUND_SPEED;
     } else if (configuration == 71) { // last action
+      if (!is_dribler) {
 
-      angle1 = atan2(initial_vz, initial_vx);
-      cangle1 = cos(angle1);
-      sangle1 = sin(angle1);
+        angle1 = atan2(initial_vz, initial_vx);
+        cangle1 = cos(angle1);
+        sangle1 = sin(angle1);
 
-      max_speed = Point2d{initial_vx, initial_vz}.length();
-      max_jump_speed = (jump_speed == 0) ? (is_dribler ? 0 : 15) : jump_speed;
+        max_speed = Point2d{initial_vx, initial_vz}.length();
+        max_jump_speed = (jump_speed == 0) ? 15 : jump_speed;
+      } else {
+        angle1 = 0;
+        cangle1 = cos(angle1);
+        sangle1 = sin(angle1);
+        max_speed = 0;
+        max_jump_speed = 0;
+      }
     } else if (configuration == 710) { // last action 0
+      if (!is_dribler) {
+        angle1 = atan2(initial_vz, initial_vx);
+        cangle1 = cos(angle1);
+        sangle1 = sin(angle1);
 
-      angle1 = atan2(initial_vz, initial_vx);
-      cangle1 = cos(angle1);
-      sangle1 = sin(angle1);
+        max_speed = Point2d{initial_vx, initial_vz}.length();
+        max_jump_speed = 0;
+      } else {
 
-      max_speed = Point2d{initial_vx, initial_vz}.length();
-      max_jump_speed = (jump_speed == 0) ? (is_dribler ? 15 : 0) : 0;
+        angle1 = 0;
+        cangle1 = cos(angle1);
+        sangle1 = sin(angle1);
+        max_speed = 0;
+        max_jump_speed = 0;
+      }
     } else if (configuration == 72) { // last action nitro
       angle1 = atan2(nitro_acceleration.z, nitro_acceleration.x);
       cangle1 = cos(angle1);
