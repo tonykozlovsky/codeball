@@ -1404,7 +1404,7 @@ struct SmartSimulator {
 
       double delta_nitro =
           main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
-      score += 10 * delta_nitro;
+      score += 1 *  delta_nitro;
 
 
       /*for (int i = 0; i < static_robots_size; ++i) {
