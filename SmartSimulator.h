@@ -1406,7 +1406,7 @@ struct SmartSimulator {
         if (!ball_on_my_side) {
           double delta_nitro =
               main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
-          score += 10 * delta_nitro;
+          score += 1 * delta_nitro;
         }
 
 
@@ -1636,7 +1636,7 @@ struct SmartSimulator {
           min_dist = std::min(min_dist, (e->getState().position - ball->getState().position).length_sq());
         }
       }
-      return 100 * min_dist;
+      return min_dist;
     } else {
       return 0;
     }
