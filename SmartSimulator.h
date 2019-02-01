@@ -1583,7 +1583,7 @@ struct SmartSimulator {
               + H::danger_grid[cell_x + 1][cell_y][cell_z + 1][tick_number]
               + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
               + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
-          score -= sum > 0 ? 1e4 : 0;
+          score -= 1e4 * sum;
         }
       }
     }
@@ -1621,14 +1621,6 @@ struct SmartSimulator {
   double getMinDistFromGoalScoreDefender() {
     if (H::cur_round_tick >= 45) {
       return ball->getState().position.z;
-    } else {
-      return 0;
-    }
-  }
-
-  double getMinDistToBallScoreDefender() {
-    if (H::cur_round_tick >= 45) {
-      return 0.1 * (main_robot->state.position - ball->getState().position).length();
     } else {
       return 0;
     }
