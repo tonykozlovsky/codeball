@@ -1414,11 +1414,9 @@ struct SmartSimulator {
         //  //score -= 0.1 * C::TPT;
         //}
         //if (!ball_on_my_side) {
-        if (main_robot->state.nitro < 49) {
           double delta_nitro =
               main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
           score += 1 * delta_nitro;
-        }
         //}
 
 
@@ -1455,11 +1453,11 @@ struct SmartSimulator {
           const double& my_dist = (main_robot->state.position - Point{
               0,
               1,
-              -50}).length();
+              -42}).length();
           const double& ball_dist = (ball->getState().position - Point{
               0,
               1,
-              -50}).length();
+              -42}).length();
           score -= 10 * (std::max(0., my_dist - ball_dist));
       }
 
@@ -1597,7 +1595,7 @@ struct SmartSimulator {
         if (!main_robot->state.touch) {
           score -= 1 * C::TPT;
         }
-        if (!ball_on_my_side && main_robot->state.position.z < 0 && main_robot->state.nitro < 49) {
+        if (!ball_on_my_side && main_robot->state.position.z < 0) {
           double delta_nitro =
               main_robot->taken_nitro > 0 ? main_robot->state.nitro - main_robot->states[0].nitro : 0;
           score += 1e9 * delta_nitro;
