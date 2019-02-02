@@ -1423,18 +1423,18 @@ struct SmartSimulator {
 
 
 
-        /*for (int i = 0; i < static_robots_size; ++i) {
+        for (int i = 0; i < static_robots_size; ++i) {
           auto& e = static_robots[i];
           if (!e->is_teammate && e->static_event_ptr->collide_with_ball) {
-            score -= 1e7;
+            score -= 1e4;
           }
         }
         for (int i = 0; i < dynamic_robots_size; ++i) {
           auto& e = dynamic_robots[i];
           if (!e->is_teammate && e->collide_with_ball) {
-            score -= 1e7;
+            score -= 1e4;
           }
-        }*/
+        }
 
         if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
           const int cell_x = std::clamp((int) ((ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
@@ -1613,18 +1613,18 @@ struct SmartSimulator {
         //  score += 1;
         //}
 
-        /*for (int i = 0; i < static_robots_size; ++i) {
+        for (int i = 0; i < static_robots_size; ++i) {
           auto& e = static_robots[i];
           if (!e->is_teammate && e->static_event_ptr->collide_with_ball) {
-            score -= 1e7;
+            score -= 1e4;
           }
         }
         for (int i = 0; i < dynamic_robots_size; ++i) {
           auto& e = dynamic_robots[i];
           if (!e->is_teammate && e->collide_with_ball) {
-            score -= 1e7;
+            score -= 1e4;
           }
-        }*/
+        }
 
         /*if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
           const int cell_x = std::clamp((int) ((ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
