@@ -292,7 +292,7 @@ void updateRoles() {
       e.fromRobot(robot);
       double dist = (Point{0,
           1,
-          42} - e.state.position).length();
+          -42} - e.state.position).length();
       if (robot.id != closest_to_goal && dist < closest_distance_to_goal) {
         closest_distance_to_goal = dist;
         closest_to_goal2 = robot.id;
