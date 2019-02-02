@@ -1401,8 +1401,8 @@ struct SmartSimulator {
 
         const double& dist_to_goal = ball->getState().position.z - (-42);
         const double& height_to_goal = ball->getState().position.y;
-        if (dist_to_goal + height_to_goal < 10) {
-          const double goal_score = (10 - (dist_to_goal + height_to_goal)) * 1e9;
+        if (dist_to_goal + height_to_goal < 15) {
+          const double goal_score = (15 - (dist_to_goal + height_to_goal)) * 1e9;
           score -= goal_score;
         }
 
@@ -1595,8 +1595,8 @@ struct SmartSimulator {
 
         const double& dist_to_goal = ball->getState().position.z - (-42);
         const double& height_to_goal = ball->getState().position.y;
-        if (dist_to_goal + height_to_goal < 10) {
-          const double goal_score = (10 - (dist_to_goal + height_to_goal)) * 1e9;
+        if (dist_to_goal + height_to_goal < 15) {
+          const double goal_score = (15 - (dist_to_goal + height_to_goal)) * 1e9;
           score -= goal_score;
         }
 

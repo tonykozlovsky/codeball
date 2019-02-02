@@ -426,11 +426,11 @@ void doStrategy() {
         }
       }
 
-      //for (;; iteration++) {
-        //if (iteration > iterations[id]) {
-        //  break;
-        //}
-        for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
+      for (;; iteration++) {
+        if (iteration > iterations[id]) {
+          break;
+        }
+        //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
 
@@ -578,7 +578,7 @@ void doStrategy() {
             }
 
             multiplier *= 0.999;
-            const double g_mult = 0.85;
+            const double g_mult = 0.9;
             goal_multiplier *= g_mult * g_mult;
           }
 
