@@ -1439,7 +1439,7 @@ struct SmartSimulator {
         }
         //score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
         //score += 1e3 * ball->getState().position.z;
-        if (is_fighter) {
+        if (1 || is_fighter) {
           double my_dist = (main_robot->state.position - Point{
               0,
               1,
