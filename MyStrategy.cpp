@@ -282,8 +282,8 @@ void updateRoles() {
     }
   }
 
-  int closest_to_ball;
-  double closest_distance_to_ball = 1e9;
+  int closest_to_goal2;
+  closest_distance_to_goal = 1e9;
   Entity ball;
   ball.fromBall(H::game.ball);
   for (auto& robot : H::game.robots) {
@@ -293,9 +293,9 @@ void updateRoles() {
       double dist = (Point{0,
           1,
           42} - e.state.position).length();
-      if (robot.id != closest_to_goal && dist < closest_distance_to_ball) {
-        closest_distance_to_ball = dist;
-        closest_to_ball = robot.id;
+      if (robot.id != closest_to_goal && dist < closest_distance_to_goal) {
+        closest_distance_to_goal = dist;
+        closest_to_goal2 = robot.id;
       }
     }
   }
@@ -303,16 +303,16 @@ void updateRoles() {
   int other;
   for (auto& robot : H::game.robots) {
     if (robot.is_teammate) {
-      if (robot.id != closest_to_ball && robot.id != closest_to_goal) {
+      if (robot.id != closest_to_goal2 && robot.id != closest_to_goal) {
         other = robot.id;
       }
     }
   }
   H::role[H::getRobotLocalIdByGlobal(closest_to_goal)] = H::DEFENDER;
   //P::logn("def: ", closest_to_goal);
-  H::role[H::getRobotLocalIdByGlobal(closest_to_ball)] = H::FIGHTER;
+  H::role[H::getRobotLocalIdByGlobal(closest_to_goal2)] = H::SEMI;
   //P::logn("fi: ", closest_to_ball);
-  H::role[H::getRobotLocalIdByGlobal(other)] = H::SEMI;
+  H::role[H::getRobotLocalIdByGlobal(other)] = H::FIGHTER;
   //P::logn("semi: ", other);
 }
 
@@ -406,11 +406,11 @@ void doStrategy() {
         }
       }
 
-      //for (;; iteration++) {
-      //  if (iteration > iterations[id]) {
-      //    break;
-      //  }
-        for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
+      for (;; iteration++) {
+        if (iteration > iterations[id]) {
+          break;
+        }
+        //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
 
