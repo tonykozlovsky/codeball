@@ -103,7 +103,7 @@ struct Plan {
       fighter_closest_enemy_last = 0;
     }
 
-  } score;
+  } score[3];
 
   Plan() {}
 
@@ -318,7 +318,9 @@ struct Plan {
 
     calcVelocities();
 
-    score.minimal();
+    for (int i = 0; i < 3; ++i) {
+      score[i].minimal();
+    }
   }
 
   inline void calcVelocities() {
@@ -508,11 +510,15 @@ struct Plan {
     }
 
     calcVelocities();
-    score.minimal();
+    for (int i = 0; i < 3; ++i) {
+      score[i].minimal();
+    }
   }
 
   void clearAndShift(const int simulation_depth) {
-    score.minimal();
+    for (int i = 0; i < 3; ++i) {
+      score[i].minimal();
+    }
 
     was_jumping = false;
     was_on_ground_after_jumping = false;
@@ -600,7 +606,13 @@ struct Plan {
     }
   }
   bool operator<(const Plan& other) const {
-    return score < other.score;
+    return
+        score[0].score()
+        + score[1].score()
+        + score[2].score() <
+        other.score[0].score()
+        + other.score[1].score()
+        + other.score[2].score();
   }
 };
 
