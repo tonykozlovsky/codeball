@@ -1378,7 +1378,12 @@ struct SmartSimulator {
   // 1.2.6 try two vectors3d without nitro
 
 
-  double getSumScoreFighter(const int tick_number, const double goal_multiplier, const bool ball_on_my_side, bool is_fighter) {
+  double getSumScoreFighter(
+      const int tick_number,
+      const double goal_multiplier,
+      const bool ball_on_my_side,
+      bool is_fighter,
+      const Point& next_point) {
     double score = 0;
 
     if (H::cur_round_tick >= 50) {
@@ -1439,7 +1444,7 @@ struct SmartSimulator {
         }
         //score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
         //score += 1e3 * ball->getState().position.z;
-        if (!is_fighter) {
+        /*if (!is_fighter) {
           double my_dist = (main_robot->state.position - Point{
               0,
               1,
@@ -1452,7 +1457,8 @@ struct SmartSimulator {
         } else {
 
           score -= 10 * (main_robot->state.position - ball->states[C::MAX_SIMULATION_DEPTH].position).length();
-        }
+        }*/
+        score -= 10 * (main_robot->state.position - next_point).length();
       }
 
     } else {

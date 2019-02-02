@@ -383,6 +383,25 @@ void doStrategy() {
         need_minimax = true;
       }
 
+      int i = 1;
+      while (i < C::MAX_SIMULATION_DEPTH
+          && simulator_one.ball->states[i].position.y > simulator_one.ball->states[i - 1].position.y) {
+        ++i;
+      }
+      while (i < C::MAX_SIMULATION_DEPTH
+          && simulator_one.ball->states[i].position.y < simulator_one.ball->states[i - 1].position.y) {
+        ++i;
+      }
+
+      Point next_point = simulator_one.ball->states[i].position;
+
+      // P::drawSphere(next_point, 2);
+
+      next_point.z -= 15;
+
+      // P::drawSphere(next_point, 2);
+
+
       if (id == 0) {
         for (int i = 0; i < C::MAX_SIMULATION_DEPTH; ++i) {
           if (simulator_one.ball->states[i].position.z < -0.01
@@ -527,7 +546,7 @@ void doStrategy() {
             }
 
             if (H::role[id] == H::FIGHTER) {
-              cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick, goal_multiplier, ball_on_my_side, true) * multiplier;
+              cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick, goal_multiplier, ball_on_my_side, true, next_point) * multiplier;
               cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
               cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
               cur_plan.score.fighter_closest_enemy_ever = std::min(simulator.getMinDistToEnemyScore() * multiplier, cur_plan.score.fighter_closest_enemy_ever);
@@ -545,7 +564,7 @@ void doStrategy() {
                 cur_plan.score.defender_last_dist_from_goal = simulator.getMinDistFromGoalScoreDefender();
               }
             } else if (H::role[id] == H::SEMI) {
-              cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick, goal_multiplier, ball_on_my_side, false) * multiplier;
+              cur_plan.score.sum_score += simulator.getSumScoreFighter(sim_tick, goal_multiplier, ball_on_my_side, false, next_point) * multiplier;
               cur_plan.score.fighter_min_dist_to_ball = std::min(simulator.getMinDistToBallScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_ball);
               cur_plan.score.fighter_min_dist_to_goal = std::min(simulator.getMinDistToGoalScoreFighter() * multiplier, cur_plan.score.fighter_min_dist_to_goal);
               cur_plan.score.fighter_closest_enemy_ever = std::min(simulator.getMinDistToEnemyScore() * multiplier, cur_plan.score.fighter_closest_enemy_ever);
