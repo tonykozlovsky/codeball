@@ -395,12 +395,12 @@ void doStrategy() {
 
       Point next_point = simulator_one.ball->states[i].position;
 
-      // P::drawSphere(next_point, 2);
+      //P::drawSphere(next_point, 2);
 
       next_point.z -= 20;
       next_point.y = 1;
 
-      // P::drawSphere(next_point, 2);
+      //P::drawSphere(next_point, 2);
 
 
       if (id == 0) {
