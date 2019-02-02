@@ -433,10 +433,10 @@ void doStrategy() {
         }
       }
 
-      for (;iteration < min_iterations[id]
-          || (iteration < max_iterations[id]
-              && H::global_timer.getCumulative(true) < available_time_prefix[id]); iteration++) {
-      // for (; iteration < iterations[id]; iteration++) {
+      //for (;iteration < min_iterations[id]
+      //    || (iteration < max_iterations[id]
+      //        && H::global_timer.getCumulative(true) < available_time_prefix[id]); iteration++) {
+      for (; iteration < iterations[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
 
