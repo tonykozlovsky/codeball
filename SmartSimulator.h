@@ -1388,7 +1388,7 @@ struct SmartSimulator {
 
     if (H::cur_round_tick >= 50) {
       if (goal_info.goal_to_me) {
-        score += tick_number == goal_info.goal_tick ? -1e12 : 0;
+        score += tick_number == goal_info.goal_tick ? -1e13 : 0;
       } else if (goal_info.goal_to_enemy) {
         //const double& height = ball->getState().position.y;
         //const double& height_score = 1e3 + 1e3 * ((height - 2) / 6.);
@@ -1400,8 +1400,8 @@ struct SmartSimulator {
 
         const double& dist_to_goal = ball->getState().position.z - (-42);
         const double& height_to_goal = ball->getState().position.y;
-        if (dist_to_goal + height_to_goal < 15) {
-          const double goal_score = (15 - (dist_to_goal + height_to_goal)) * 1e9;
+        if (dist_to_goal + height_to_goal < 22) {
+          const double goal_score = (22 - (dist_to_goal + height_to_goal)) * 1e9;
           score -= goal_score;
         }
 
@@ -1587,7 +1587,7 @@ struct SmartSimulator {
     double score = 0;
     if (H::cur_round_tick >= 45) {
       if (goal_info.goal_to_me) {
-        score += tick_number == goal_info.goal_tick ? -1e12 : 0;
+        score += tick_number == goal_info.goal_tick ? -1e13 : 0;
       } else if (goal_info.goal_to_enemy) {
         score += tick_number == goal_info.goal_tick ? 1e3 : 0;
       }
@@ -1595,8 +1595,8 @@ struct SmartSimulator {
 
         const double& dist_to_goal = ball->getState().position.z - (-42);
         const double& height_to_goal = ball->getState().position.y;
-        if (dist_to_goal + height_to_goal < 15) {
-          const double goal_score = (15 - (dist_to_goal + height_to_goal)) * 1e9;
+        if (dist_to_goal + height_to_goal < 22) {
+          const double goal_score = (22 - (dist_to_goal + height_to_goal)) * 1e9;
           score -= goal_score;
         }
 
@@ -1626,7 +1626,7 @@ struct SmartSimulator {
           }
         }*/
 
-        if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
+        /*if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
           const int cell_x = std::clamp((int) ((ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
           const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
           const int cell_z = std::clamp((int) ((ball->getState().position.z + 50. - 1.) / 2.), 0, 98);
@@ -1639,7 +1639,7 @@ struct SmartSimulator {
               + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
               + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
           score -= 1e4 * sum;
-        }
+        }*/
       }
     }
 
