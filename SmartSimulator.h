@@ -1586,7 +1586,7 @@ struct SmartSimulator {
       }
       if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
-        if (ball->getState().position.z < 0) {
+        if (ball->states[0].position.z < 0) {
           const double& dist_to_goal = ball->getState().position.z - (-42);
           const double& height_to_goal = ball->getState().position.y;
           if (dist_to_goal + height_to_goal < 22) {
