@@ -1382,8 +1382,7 @@ struct SmartSimulator {
       const int tick_number,
       const double goal_multiplier,
       const bool ball_on_my_side,
-      bool is_fighter,
-      const Point& next_point) {
+      bool is_fighter) {
     double score = 0;
 
     if (H::cur_round_tick >= 50) {
@@ -1401,8 +1400,7 @@ struct SmartSimulator {
         const double& dist_to_goal = ball->getState().position.z - (-42);
         const double& height_to_goal = ball->getState().position.y;
         if (dist_to_goal + height_to_goal < 22) {
-          const double goal_score = (22 - (dist_to_goal + height_to_goal)) * 1e9;
-          score -= goal_score;
+          score -= (22 - (dist_to_goal + height_to_goal)) * 1e9;
         }
 
         if (!main_robot->state.touch) {
@@ -1452,20 +1450,15 @@ struct SmartSimulator {
         }
         //score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
         //score += 1e3 * ball->getState().position.z;
-        if (1 || is_fighter) {
-          double my_dist = (main_robot->state.position - Point{
+          const double& my_dist = (main_robot->state.position - Point{
               0,
               1,
-              -C::rules.arena.depth / 2 - 2}).length();
-          double ball_dist = (ball->getState().position - Point{
+              -50}).length();
+          const double& ball_dist = (ball->getState().position - Point{
               0,
               1,
-              -C::rules.arena.depth / 2 - 2}).length();
+              -50}).length();
           score -= 10 * (std::max(0., my_dist - ball_dist));
-        } else {
-
-          score -= 10 * (main_robot->state.position - ball->states[C::MAX_SIMULATION_DEPTH].position).length();
-        }
       }
 
     } else {
@@ -1596,8 +1589,7 @@ struct SmartSimulator {
         const double& dist_to_goal = ball->getState().position.z - (-42);
         const double& height_to_goal = ball->getState().position.y;
         if (dist_to_goal + height_to_goal < 22) {
-          const double goal_score = (22 - (dist_to_goal + height_to_goal)) * 1e9;
-          score -= goal_score;
+          score -= (22 - (dist_to_goal + height_to_goal)) * 1e9;
         }
 
         if (!main_robot->state.touch) {

@@ -29,6 +29,8 @@ struct H {
   static double time_limit;
   static double cur_tick_remaining_time;
 
+  static double min_iterations;
+  static double max_iterations;
   static double sum_iterations;
   static double iterations_k;
 
@@ -81,15 +83,27 @@ struct H {
       cur_round_tick = 0;
       C::rd.seed(229);
     }
+    bool output = false;
     for (auto& player : game.players) {
       if (player_score[player.id - 1] != player.score) {
         player_score[player.id - 1] = player.score;
-        waiting_ticks = 119;
-        cur_round_tick = -119;
-        std::cout << int(sum_iterations / iterations_k) << " ";
-        sum_iterations = 0;
-        iterations_k = 0;
+        output = true;
       }
+    }
+    if (output || tick == 17999) {
+      waiting_ticks = 119;
+      cur_round_tick = -119;
+      if (player_score[0] + player_score[1] < 8) {
+        std::cout << int(sum_iterations / iterations_k) << " "
+                  << int(min_iterations) << " " << int(max_iterations) << "\n";
+      } else {
+        std::cerr << int(sum_iterations / iterations_k) << " "
+                  << int(min_iterations) << " " << int(max_iterations) << "\n";
+      }
+      min_iterations = 1e9;
+      max_iterations = 0;
+      sum_iterations = 0;
+      iterations_k = 0;
     }
     if (waiting_ticks > 0) {
       waiting_ticks--;

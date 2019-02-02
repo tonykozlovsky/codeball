@@ -28,6 +28,8 @@ int H::player_score[2];
 int H::waiting_ticks;
 double H::time_limit;
 double H::cur_tick_remaining_time;
+double H::min_iterations = 1e9;
+double H::max_iterations = 0;
 double H::sum_iterations = 0;
 double H::iterations_k = 0;
 Point H::prev_velocity[7];
