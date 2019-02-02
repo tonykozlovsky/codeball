@@ -1388,7 +1388,7 @@ struct SmartSimulator {
 
     if (H::cur_round_tick >= 50) {
       if (goal_info.goal_to_me) {
-        score += tick_number == goal_info.goal_tick ? -1e11 : 0;
+        score += tick_number == goal_info.goal_tick ? -1e12 : 0;
       } else if (goal_info.goal_to_enemy) {
         //const double& height = ball->getState().position.y;
         //const double& height_score = 1e3 + 1e3 * ((height - 2) / 6.);
@@ -1399,8 +1399,8 @@ struct SmartSimulator {
       if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
         const double& dist_to_goal = ball->getState().position.z - (-42);
-        if (dist_to_goal < 10) {
-          const double goal_score = (10 - dist_to_goal) * 1e9;
+        if (dist_to_goal < 4) {
+          const double goal_score = (4 - dist_to_goal) * 1e9;
           score -= goal_score;
         }
 
@@ -1585,15 +1585,15 @@ struct SmartSimulator {
     double score = 0;
     if (H::cur_round_tick >= 45) {
       if (goal_info.goal_to_me) {
-        score += tick_number == goal_info.goal_tick ? -1e11 : 0;
+        score += tick_number == goal_info.goal_tick ? -1e12 : 0;
       } else if (goal_info.goal_to_enemy) {
         score += tick_number == goal_info.goal_tick ? 1e3 : 0;
       }
       if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
         const double& dist_to_goal = ball->getState().position.z - (-42);
-        if (dist_to_goal < 10) {
-          const double goal_score = (10 - dist_to_goal) * 1e9;
+        if (dist_to_goal < 4) {
+          const double goal_score = (4 - dist_to_goal) * 1e9;
           score -= goal_score;
         }
 
