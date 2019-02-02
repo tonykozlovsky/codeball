@@ -90,7 +90,7 @@ struct H {
         output = true;
       }
     }
-    if (output || tick == 17999) {
+    if (output) {
       waiting_ticks = 119;
       cur_round_tick = -119;
       if (player_score[0] + player_score[1] < 8) {

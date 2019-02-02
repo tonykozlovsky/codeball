@@ -364,7 +364,10 @@ void doStrategy() {
     clearBestPlans();
 
     int min_time_for_enemy_to_hit_the_ball = enemiesPrediction();
+    int cur_iterations = 0;
 
+    int min_iterations[3] = {150 * 2, 150 * 2, 150 * 2};
+    int max_iterations[3] = {400 * 2, 400 * 2, 400 * 2};
     int iterations[3] = {200 * 2, 200 * 2, 200 * 2};
     //P::logn(H::cur_tick_remaining_time);
     double available_time[3] = {0, 0, 0};
@@ -415,8 +418,12 @@ void doStrategy() {
             if (H::role[i] == H::DEFENDER) {
               available_time[i] = 0.1 * H::cur_tick_remaining_time;
               iterations[i] = 50 * 2;
+              min_iterations[i] = 50 * 2;
+              max_iterations[i] = 50 * 2;
             } else {
               iterations[i] = 275 * 2;
+              min_iterations[i] = 200 * 2;
+              max_iterations[i] = 575 * 2;
               available_time[i] = 0.45 * H::cur_tick_remaining_time;
             }
           }
@@ -426,11 +433,10 @@ void doStrategy() {
         }
       }
 
-      //for (;; iteration++) {
-        //if (iteration > iterations[id]) {
-        //  break;
-        //}
-        for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
+      for (;iteration < min_iterations[id]
+          || (iteration < max_iterations[id]
+              && H::global_timer.getCumulative(true) < available_time_prefix[id]); iteration++) {
+        //for (; iteration < iterations[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
 
@@ -606,9 +612,7 @@ void doStrategy() {
 
         H::best_plan[id] = std::max(H::best_plan[id], std::min(cur_plan_one, cur_plan_two));
       }
-
-      H::min_iterations = std::min(H::min_iterations, (double)iteration);
-      H::max_iterations = std::max(H::max_iterations, (double)iteration);
+      cur_iterations += iteration;
       H::sum_iterations += iteration;
 #ifdef DEBUG
       if (H::role[id] == H::DEFENDER) {
@@ -663,6 +667,8 @@ void doStrategy() {
       }
 #endif
     }
+    H::min_iterations = std::min(H::min_iterations, (double)cur_iterations);
+    H::max_iterations = std::max(H::max_iterations, (double)cur_iterations);
     H::iterations_k += 1;
 
 #ifndef FROM_LOG
