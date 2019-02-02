@@ -311,7 +311,7 @@ void updateRoles() {
   H::role[H::getRobotLocalIdByGlobal(closest_to_goal)] = H::DEFENDER;
   //P::logn("def: ", closest_to_goal);
   H::role[H::getRobotLocalIdByGlobal(closest_to_goal2)] = H::SEMI;
-  //P::logn("fi: ", closest_to_ball);
+  //P::logn("fi: ", closest_to_goal2);
   H::role[H::getRobotLocalIdByGlobal(other)] = H::FIGHTER;
   //P::logn("semi: ", other);
 }

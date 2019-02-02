@@ -1398,7 +1398,6 @@ struct SmartSimulator {
       }
       if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
-
         const double& dist_to_goal = ball->getState().position.z - (-42);
         const double& height_to_goal = ball->getState().position.y;
         if (dist_to_goal + height_to_goal < 15) {
@@ -1626,7 +1625,7 @@ struct SmartSimulator {
           }
         }*/
 
-        if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
+        /*if (tick_number < C::ENEMY_SIMULATION_DEPTH) {
           const int cell_x = std::clamp((int) ((ball->getState().position.x + 30. - 1.) / 2.), 0, 58);
           const int cell_y = std::clamp((int) ((ball->getState().position.y - 1.) / 2.), 0, 18);
           const int cell_z = std::clamp((int) ((ball->getState().position.z + 50. - 1.) / 2.), 0, 98);
@@ -1639,7 +1638,7 @@ struct SmartSimulator {
               + H::danger_grid[cell_x][cell_y + 1][cell_z + 1][tick_number]
               + H::danger_grid[cell_x + 1][cell_y + 1][cell_z + 1][tick_number];
           score -= 1e4 * sum;
-        }
+        }*/
       }
     }
 
