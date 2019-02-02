@@ -1387,7 +1387,7 @@ struct SmartSimulator {
 
     if (H::cur_round_tick >= 50) {
       if (goal_info.goal_to_me) {
-        score += tick_number == goal_info.goal_tick ? -1e13 : 0;
+        score += tick_number == goal_info.goal_tick ? -1e12 : 0;
       } else if (goal_info.goal_to_enemy) {
         //const double& height = ball->getState().position.y;
         //const double& height_score = 1e3 + 1e3 * ((height - 2) / 6.);
@@ -1399,8 +1399,9 @@ struct SmartSimulator {
 
         const double& dist_to_goal = ball->getState().position.z - (-42);
         const double& height_to_goal = ball->getState().position.y;
-        if (dist_to_goal + height_to_goal < 22) {
-          score -= (22 - (dist_to_goal + height_to_goal)) * 1e9;
+        if (dist_to_goal + height_to_goal < 15) {
+          const double goal_score = (15 - (dist_to_goal + height_to_goal)) * 1e9;
+          score -= goal_score;
         }
 
         if (!main_robot->state.touch) {
@@ -1450,15 +1451,20 @@ struct SmartSimulator {
         }
         //score -= 10 * (std::max(0., main_robot->state.position.z - ball->getState().position.z));
         //score += 1e3 * ball->getState().position.z;
-          const double& my_dist = (main_robot->state.position - Point{
+        if (1 || is_fighter) {
+          double my_dist = (main_robot->state.position - Point{
               0,
               1,
-              -42}).length();
-          const double& ball_dist = (ball->getState().position - Point{
+              -C::rules.arena.depth / 2 - 2}).length();
+          double ball_dist = (ball->getState().position - Point{
               0,
               1,
-              -42}).length();
+              -C::rules.arena.depth / 2 - 2}).length();
           score -= 10 * (std::max(0., my_dist - ball_dist));
+        } else {
+
+          score -= 10 * (main_robot->state.position - ball->states[C::MAX_SIMULATION_DEPTH].position).length();
+        }
       }
 
     } else {
@@ -1580,18 +1586,17 @@ struct SmartSimulator {
     double score = 0;
     if (H::cur_round_tick >= 45) {
       if (goal_info.goal_to_me) {
-        score += tick_number == goal_info.goal_tick ? -1e13 : 0;
+        score += tick_number == goal_info.goal_tick ? -1e12 : 0;
       } else if (goal_info.goal_to_enemy) {
         score += tick_number == goal_info.goal_tick ? 1e3 : 0;
       }
       if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
-        if (ball->states[0].position.z < 0) {
-          const double& dist_to_goal = ball->getState().position.z - (-42);
-          const double& height_to_goal = ball->getState().position.y;
-          if (dist_to_goal + height_to_goal < 22) {
-            score -= (22 - (dist_to_goal + height_to_goal)) * 1e9;
-          }
+        const double& dist_to_goal = ball->getState().position.z - (-42);
+        const double& height_to_goal = ball->getState().position.y;
+        if (dist_to_goal + height_to_goal < 15) {
+          const double goal_score = (15 - (dist_to_goal + height_to_goal)) * 1e9;
+          score -= goal_score;
         }
 
         if (!main_robot->state.touch) {
