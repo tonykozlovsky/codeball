@@ -298,7 +298,7 @@ struct Plan {
       cos_lat1 = cos(asin(y1 / 100.));
 
       max_speed = 100.;
-      max_jump_speed = (jump_speed == 0) ? (is_dribler ? 0 : 15) : jump_speed;
+      max_jump_speed = (jump_speed == 0) ? 15 : jump_speed;
 
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
@@ -310,7 +310,7 @@ struct Plan {
       cos_lat1 = cos(asin(y1 / 100.));
 
       max_speed = 100.;
-      max_jump_speed = (jump_speed == 0) ? (is_dribler ? 15 : 0) : 0;
+      max_jump_speed = 0;
 
       time_nitro_on = 0;
       time_nitro_off = simulation_depth;
