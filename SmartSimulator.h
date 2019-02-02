@@ -1398,9 +1398,11 @@ struct SmartSimulator {
       }
       if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
+
         const double& dist_to_goal = ball->getState().position.z - (-42);
-        if (dist_to_goal < 4) {
-          const double goal_score = (4 - dist_to_goal) * 1e9;
+        const double& height_to_goal = ball->getState().position.y;
+        if (dist_to_goal + height_to_goal < 10) {
+          const double goal_score = (10 - (dist_to_goal + height_to_goal)) * 1e9;
           score -= goal_score;
         }
 
@@ -1592,8 +1594,9 @@ struct SmartSimulator {
       if (!(goal_info.goal_to_me || goal_info.goal_to_enemy) || tick_number <= goal_info.goal_tick) {
 
         const double& dist_to_goal = ball->getState().position.z - (-42);
-        if (dist_to_goal < 4) {
-          const double goal_score = (4 - dist_to_goal) * 1e9;
+        const double& height_to_goal = ball->getState().position.y;
+        if (dist_to_goal + height_to_goal < 10) {
+          const double goal_score = (10 - (dist_to_goal + height_to_goal)) * 1e9;
           score -= goal_score;
         }
 
