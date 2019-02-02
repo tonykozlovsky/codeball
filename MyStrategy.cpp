@@ -365,7 +365,7 @@ void doStrategy() {
 
     int min_time_for_enemy_to_hit_the_ball = enemiesPrediction();
 
-    int iterations[3] = {200 * 2, 200 * 2, 200 * 2};
+    int iterations[3] = {150 * 2, 150 * 2, 150 * 2};
     //P::logn(H::cur_tick_remaining_time);
     double available_time[3] = {0, 0, 0};
     double available_time_prefix[3] = {H::global_timer.getCumulative() + H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + 2 * H::cur_tick_remaining_time / 3, H::global_timer.getCumulative() + H::cur_tick_remaining_time};
@@ -416,7 +416,7 @@ void doStrategy() {
               available_time[i] = 0.1 * H::cur_tick_remaining_time;
               iterations[i] = 50 * 2;
             } else {
-              iterations[i] = 275 * 2;
+              iterations[i] = 200 * 2;
               available_time[i] = 0.45 * H::cur_tick_remaining_time;
             }
           }
@@ -426,11 +426,11 @@ void doStrategy() {
         }
       }
 
-      //for (;; iteration++) {
-        //if (iteration > iterations[id]) {
-        //  break;
-        //}
-        for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
+      for (;; iteration++) {
+        if (iteration > iterations[id]) {
+          break;
+        }
+        //for (; H::global_timer.getCumulative(true) < available_time_prefix[id]; iteration++) {
         int plan_type;
         double rd = C::rand_double(0, 1);
 
@@ -609,7 +609,7 @@ void doStrategy() {
 
       H::sum_iterations += iteration;
 #ifdef DEBUG
-      if (H::role[id] == H::DEFENDER) {
+      if (H::role[id] == H::FIGHTER) {
         P::logn("best plan id: ", H::best_plan[id].unique_id);
         P::logn("fighter score: ", H::best_plan[id].score.score());
         P::logn("sum_score: ", H::best_plan[id].score.sum_score);

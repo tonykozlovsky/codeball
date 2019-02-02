@@ -41,7 +41,7 @@ void RemoteProcessClient::writeline(string line) {
 
 RemoteProcessClient::RemoteProcessClient(string host, int port) {
 #ifdef FROM_LOG
-    fin = ifstream("logs/346639.log", std::ifstream::in);
+    fin = ifstream("logs/wtf.log", std::ifstream::in);
     std::string wat;
     std::getline(fin, wat);
 #endif
