@@ -397,7 +397,8 @@ void doStrategy() {
 
       // P::drawSphere(next_point, 2);
 
-      next_point.z -= 15;
+      next_point.z -= 20;
+      next_point.y = 1;
 
       // P::drawSphere(next_point, 2);
 
